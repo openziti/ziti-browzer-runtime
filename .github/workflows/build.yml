@@ -65,14 +65,14 @@ jobs:
     - name: Build
       run: npm run build
 
-    - name: Test
-      run: npm test
+    # - name: Test
+      # run: npm test
 
-    - name: Unit-test Coverage
-      run: npm run coverage
+    # - name: Unit-test Coverage
+      # run: npm run coverage
 
-    - name: Unit-test Coverage Report
-      run: npm run coverage-report
+    # - name: Unit-test Coverage Report
+      # run: npm run coverage-report
 
 # not yet
     # - name: Publish beta release

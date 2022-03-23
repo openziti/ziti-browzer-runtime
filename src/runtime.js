@@ -15,13 +15,10 @@ limitations under the License.
 */
 
 
+import { ZitiBrowzerCore } from '@openziti/ziti-browzer-core';
 
-window.realFetch          = window.fetch;
-window.realXMLHttpRequest = window.XMLHttpRequest;
-window.realWebSocket      = window.WebSocket;
-window.realInsertBefore   = Element.prototype.insertBefore;
-window.realAppendChild    = Element.prototype.appendChild;
-window.realSetAttribute   = Element.prototype.setAttribute;
+import { isNull } from 'lodash-es';
+
 
 
 /**
@@ -29,7 +26,16 @@ window.realSetAttribute   = Element.prototype.setAttribute;
  */
 class ZitiBrowzerRuntime {
 
-  constructor() {
+  /**
+   * 
+   * @param {*} options 
+   * 
+   */
+  constructor(options) {
+    
+    this._zitiBrowzerCore = new ZitiBrowzerCore(options);
+    this.logger = this._zitiBrowzerCore;
+    this.logger.info(`ZitiBrowzerRuntime ctor entered`);
 
   }
 
@@ -38,47 +44,57 @@ class ZitiBrowzerRuntime {
    * Initialize.
    *
    * @param {Options} [options]
-   * @return {ZitiContext}
-   * @api public
+   * 
    */
-  async init(options) {
+  async initialize(options) {
+
+    this.logger.info(`ZitiBrowzerRuntime.initialize entered`);
+
+    this._zitiBrowzerContext = this._zitiBrowzerCore.createZitiContext(options);
+
+    await this._zitiBrowzerContext.initialize(); // this instantiates the internal WebAssembly
+
+    this.logger.info(`ZitiBrowzerRuntime.initialize _zitiBrowzerContext has been initialized`);
 
   };
 
 }
 
-const ziti = new ZitiBrowzerRuntime();
+
+(async () => {
+
+  const ziti = new ZitiBrowzerRuntime();
+  ziti.initialize({});
+
+  if ('serviceWorker' in navigator) {
+
+    if (isNull(navigator.serviceWorker.controller)) {
+  
+      /**
+       *  Service Worker registration
+       */
+      navigator.serviceWorker.register('https://' + zitiConfig.httpAgent.self.host + '/ziti-browzer-sw.js', {scope: './'} ).then( function( reg ) {
+  
+          if (navigator.serviceWorker.controller) {
+              // If .controller is set, then this page is being actively controlled by our service worker.
+              console.log('The Ziti service worker is now registered.');
+  
+          } else {
+              // If .controller isn't set, then prompt the user to reload the page so that the service worker can take
+              // control. Until that happens, the service worker's fetch handler won't be used.
+              ziti.logger.info('Please reload this page to allow the Ziti service worker to handle network operations.');
+          }
+      }).catch(function(error) {
+          // Something went wrong during registration.
+          console.error(error);
+      });
+  
+    }
+      
+  } else {
+    console.error("The current browser doesn't support service workers");
+  }  
 
 
-module.exports = ziti;
+})();
 
-
-
-if ('serviceWorker' in navigator) {
-
-  if (isNull(navigator.serviceWorker.controller)) {
-
-    /**
-     *  Service Worker registration
-     */
-    navigator.serviceWorker.register('https://' + zitiConfig.httpAgent.self.host + '/ziti-browzer-sw.js', {scope: './'} ).then( function( reg ) {
-
-        if (navigator.serviceWorker.controller) {
-            // If .controller is set, then this page is being actively controlled by our service worker.
-            console.log('The Ziti service worker is now registered.');
-
-        } else {
-            // If .controller isn't set, then prompt the user to reload the page so that the service worker can take
-            // control. Until that happens, the service worker's fetch handler won't be used.
-            // console.log('Please reload this page to allow the Ziti service worker to handle network operations.');
-        }
-    }).catch(function(error) {
-        // Something went wrong during registration.
-        console.error(error);
-    });
-
-  }
-    
-} else {
-  console.error("The current browser doesn't support service workers");
-}

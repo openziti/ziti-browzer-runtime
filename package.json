@@ -91,7 +91,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.17.8",
-    "@openziti/ziti-browzer-core": "^0.1.5",
+    "@openziti/ziti-browzer-core": "^0.2.5",
     "core-js": "^3.21.1",
     "lodash-es": "^4.17.21"
   }

@@ -27,7 +27,7 @@
 [![Build](https://github.com/openziti/ziti-browzer-runtime/workflows/Build/badge.svg?branch=main)]()
 [![Issues](https://img.shields.io/github/issues-raw/openziti/ziti-browzer-runtime)]()
 [![npm version](https://badge.fury.io/js/@openziti%2Fziti-browzer-runtime.svg)](https://badge.fury.io/js/@openziti%2Fziti-browzer-runtime.svg)
-[![Known Vulnerabilities](https://snyk-widget.herokuapp.com/badge/npm/%40openziti%2Flibcrypto.js/badge.svg)](https://snyk-widget.herokuapp.com/badge/npm/%40openziti%2Flibcrypto.js/badge.svg)
+[![Known Vulnerabilities](https://snyk-widget.herokuapp.com/badge/npm/%40openziti%2Fziti-browzer-runtime/badge.svg)](https://snyk-widget.herokuapp.com/badge/npm/%40openziti%2Fziti-browzer-runtime/badge.svg)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![](https://data.jsdelivr.com/v1/package/npm/@openziti/ziti-browzer-runtime/badge?style=rounded)](https://www.jsdelivr.com/package/npm/@openziti/ziti-browzer-runtime)
 [![LOC](https://img.shields.io/tokei/lines/github/openziti/ziti-browzer-runtime)]()

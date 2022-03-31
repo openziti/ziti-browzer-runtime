@@ -2,8 +2,10 @@
 import babel from "rollup-plugin-babel";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 // import esformatter from 'rollup-plugin-esformatter';
-// import json from '@rollup/plugin-json';
+import json from '@rollup/plugin-json';
 // import commonjs from '@rollup/plugin-commonjs';
+import prettier from 'rollup-plugin-prettier';
+
 
 
 
@@ -18,9 +20,13 @@ let plugins = [
   babel({
     exclude: "node_modules/**"
   }),
-  // json(),
+  json(),
   // commonjs(),
   // terser(),
+  prettier({
+    tabWidth: 2,
+    singleQuote: false,
+  }),
 ];
 
 export default [

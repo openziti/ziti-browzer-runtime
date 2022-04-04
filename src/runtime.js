@@ -17,6 +17,8 @@ limitations under the License.
 import { ZitiBrowzerCore } from '@openziti/ziti-browzer-core';
 import {Workbox} from'workbox-window';
 import { isNull } from 'lodash-es';
+import jwt_decode from "jwt-decode";
+import { Base64 } from 'js-base64';
 
 import pjson from '../package.json';
 import { flatOptions } from './utils/flat-options'
@@ -52,11 +54,46 @@ class ZitiBrowzerRuntime {
     let _options = flatOptions(options, defaultOptions);
 
     this.version        = _options.version;
-    this.logLevel       = _options.logLevel;
     this.core           = _options.core;
-    this.wb             = _options.wb;
-    this.controllerApi  = _options.controllerApi;
 
+    this.zitiConfig     = this.getZitiConfig();
+
+    this.logLevel       = this.zitiConfig.browzer.runtime.logLevel
+    this.controllerApi  = this.zitiConfig.controller.api
+
+    this.wb             = new Workbox(
+      'https://' + this.zitiConfig.httpAgent.self.host + '/' 
+      + this.zitiConfig.browzer.sw.location 
+      + '?controllerApi=' + encodeURIComponent(this.zitiConfig.controller.api)
+      + '&logLevel='      + encodeURIComponent(this.zitiConfig.browzer.sw.logLevel)
+    );
+
+  }
+
+
+  /**
+   * Extract the zitiConfig object from the Cookie sent from HTTP Agent
+   */
+  getZitiConfig() {
+
+    let zitiConfig = this.getCookie('__Secure-ziti-browzer-config');
+    zitiConfig = decodeURIComponent(zitiConfig);
+    zitiConfig = Base64.decode(zitiConfig);
+    zitiConfig = JSON.parse(zitiConfig);
+
+    return zitiConfig;
+  }
+
+
+  /**
+   * Extract the JWT object from the Cookie sent from HTTP Agent
+   */
+   getJWT() {
+
+    let jwt = this.getCookie('__Secure-ziti-browzer-jwt');
+    let decodedJWT = jwt_decode(jwt);
+
+    return decodedJWT;
   }
 
 
@@ -74,20 +111,20 @@ class ZitiBrowzerRuntime {
     });
     this.logger.trace(`ZitiLogger created`);
 
+    this.zitiConfig.decodedJWT = this.getJWT();
+
     this.context = this.core.createZitiContext({
-      logger: this.logger,
-      controllerApi: this.controllerApi,
+
+      logger:         this.logger,
+      controllerApi:  this.controllerApi,
 
       sdkType:        pjson.name,
       sdkVersion:     pjson.version,
       sdkBranch:      buildInfo.sdkBranch,
       sdkRevision:    buildInfo.sdkRevision,
   
-      
-//TEMPvv
-      updbUser: 'admin',
-      updbPswd: 'admin',
-//TEMP^^
+      updbUser:       this.zitiConfig.decodedJWT.updbUser,
+      updbPswd:       this.zitiConfig.decodedJWT.updbPswd,
 
     });
     this.logger.trace(`ZitiContext created`);
@@ -97,6 +134,26 @@ class ZitiBrowzerRuntime {
     this.logger.trace(`ZitiContext has been initialized`);
 
   };
+
+
+  /**
+   * 
+   */
+  getCookie(name) {
+    name = name + "=";
+    let ca = document.cookie.split(';');
+    for(let i = 0; i <ca.length; i++) {
+      let c = ca[i];
+      while (c.charAt(0) == ' ') {
+        c = c.substring(1);
+      }
+      if (c.indexOf(name) == 0) {
+        return c.substring(name.length, c.length);
+      }
+    }
+    return "";
+  }
+  
 
 }
 
@@ -110,20 +167,11 @@ const zitiBrowzerRuntime = new ZitiBrowzerRuntime({
 
   version: pjson.version,
 
-  logLevel: zitiConfig.browzer.runtime.logLevel,
 
   core: new ZitiBrowzerCore({
 
   }),
 
-  controllerApi: zitiConfig.controller.api,
- 
-  wb: new Workbox(
-      'https://' + zitiConfig.httpAgent.self.host + '/' 
-      + zitiConfig.browzer.sw.location 
-      + '?controllerApi=' + encodeURIComponent(zitiConfig.controller.api)
-      + '&logLevel='      + encodeURIComponent(zitiConfig.browzer.sw.logLevel)
-  ),
 
 });
 
@@ -154,10 +202,21 @@ const zitiBrowzerRuntime = new ZitiBrowzerRuntime({
      * begin intercepting HTTP requests, as well as will be available to provide this Page a keypair.
      */
     zitiBrowzerRuntime.wb.addEventListener('installed', async event => {
-      zitiBrowzerRuntime.logger.trace(`received SW 'installed' event`);
+      zitiBrowzerRuntime.logger.info(`received SW 'installed' event`);
     
+      const swVersion = await zitiBrowzerRuntime.wb.messageSW({type: 'GET_VERSION'});
+      zitiBrowzerRuntime.logger.info(`SW version is now: ${swVersion}`);
+
+      await zitiBrowzerRuntime.wb.messageSW({
+        type: 'SET_CONFIG', 
+        payload: {
+          zitiConfig: zitiBrowzerRuntime.zitiConfig
+        } 
+      });
+
       if (!event.isUpdate) {
         setTimeout(function() {
+          zitiBrowzerRuntime.logger.debug(`################ doing page reload now ################`);
           window.location.reload();
         }, 100);
       }
@@ -177,14 +236,7 @@ const zitiBrowzerRuntime = new ZitiBrowzerRuntime({
      * 
      */
     zitiBrowzerRuntime.wb.addEventListener('activated', async event => {
-      zitiBrowzerRuntime.logger.trace(`received SW 'activated' event`);
-
-      const swVersion = await zitiBrowzerRuntime.wb.messageSW({type: 'GET_VERSION'});
-      zitiBrowzerRuntime.logger.info(`SW version is now: ${swVersion}`);
-
-      // zitiBrowzerRuntime.logger.info(`starting keypair acquisition from SW`);
-      // zitiBrowzerRuntime.keypair = await zitiBrowzerRuntime.wb.messageSW({type: 'GET_KEYPAIR'});
-      // zitiBrowzerRuntime.logger.info(`keypair successfully acquired from SW: ${keypair}`);
+      zitiBrowzerRuntime.logger.info(`received SW 'activated' event`);
     });
 
     
@@ -192,7 +244,7 @@ const zitiBrowzerRuntime = new ZitiBrowzerRuntime({
      * 
      */
     zitiBrowzerRuntime.wb.addEventListener('waiting', event => {
-      zitiBrowzerRuntime.logger.trace(`received SW 'waiting' event`);
+      zitiBrowzerRuntime.logger.info(`received SW 'waiting' event`);
     });
 
 
@@ -244,17 +296,17 @@ const zitiBrowzerRuntime = new ZitiBrowzerRuntime({
  * @return {Promise}
  * @api public
  */
- const zitiFetch = async ( url, opts ) => {
+const zitiFetch = async ( url, opts ) => {
 
     // TBD
 
- }
+}
 
 
  /**
   * 
   */
- window.fetch = zitiFetch;
+window.fetch = zitiFetch;
 //  window.XMLHttpRequest = ZitiXMLHttpRequest;
 //  window.WebSocket = ZitiWebSocketWrapper;
 

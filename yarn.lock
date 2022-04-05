@@ -1010,9 +1010,9 @@
     "@wasmer/wasi" "^1.0.2"
 
 "@openziti/ziti-browzer-core@^0.4.0":
-  version "0.4.0"
-  resolved "https://registry.yarnpkg.com/@openziti/ziti-browzer-core/-/ziti-browzer-core-0.4.0.tgz#1280aabffce0f368e9747c13b68b827031625c0e"
-  integrity sha512-8Yz/NrnULZrTLNDsi4rN1i3KcZ5Hu9HCBXl9JWf3A8a4AoVbQzTmWoz56DH4U26pPByOV4kuWsffA02sxehh8g==
+  version "0.4.1"
+  resolved "https://registry.yarnpkg.com/@openziti/ziti-browzer-core/-/ziti-browzer-core-0.4.1.tgz#fe89b2a43fc17667b7a669b60ebd40509090e868"
+  integrity sha512-yDo6379O+yeXxYD5ExMZtSnNu5YNXVBcrutUlvbZQjABLvxrCZEx/nmKxiPhSrnWazJb6HyY7ComlYP3zwI5hw==
   dependencies:
     "@openziti/libcrypto-js" "^0.6.20"
     "@openziti/ziti-browzer-edge-client" "^0.1.11"

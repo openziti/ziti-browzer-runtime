@@ -10,7 +10,7 @@
     <b>A JavaScript runtime that is auto-injected into the Page of a <a href="https://ziti.dev/blog/zitification">Zitified</a> web app.</b>
     <br>
     <br>
-    <b>Part of the <a href="https://ziti.devdev/about">OpenZiti</a> Zero Trust browZer stack</b>
+    <b>Part of the <a href="https://ziti.dev/about">OpenZiti</a> Zero Trust browZer stack</b>
 </p>
 
 <p align="center">

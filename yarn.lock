@@ -904,9 +904,9 @@
     source-map-support "^0.5.16"
 
 "@babel/runtime@^7.17.8", "@babel/runtime@^7.8.4":
-  version "7.17.8"
-  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.17.8.tgz#3e56e4aff81befa55ac3ac6a0967349fd1c5bca2"
-  integrity sha512-dQpEpK0O9o6lj6oPu0gRDbbnk+4LeHlNcBpspf6Olzt3GIX4P1lWF1gS+pHLDFlaJvbR6q7jCfQ08zA4QJBnmA==
+  version "7.17.9"
+  resolved "https://registry.yarnpkg.com/@babel/runtime/-/runtime-7.17.9.tgz#d19fbf802d01a8cb6cf053a64e472d42c434ba72"
+  integrity sha512-lSiBBvodq29uShpWGNbgFdKYNiFDo5/HIYsaCEY9ff4sb10x9jizo2+pRrSyF4jKZCXqgzuqBOQKbUm90gQwJg==
   dependencies:
     regenerator-runtime "^0.13.4"
 
@@ -3715,9 +3715,10 @@ nice-try@^1.0.4:
   resolved "https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.5.tgz#a3378a7696ce7d223e88fc9b764bd7ef1089e366"
   integrity sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==
 
-"node-forge@git+https://github.com/openziti-test-kitchen/forge.git#master":
+"node-forge@git+https://github.com/openziti-test-kitchen/forge#master":
   version "0.7.6-dev"
-  resolved "git+https://github.com/openziti-test-kitchen/forge.git#b60656a5896fb70c83f22f8f7dd7ba17cc097b34"
+  uid b60656a5896fb70c83f22f8f7dd7ba17cc097b34
+  resolved "git+https://github.com/openziti-test-kitchen/forge#b60656a5896fb70c83f22f8f7dd7ba17cc097b34"
 
 node-preload@^0.2.1:
   version "0.2.1"

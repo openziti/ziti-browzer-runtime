@@ -3715,9 +3715,10 @@ nice-try@^1.0.4:
   resolved "https://registry.yarnpkg.com/nice-try/-/nice-try-1.0.5.tgz#a3378a7696ce7d223e88fc9b764bd7ef1089e366"
   integrity sha512-1nh45deeb5olNY7eX82BkPO7SSxR5SSYJiPTrTdFUVYwAl8CKMA5N9PjTYkHiRjisVcxcQ1HXdLhx2qxxJzLNQ==
 
-"node-forge@git+https://github.com/openziti-test-kitchen/forge.git#master":
+"node-forge@git+https://github.com/openziti-test-kitchen/forge#master":
   version "0.7.6-dev"
-  resolved "git+https://github.com/openziti-test-kitchen/forge.git#b60656a5896fb70c83f22f8f7dd7ba17cc097b34"
+  uid b60656a5896fb70c83f22f8f7dd7ba17cc097b34
+  resolved "git+https://github.com/openziti-test-kitchen/forge#b60656a5896fb70c83f22f8f7dd7ba17cc097b34"
 
 node-preload@^0.2.1:
   version "0.2.1"
@@ -5216,18 +5217,18 @@ word-wrap@~1.2.3:
   resolved "https://registry.yarnpkg.com/word-wrap/-/word-wrap-1.2.3.tgz#610636f6b1f703891bd34771ccb17fb93b47079c"
   integrity sha512-Hz/mrNwitNRh/HUAtM/VT/5VH+ygD6DV7mYKZAtHOrbs8U7lvPS6xf7EJKMF0uW1KJCl0H701g3ZGus+muE5vQ==
 
-workbox-core@6.5.2:
-  version "6.5.2"
-  resolved "https://registry.yarnpkg.com/workbox-core/-/workbox-core-6.5.2.tgz#f5e06a22c6cb4651d3e13107443d972fdbd47364"
-  integrity sha512-IlxLGQf+wJHCR+NM0UWqDh4xe/Gu6sg2i4tfZk6WIij34IVk9BdOQgi6WvqSHd879jbQIUgL2fBdJUJyAP5ypQ==
+workbox-core@6.5.3:
+  version "6.5.3"
+  resolved "https://registry.yarnpkg.com/workbox-core/-/workbox-core-6.5.3.tgz#bca038a9ef0d7a634a6db2a60f45313ed22ac249"
+  integrity sha512-Bb9ey5n/M9x+l3fBTlLpHt9ASTzgSGj6vxni7pY72ilB/Pb3XtN+cZ9yueboVhD5+9cNQrC9n/E1fSrqWsUz7Q==
 
 workbox-window@^6.5.2:
-  version "6.5.2"
-  resolved "https://registry.yarnpkg.com/workbox-window/-/workbox-window-6.5.2.tgz#46d6412cd57039bdf3d5dd914ad21fb3f98fe980"
-  integrity sha512-2kZH37r9Wx8swjEOL4B8uGM53lakMxsKkQ7mOKzGA/QAn/DQTEZGrdHWtypk2tbhKY5S0jvPS+sYDnb2Z3378A==
+  version "6.5.3"
+  resolved "https://registry.yarnpkg.com/workbox-window/-/workbox-window-6.5.3.tgz#4ade70056cb73477ef1cd8fea7cfd0ecbd825c7f"
+  integrity sha512-GnJbx1kcKXDtoJBVZs/P7ddP0Yt52NNy4nocjBpYPiRhMqTpJCNrSL+fGHZ/i/oP6p/vhE8II0sA6AZGKGnssw==
   dependencies:
     "@types/trusted-types" "^2.0.2"
-    workbox-core "6.5.2"
+    workbox-core "6.5.3"
 
 workerpool@6.2.0:
   version "6.2.0"

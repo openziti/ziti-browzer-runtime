@@ -1,3 +1,12 @@
+# [0.6.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.5.0...v0.6.0) (2022-04-20)
+
+
+### Features
+
+* intercepts ([#24](https://github.com/openziti/ziti-browzer-runtime/issues/24)) ([1e27ae8](https://github.com/openziti/ziti-browzer-runtime/commit/1e27ae848867aedaee81417d411d07b82ea24b96))
+
+
+
 # [0.5.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.4.0...v0.5.0) (2022-04-12)
 
 

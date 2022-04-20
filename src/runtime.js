@@ -14,16 +14,25 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { ZitiBrowzerCore } from '@openziti/ziti-browzer-core';
+import { 
+  ZitiBrowzerCore,
+  ZitiHttpRequest,
+  HttpResponse,
+  ZitiFormData,
+  BrowserStdout,
+  http,
+} from '@openziti/ziti-browzer-core';
+
 import {Workbox} from'workbox-window';
 import { isNull } from 'lodash-es';
 import jwt_decode from "jwt-decode";
 import { Base64 } from 'js-base64';
+import { isUndefined, isEqual } from 'lodash-es';
 
 import pjson from '../package.json';
 import { flatOptions } from './utils/flat-options'
 import { defaultOptions } from './options'
-// import { ZitiXMLHttpRequest } from './http/ziti-xhr';
+import { ZitiXMLHttpRequest } from './http/ziti-xhr';
 import { buildInfo } from './buildInfo'
 
 
@@ -113,7 +122,7 @@ class ZitiBrowzerRuntime {
 
     this.zitiConfig.decodedJWT = this.getJWT();
 
-    this.context = this.core.createZitiContext({
+    this.zitiContext = this.core.createZitiContext({
 
       logger:         this.logger,
       controllerApi:  this.controllerApi,
@@ -129,7 +138,7 @@ class ZitiBrowzerRuntime {
     });
     this.logger.trace(`ZitiContext created`);
 
-    await this.context.initialize(); // this instantiates the internal WebAssembly
+    await this.zitiContext.initialize(); // this instantiates the internal WebAssembly
 
     this.logger.trace(`ZitiContext has been initialized`);
 
@@ -167,13 +176,14 @@ const zitiBrowzerRuntime = new ZitiBrowzerRuntime({
 
   version: pjson.version,
 
-
-  core: new ZitiBrowzerCore({
-
-  }),
-
+  core: new ZitiBrowzerCore(
+    {
+    }
+  ),
 
 });
+
+window.zitiBrowzerRuntime = zitiBrowzerRuntime;
 
 
 /**
@@ -189,7 +199,12 @@ const zitiBrowzerRuntime = new ZitiBrowzerRuntime({
   /**
    * 
    */
-  await zitiBrowzerRuntime.context.enroll();
+  await zitiBrowzerRuntime.zitiContext.enroll();
+
+  /**
+   * 
+   */
+  window.WebSocket = zitiBrowzerRuntime.zitiContext.zitiWebSocketWrapper;
 
   /**
    * 
@@ -204,21 +219,27 @@ const zitiBrowzerRuntime = new ZitiBrowzerRuntime({
     zitiBrowzerRuntime.wb.addEventListener('installed', async event => {
       zitiBrowzerRuntime.logger.info(`received SW 'installed' event`);
     
-      const swVersion = await zitiBrowzerRuntime.wb.messageSW({type: 'GET_VERSION'});
-      zitiBrowzerRuntime.logger.info(`SW version is now: ${swVersion}`);
+      const swVersionObject = await zitiBrowzerRuntime.wb.messageSW({type: 'GET_VERSION'});
+      zitiBrowzerRuntime.logger.info(`SW version is now: ${swVersionObject.version}`);
+      zitiBrowzerRuntime.logger.info(`SW zitiConfig is now: ${swVersionObject.zitiConfig}`);
 
-      await zitiBrowzerRuntime.wb.messageSW({
-        type: 'SET_CONFIG', 
-        payload: {
-          zitiConfig: zitiBrowzerRuntime.zitiConfig
-        } 
-      });
+      //
+      if (isUndefined(swVersionObject.zitiConfig)) {
 
-      if (!event.isUpdate) {
-        setTimeout(function() {
-          zitiBrowzerRuntime.logger.debug(`################ doing page reload now ################`);
-          window.location.reload();
-        }, 100);
+        const swConfig = await zitiBrowzerRuntime.wb.messageSW({
+          type: 'SET_CONFIG', 
+          payload: {
+            zitiConfig: zitiBrowzerRuntime.zitiConfig
+          } 
+        });
+
+        if (!event.isUpdate) {
+          setTimeout(function() {
+            zitiBrowzerRuntime.logger.debug(`################ doing page reload now ################`);
+            window.location.reload();
+          }, 100);
+        }
+        
       }
     });
 
@@ -298,15 +319,171 @@ const zitiBrowzerRuntime = new ZitiBrowzerRuntime({
  */
 const zitiFetch = async ( url, opts ) => {
 
-    // TBD
+  zitiBrowzerRuntime.logger.trace( 'zitiFetch: entered for URL: ', url);
+
+  let serviceName;
+
+  // We want to intercept fetch requests that target the Ziti HTTP Agent... that is...
+  // ...we want to intercept any request from the web app that targets the server from which the app was loaded.
+
+  var regex = new RegExp( zitiBrowzerRuntime.zitiConfig.httpAgent.self.host, 'g' );
+  var regexSlash = new RegExp( /^\//, 'g' );
+  var regexDotSlash = new RegExp( /^\.\//, 'g' );
+
+  if (url.match( regex )) { // yes, the request is targeting the Ziti HTTP Agent
+
+    let isExpired = await zitiBrowzerRuntime.zitiContext.isCertExpired();
+
+    var newUrl = new URL( url );
+    newUrl.hostname = zitiBrowzerRuntime.zitiConfig.httpAgent.target.host;
+    newUrl.port = zitiBrowzerRuntime.zitiConfig.httpAgent.target.port;
+    zitiBrowzerRuntime.logger.trace( 'zitiFetch: transformed URL: ', newUrl.toString());
+
+    serviceName = await zitiBrowzerRuntime.zitiContext.shouldRouteOverZiti( newUrl );
+
+    if (isUndefined(serviceName)) { // If we have no serviceConfig associated with the hostname:port, do not intercept
+      zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
+      return window._ziti_realFetch(url, opts);
+    }  
+
+    url = newUrl.toString();
+
+  } else if ( (url.match( regexSlash )) || ((url.match( regexDotSlash ))) ) { // the request starts with a slash
+
+    let isExpired = await zitiBrowzerRuntime.zitiContext.isCertExpired();
+
+    let newUrl;
+    let baseURIUrl = new URL( document.baseURI );
+    if (baseURIUrl.hostname === zitiBrowzerRuntime.zitiConfig.httpAgent.self.host) {
+      newUrl = new URL( 'https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.target.host + ':' + zitiBrowzerRuntime.zitiConfig.httpAgent.target.port + url );
+    } else {
+      let baseURI = document.baseURI.replace(/\.\/$/, '');
+      newUrl = new URL( baseURI + url );
+    }
+    zitiBrowzerRuntime.logger.debug( 'zitiFetch: transformed URL: ', newUrl.toString());
+
+    serviceName = await zitiBrowzerRuntime.zitiContext.shouldRouteOverZiti( newUrl );
+
+    if (isUndefined(serviceName)) { // If we have no serviceConfig associated with the hostname:port, do not intercept
+      zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
+      return window._ziti_realFetch(url, opts);
+    }  
+
+    url = newUrl.toString();
+
+  } else {  // the request is targeting the raw internet
+
+    var newUrl = new URL( url );
+
+    serviceName = await zitiBrowzerRuntime.zitiContext.shouldRouteOverZiti( newUrl );
+
+    if (isUndefined(serviceName)) { // If we have no serviceConfig associated with the hostname:port
+
+      // let routeOverCORSProxy = await ziti._ctx.shouldRouteOverCORSProxy( url );
+
+      // if (routeOverCORSProxy) {     // If hostname:port is something we need to CORS Proxy
+
+      //   ziti._ctx.logger.warn('zitiFetch(): doing CORS Proxying of [%s]', url);
+
+      //   let newUrl = new URL( url );
+      //   let corsTargetHostname = newUrl.hostname;
+      //   let corsTargetPort = newUrl.port;
+      //   if (corsTargetPort === '') {
+      //     if (newUrl.protocol === 'https:') {
+      //       corsTargetPort = '443';
+      //     } else {
+      //       corsTargetPort = '80';
+      //     }
+      //   }
+      
+      //   let corsTargetPathname = newUrl.pathname;
+      //   newUrl.hostname = zitiConfig.httpAgent.self.host;
+      //   newUrl.port = 443;
+      //   newUrl.pathname = '/ziti-cors-proxy/' + corsTargetHostname + ':' + corsTargetPort + corsTargetPathname;
+      //   // newUrl.pathname = '/ziti-cors-proxy/' + corsTargetHostname  + corsTargetPathname;
+      //   ziti._ctx.logger.warn( 'zitiFetch: transformed URL: ', newUrl.toString());   
+
+      //   return window.realFetch(newUrl, opts); // Send special request to HTTP Agent
+
+      // } else {
+
+        zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
+        return window._ziti_realFetch(url, opts);
+  
+      // }
+
+    }  
+  }
+
+  /** ----------------------------------------------------
+   *  ------------ Now Routing over Ziti -----------------
+   *  ----------------------------------------------------
+   */ 
+  zitiBrowzerRuntime.logger.trace('zitiFetch(): serviceConfig match; intercepting [%s]', url);
+
+	return new Promise( async (resolve, reject) => {
+
+    opts.serviceName = serviceName;
+
+    /**
+     * Let ziti-bbrowzer-core.context do the needful
+     */
+    var zitiResponse = await zitiBrowzerRuntime.zitiContext.httpFetch( url, opts);
+
+    zitiBrowzerRuntime.logger.trace(`Got zitiResponse: `, zitiResponse);
+
+    /**
+     * Now that ziti-browzer-core has returned us a ZitiResponse, instantiate a fresh native Response object that we 
+     * will return to the Browser. This requires us to:
+     * 
+     * 1) propagate the HTTP headers, status, etc
+     * 2) pipe the HTTP response body 
+     */
+
+      var zitiHeaders = zitiResponse.headers.raw();
+      var headers = new Headers();
+      const keys = Object.keys(zitiHeaders);
+      for (let i = 0; i < keys.length; i++) {
+        const key = keys[i];
+        const val = zitiHeaders[key][0];
+        headers.append( key, val);
+        zitiBrowzerRuntime.logger.trace( 'zitiResponse.headers: ', key, val);
+      }
+      headers.append( 'x-ziti-browzer-runtime-version', pjson.version );
+
+      var responseBlob = await zitiResponse.blob();
+      var responseBlobStream = responseBlob.stream();               
+      const responseStream = new ReadableStream({
+          start(controller) {
+              function push() {
+                  var chunk = responseBlobStream.read();
+                  if (chunk) {
+                      controller.enqueue(chunk);
+                      push();  
+                  } else {
+                      controller.close();
+                      return;
+                  }
+              };
+              push();
+          }
+      });
+
+      let response = new Response( responseStream, { "status": zitiResponse.status, "headers":  headers } );
+      
+      zitiBrowzerRuntime.logger.trace(`formed native response: `, response);
+      
+      resolve(response);
+
+  });
 
 }
+
 
 
  /**
   * 
   */
 window.fetch = zitiFetch;
-//  window.XMLHttpRequest = ZitiXMLHttpRequest;
-//  window.WebSocket = ZitiWebSocketWrapper;
+window.XMLHttpRequest = ZitiXMLHttpRequest;
 

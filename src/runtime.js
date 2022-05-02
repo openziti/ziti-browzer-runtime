@@ -132,8 +132,8 @@ class ZitiBrowzerRuntime {
       sdkBranch:      buildInfo.sdkBranch,
       sdkRevision:    buildInfo.sdkRevision,
   
-      updbUser:       this.zitiConfig.decodedJWT.updbUser,
-      updbPswd:       this.zitiConfig.decodedJWT.updbPswd,
+      token_type:     this.zitiConfig.decodedJWT.token_type,
+      access_token:   this.zitiConfig.decodedJWT.access_token,
 
     });
     this.logger.trace(`ZitiContext created`);

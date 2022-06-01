@@ -58,12 +58,12 @@
       ]
     }
   },
-  "main": "./dist/iife/index.js",
+  "main": "./dist/iife/ziti-browzer-runtime.js",
   "files": [
     "dist"
   ],
   "browser": {
-    "./dist/iife/index.js": "./dist/iife/index.js"
+    "./dist/iife/ziti-browzer-runtime.js": "./dist/iife/ziti-browzer-runtime.js"
   },
   "devDependencies": {
     "@babel/cli": "^7.17.6",
@@ -93,7 +93,8 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.17.9",
-    "@openziti/ziti-browzer-core": "^0.8.0",
+    "@openziti/ziti-browzer-core": "^0.10.0",
+    "cookie-interceptor": "^1.0.0",
     "core-js": "^3.22.3",
     "js-base64": "^3.7.2",
     "jwt-decode": "^3.1.2",

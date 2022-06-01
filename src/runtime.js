@@ -28,6 +28,7 @@ import { isNull } from 'lodash-es';
 import jwt_decode from "jwt-decode";
 import { Base64 } from 'js-base64';
 import { isUndefined, isEqual } from 'lodash-es';
+import CookieInterceptor from 'cookie-interceptor';
 
 import pjson from '../package.json';
 import { flatOptions } from './utils/flat-options'
@@ -76,6 +77,25 @@ class ZitiBrowzerRuntime {
       + '?controllerApi=' + encodeURIComponent(this.zitiConfig.controller.api)
       + '&logLevel='      + encodeURIComponent(this.zitiConfig.browzer.sw.logLevel)
     );
+
+    CookieInterceptor.init(); // Hijack the `document.cookie` object
+
+    CookieInterceptor.write.use( function ( cookie ) {
+      
+      let name = cookie.substring(0, cookie.indexOf("="));
+      let value = cookie.substring(cookie.indexOf("=") + 1);
+      let cookie_value = value.substring(0, value.indexOf(";"));
+
+      zitiBrowzerRuntime.wb.messageSW({
+        type: 'SET_COOKIE', 
+        payload: {
+          name: name, 
+          value: cookie_value
+        } 
+      });
+
+      return cookie;
+    });
 
   }
 
@@ -137,6 +157,8 @@ class ZitiBrowzerRuntime {
 
     });
     this.logger.trace(`ZitiContext created`);
+
+    window._zitiContext = this.zitiContext; // allow WASM to find us
 
     await this.zitiContext.initialize(); // this instantiates the internal WebAssembly
 
@@ -232,15 +254,15 @@ window.zitiBrowzerRuntime = zitiBrowzerRuntime;
             zitiConfig: zitiBrowzerRuntime.zitiConfig
           } 
         });
-
-        if (!event.isUpdate) {
-          setTimeout(function() {
-            zitiBrowzerRuntime.logger.debug(`################ doing page reload now ################`);
-            window.location.reload();
-          }, 100);
-        }
-        
       }
+
+      if (!event.isUpdate) {
+        setTimeout(function() {
+          zitiBrowzerRuntime.logger.debug(`################ doing page reload now ################`);
+          window.location.reload();
+        }, 100);
+      }
+
     });
 
 
@@ -302,7 +324,37 @@ window.zitiBrowzerRuntime = zitiBrowzerRuntime;
     /**
      * 
      */
-    zitiBrowzerRuntime.wb.register();  
+    zitiBrowzerRuntime.wb.register();
+    zitiBrowzerRuntime.logger.debug(`################ SW register completed ################`);
+
+    setTimeout(async function() {
+      /**
+       * 
+       */
+      zitiBrowzerRuntime.logger.debug(`################ doing SET_CONFIG now ################`);
+      const swConfig = await zitiBrowzerRuntime.wb.messageSW({
+        type: 'SET_CONFIG', 
+        payload: {
+          zitiConfig: zitiBrowzerRuntime.zitiConfig
+        } 
+      });
+      zitiBrowzerRuntime.logger.info(`SET_CONFIG complete`);
+
+      // Send all existing cookies to the sw
+      let theCookies = document.cookie.split(';');
+      for (var i = 0 ; i < theCookies.length; i++) {
+        let cookie = theCookies[i].split('=');
+        zitiBrowzerRuntime.wb.messageSW({
+          type: 'SET_COOKIE', 
+          payload: {
+            name: cookie[0], 
+            value: cookie[1]
+          } 
+        });
+      }   
+
+    }, 100);
+
 
   }
 

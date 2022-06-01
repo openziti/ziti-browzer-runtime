@@ -15,6 +15,7 @@ const BUILD_DIR = 'dist';
 const input = [`${SRC_DIR}/index.js`];
 
 const name = 'ZitiBrowzerRuntime';
+const fileName = 'dist/iife/ziti-browzer-runtime.js';
 
 let plugins = [
   babel({
@@ -37,50 +38,14 @@ export default [
     input,
     output: [
       {
-        dir: "dist/iife",
         format: "iife",
         esModule: false,
         name: name,
+        file: fileName,
         exports: "named",
       },
     ],
     treeshake: true,
     plugins: plugins.concat(nodeResolve()),
   },
-  // //
-  // // UMD
-  // //
-  // {
-  //   input,
-  //   output: [
-  //     {
-  //       dir: "dist/umd",
-  //       format: "umd",
-  //       esModule: false,
-  //       name: name,
-  //       exports: "named",
-  //     },
-  //   ],
-  //   treeshake: true,
-  //   plugins: plugins.concat(nodeResolve()),
-  // },
-  // //
-  // // ESM and CJS
-  // //
-  // {
-  //   input,
-  //   plugins: plugins.concat(nodeResolve(), esformatter({indent: { value: '  '}})),
-  //   output: [
-  //     {
-  //       dir: "dist/esm",
-  //       format: "esm",
-  //       exports: "named",
-  //     },
-  //     {
-  //       dir: "dist/cjs",
-  //       format: "cjs",
-  //       exports: "named",
-  //     },
-  //   ],
-  // },
 ];

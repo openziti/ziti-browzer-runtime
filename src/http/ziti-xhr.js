@@ -196,11 +196,9 @@ function ZitiXMLHttpRequest () {
       && response.headers
       && !errorFlag
     ) {
-      const headers = response.headers.raw();
-      for (var h in headers) {
-        if (header === h) {
-          var headerValue = headers[h][0];
-          return headerValue.toLowerCase();
+      for (var pair of response.headers.entries()) {
+        if (header.toLowerCase() === pair[0].toLowerCase()) {
+          return pair[1].toLowerCase();
         }
       }
       return null;

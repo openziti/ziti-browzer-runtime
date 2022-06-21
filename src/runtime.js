@@ -63,6 +63,8 @@ class ZitiBrowzerRuntime {
     
     let _options = flatOptions(options, defaultOptions);
 
+    this.initialized    = false;
+
     this.version        = _options.version;
     this.core           = _options.core;
 
@@ -162,10 +164,31 @@ class ZitiBrowzerRuntime {
 
     await this.zitiContext.initialize(); // this instantiates the internal WebAssembly
 
+    this.initialized = true;
+
     this.logger.trace(`ZitiContext has been initialized`);
 
   };
 
+
+  /**
+   * Remain in lazy-sleepy loop until initialization is complete.
+   * 
+   */
+  awaitInitializationComplete() {
+    return new Promise((resolve) => {
+      (function waitForInitializationComplete() {
+        if (!zitiBrowzerRuntime.initialized) {
+          zitiBrowzerRuntime.logger.trace('waitForInitializationComplete() still not initialized');
+          setTimeout(waitForInitializationComplete, 100);  
+        } else {
+          zitiBrowzerRuntime.logger.trace('waitForInitializationComplete() initialized');
+          return resolve();
+        }
+      })();
+    });
+  }
+  
 
   /**
    * 
@@ -356,6 +379,12 @@ window.zitiBrowzerRuntime = zitiBrowzerRuntime;
     }, 100);
 
 
+    /**
+     * 
+     */
+    window.fetch = zitiFetch;
+    window.XMLHttpRequest = ZitiXMLHttpRequest;
+
   }
 
 })();
@@ -373,6 +402,8 @@ const zitiFetch = async ( url, opts ) => {
 
   zitiBrowzerRuntime.logger.trace( 'zitiFetch: entered for URL: ', url);
 
+  await zitiBrowzerRuntime.awaitInitializationComplete();
+
   let serviceName;
 
   // We want to intercept fetch requests that target the Ziti HTTP Agent... that is...
@@ -384,10 +415,10 @@ const zitiFetch = async ( url, opts ) => {
 
   if (url.match( regex )) { // yes, the request is targeting the Ziti HTTP Agent
 
-    let isExpired = await zitiBrowzerRuntime.zitiContext.isCertExpired();
+    // let isExpired = await zitiBrowzerRuntime.zitiContext.isCertExpired();
 
     var newUrl = new URL( url );
-    newUrl.hostname = zitiBrowzerRuntime.zitiConfig.httpAgent.target.host;
+    newUrl.hostname = zitiBrowzerRuntime.zitiConfig.httpAgent.target.service;
     newUrl.port = zitiBrowzerRuntime.zitiConfig.httpAgent.target.port;
     zitiBrowzerRuntime.logger.trace( 'zitiFetch: transformed URL: ', newUrl.toString());
 
@@ -402,12 +433,12 @@ const zitiFetch = async ( url, opts ) => {
 
   } else if ( (url.match( regexSlash )) || ((url.match( regexDotSlash ))) ) { // the request starts with a slash
 
-    let isExpired = await zitiBrowzerRuntime.zitiContext.isCertExpired();
+    // let isExpired = await zitiBrowzerRuntime.zitiContext.isCertExpired();
 
     let newUrl;
     let baseURIUrl = new URL( document.baseURI );
     if (baseURIUrl.hostname === zitiBrowzerRuntime.zitiConfig.httpAgent.self.host) {
-      newUrl = new URL( 'https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.target.host + ':' + zitiBrowzerRuntime.zitiConfig.httpAgent.target.port + url );
+      newUrl = new URL( 'https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.target.service + ':' + zitiBrowzerRuntime.zitiConfig.httpAgent.target.port + url );
     } else {
       let baseURI = document.baseURI.replace(/\.\/$/, '');
       newUrl = new URL( baseURI + url );

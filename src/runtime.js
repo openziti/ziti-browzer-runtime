@@ -24,11 +24,12 @@ import {
 } from '@openziti/ziti-browzer-core';
 
 import {Workbox} from'workbox-window';
-import { isNull } from 'lodash-es';
 import jwt_decode from "jwt-decode";
 import { Base64 } from 'js-base64';
-import { isUndefined, isEqual } from 'lodash-es';
+import { isUndefined } from 'lodash-es';
 import CookieInterceptor from 'cookie-interceptor';
+import { v4 as uuidv4 } from 'uuid';
+import { withTimeout, Semaphore } from 'async-mutex';
 
 import pjson from '../package.json';
 import { flatOptions } from './utils/flat-options'
@@ -37,17 +38,20 @@ import { ZitiXMLHttpRequest } from './http/ziti-xhr';
 import { buildInfo } from './buildInfo'
 
 
+var MAX_ZITI_FETCH_COUNT = 1;   // aka the maximum number of concurrent Ziti Network Requests (TEMP)
+
 
 /**
  * 
  */
- window._ziti_realFetch          = window.fetch;
- window._ziti_realXMLHttpRequest = window.XMLHttpRequest;
- window._ziti_realWebSocket      = window.WebSocket;
- window._ziti_realInsertBefore   = Element.prototype.insertBefore;
- window._ziti_realAppendChild    = Element.prototype.appendChild;
- window._ziti_realSetAttribute   = Element.prototype.setAttribute;
-
+if (typeof window._ziti_realFetch === 'undefined') {
+  window._ziti_realFetch          = window.fetch;
+  window._ziti_realXMLHttpRequest = window.XMLHttpRequest;
+  window._ziti_realWebSocket      = window.WebSocket;
+  window._ziti_realInsertBefore   = Element.prototype.insertBefore;
+  window._ziti_realAppendChild    = Element.prototype.appendChild;
+  window._ziti_realSetAttribute   = Element.prototype.setAttribute;
+}
 
 /**
  * 
@@ -65,6 +69,11 @@ class ZitiBrowzerRuntime {
 
     this.initialized    = false;
 
+    this._uuid          = uuidv4();
+
+    // this._fetchSemaphore = withTimeout(new Semaphore( MAX_ZITI_FETCH_COUNT ), 10000, new Error('timeout waiting for _fetchSemaphore'));
+    this._fetchSemaphore = withTimeout(new Semaphore( MAX_ZITI_FETCH_COUNT ), 10000);
+
     this.version        = _options.version;
     this.core           = _options.core;
 
@@ -72,6 +81,9 @@ class ZitiBrowzerRuntime {
 
     this.logLevel       = this.zitiConfig.browzer.runtime.logLevel
     this.controllerApi  = this.zitiConfig.controller.api
+
+    this.regexControllerAPI = new RegExp( this._controllerApi, 'g' );
+
 
     this.wb             = new Workbox(
       'https://' + this.zitiConfig.httpAgent.self.host + '/' 
@@ -140,7 +152,7 @@ class ZitiBrowzerRuntime {
       logLevel: this.logLevel,
       suffix: 'RT'  // run-time
     });
-    this.logger.trace(`ZitiLogger created`);
+    this.logger.trace(`ZitiBrowzerRuntime ${this._uuid} initializing`);
 
     this.zitiConfig.decodedJWT = this.getJWT();
 
@@ -162,11 +174,15 @@ class ZitiBrowzerRuntime {
 
     window._zitiContext = this.zitiContext; // allow WASM to find us
 
-    await this.zitiContext.initialize(); // this instantiates the internal WebAssembly
+    if (!options.loadedViaHTTPAgent) {
+
+      await this.zitiContext.initialize(); // this instantiates the internal WebAssembly
+
+    }
 
     this.initialized = true;
 
-    this.logger.trace(`ZitiContext has been initialized`);
+    this.logger.trace(`ZitiBrowzerRuntime ${this._uuid} has been initialized`);
 
   };
 
@@ -179,10 +195,10 @@ class ZitiBrowzerRuntime {
     return new Promise((resolve) => {
       (function waitForInitializationComplete() {
         if (!zitiBrowzerRuntime.initialized) {
-          zitiBrowzerRuntime.logger.trace('waitForInitializationComplete() still not initialized');
+          zitiBrowzerRuntime.logger.trace(`waitForInitializationComplete() on ${zitiBrowzerRuntime._uuid} still not initialized`);
           setTimeout(waitForInitializationComplete, 100);  
         } else {
-          zitiBrowzerRuntime.logger.trace('waitForInitializationComplete() initialized');
+          zitiBrowzerRuntime.logger.trace(`waitForInitializationComplete() on ${zitiBrowzerRuntime._uuid} completed`);
           return resolve();
         }
       })();
@@ -217,177 +233,204 @@ class ZitiBrowzerRuntime {
  * Use 'zitiConfig' values passed to us from the Ziti HTTP Agent.
  * 
  */ 
-const zitiBrowzerRuntime = new ZitiBrowzerRuntime({
+if (isUndefined(window.zitiBrowzerRuntime)) {
 
-  version: pjson.version,
+  const zitiBrowzerRuntime = new ZitiBrowzerRuntime({
 
-  core: new ZitiBrowzerCore(
-    {
-    }
-  ),
+    version: pjson.version,
 
-});
+    core: new ZitiBrowzerCore(
+      {
+      }
+    ),
 
-window.zitiBrowzerRuntime = zitiBrowzerRuntime;
+  });
 
+  window.zitiBrowzerRuntime = zitiBrowzerRuntime;
 
-/**
- * Use an async IIFE to initialize the runtime and register the SW.
- */
-(async () => {
 
   /**
-   * 
+   * Use an async IIFE to initialize the runtime and register the SW.
    */
-  await zitiBrowzerRuntime.initialize({});
+  (async () => {
 
-  /**
-   * 
-   */
-  await zitiBrowzerRuntime.zitiContext.enroll();
+    console.log('now inside async IIFE to initialize the runtime and register the SW');
 
-  /**
-   * 
-   */
-  window.WebSocket = zitiBrowzerRuntime.zitiContext.zitiWebSocketWrapper;
-
-  /**
-   * 
-   */
-  if ('serviceWorker' in navigator) {
+    const loadedViaHTTPAgent = document.getElementById('from-ziti-http-agent');
 
     /**
-     * The very first time our service worker installs, it will NOT have intercepted any fetch events for
-     * the page page load.  We therefore reload the page after the service worker is engaged so it will 
-     * begin intercepting HTTP requests, as well as will be available to provide this Page a keypair.
+     * 
      */
-    zitiBrowzerRuntime.wb.addEventListener('installed', async event => {
-      zitiBrowzerRuntime.logger.info(`received SW 'installed' event`);
-    
-      const swVersionObject = await zitiBrowzerRuntime.wb.messageSW({type: 'GET_VERSION'});
-      zitiBrowzerRuntime.logger.info(`SW version is now: ${swVersionObject.version}`);
-      zitiBrowzerRuntime.logger.info(`SW zitiConfig is now: ${swVersionObject.zitiConfig}`);
+    await zitiBrowzerRuntime.initialize({loadedViaHTTPAgent: (loadedViaHTTPAgent ? true : false)});
 
-      //
-      if (isUndefined(swVersionObject.zitiConfig)) {
+    console.log('returned from call to zitiBrowzerRuntime.initialize');
 
+    if (!loadedViaHTTPAgent) {  
+
+      /**
+       * 
+       */
+      await zitiBrowzerRuntime.zitiContext.enroll();
+
+      /**
+       * 
+       */
+      window.WebSocket = zitiBrowzerRuntime.zitiContext.zitiWebSocketWrapper;
+
+    }
+
+    /**
+     * 
+     */
+    if ('serviceWorker' in navigator) {
+
+      /**
+       * The very first time our service worker installs, it will NOT have intercepted any fetch events for
+       * the page page load.  We therefore reload the page after the service worker is engaged so it will 
+       * begin intercepting HTTP requests, as well as will be available to provide this Page a keypair.
+       */
+      zitiBrowzerRuntime.wb.addEventListener('installed', async event => {
+        zitiBrowzerRuntime.logger.info(`received SW 'installed' event`);
+      
+        const swVersionObject = await zitiBrowzerRuntime.wb.messageSW({type: 'GET_VERSION'});
+        zitiBrowzerRuntime.logger.info(`SW version is now: ${swVersionObject.version}`);
+        zitiBrowzerRuntime.logger.info(`SW zitiConfig is now: ${swVersionObject.zitiConfig}`);
+
+        //
+        if (isUndefined(swVersionObject.zitiConfig)) {
+
+          const swConfig = await zitiBrowzerRuntime.wb.messageSW({
+            type: 'SET_CONFIG', 
+            payload: {
+              zitiConfig: zitiBrowzerRuntime.zitiConfig
+            } 
+          });
+        }
+
+        if (!event.isUpdate) {
+          setTimeout(function() {
+            zitiBrowzerRuntime.logger.debug(`################ doing page reload now ################`);
+            window.location.reload();
+          }, 100);
+        }
+
+      });
+
+
+      /**
+       * As mentioned above, the very first time our service worker finishes activating it may (or may not) 
+       * have started controlling the page. For this reason, we cannot leverage the activate event 
+       * as a way of knowing when the service worker is in control of the page. 
+       * 
+       * However, if we need to know when the SW 'activate' logic is complete, this is where we find out.
+       * 
+       * Here is what we do on this event:
+       *  - acquire and log the service worker's version
+       *  - acquire a keypair froma the service worker
+       * 
+       */
+      zitiBrowzerRuntime.wb.addEventListener('activated', async event => {
+        zitiBrowzerRuntime.logger.info(`received SW 'activated' event`);
+      });
+
+      
+      /**
+       * 
+       */
+      zitiBrowzerRuntime.wb.addEventListener('waiting', event => {
+        zitiBrowzerRuntime.logger.info(`received SW 'waiting' event`);
+      });
+
+
+      /**
+       * Once our new service worker is installed and starts controlling the page, 
+       * all subsequent fetch events will go through that service worker.  If our 
+       * service worker adds any special logic to handle particular fetch event, 
+       * this is the point when we know that logic will run.
+       * 
+       * The very first time our service worker is installed, it should be controlling 
+       * the current page because our service worker calls clients.claim() in its activate 
+       * event.
+       * 
+       * This event is not dispatched if the page was already controlled prior to registration.
+       */
+      zitiBrowzerRuntime.wb.addEventListener('controlling', event => {
+        zitiBrowzerRuntime.logger.info(`received SW 'controlling' event`);
+      });
+      
+
+      /**
+       * 
+       */
+      zitiBrowzerRuntime.wb.addEventListener('message', event => {
+        zitiBrowzerRuntime.logger.info(`SW event (message) type: ${event.data.type}`);
+        if (event.data.type === 'CACHE_UPDATED') {
+          const {updatedURL} = event.data.payload;
+          zitiBrowzerRuntime.logger.info(`A newer version of ${updatedURL} is available!`);
+        }
+        else if (event.data.type === 'SET_COOKIE') {
+          let cookie = event.data.payload.replace('HttpOnly','');
+          zitiBrowzerRuntime.logger.info(`A COOKIE has arrived with val ${event.data.payload}`);
+          zitiBrowzerRuntime.logger.info(`document.cookie before: `, document.cookie);
+          document.cookie = cookie;
+          zitiBrowzerRuntime.logger.info(`document.cookie after: `, document.cookie);
+          event.ports[0].postMessage( 'OK' );
+        }
+      });
+      
+      /**
+       * 
+       */
+      zitiBrowzerRuntime.wb.register();
+      zitiBrowzerRuntime.logger.debug(`################ SW register completed ################`);
+
+      setTimeout(async function() {
+        /**
+         * 
+         */
+        zitiBrowzerRuntime.logger.debug(`################ doing SET_CONFIG now ################`);
         const swConfig = await zitiBrowzerRuntime.wb.messageSW({
           type: 'SET_CONFIG', 
           payload: {
             zitiConfig: zitiBrowzerRuntime.zitiConfig
           } 
         });
-      }
+        zitiBrowzerRuntime.logger.info(`SET_CONFIG complete`);
 
-      if (!event.isUpdate) {
-        setTimeout(function() {
-          zitiBrowzerRuntime.logger.debug(`################ doing page reload now ################`);
-          window.location.reload();
-        }, 100);
-      }
+        // Send all existing cookies to the sw
+        let theCookies = document.cookie.split(';');
+        for (var i = 0 ; i < theCookies.length; i++) {
+          let cookie = theCookies[i].split('=');
+          zitiBrowzerRuntime.logger.debug(`################ doing SET_COOKIE now ################ ${cookie[0]} ${cookie[1]}`);
+          zitiBrowzerRuntime.wb.messageSW({
+            type: 'SET_COOKIE', 
+            payload: {
+              name: cookie[0], 
+              value: cookie[1]
+            } 
+          });
+        }
+        zitiBrowzerRuntime.logger.info(`SET_COOKIE operations now complete`);
 
-    });
-
-
-    /**
-     * As mentioned above, the very first time our service worker finishes activating it may (or may not) 
-     * have started controlling the page. For this reason, we cannot leverage the activate event 
-     * as a way of knowing when the service worker is in control of the page. 
-     * 
-     * However, if we need to know when the SW 'activate' logic is complete, this is where we find out.
-     * 
-     * Here is what we do on this event:
-     *  - acquire and log the service worker's version
-     *  - acquire a keypair froma the service worker
-     * 
-     */
-    zitiBrowzerRuntime.wb.addEventListener('activated', async event => {
-      zitiBrowzerRuntime.logger.info(`received SW 'activated' event`);
-    });
-
-    
-    /**
-     * 
-     */
-    zitiBrowzerRuntime.wb.addEventListener('waiting', event => {
-      zitiBrowzerRuntime.logger.info(`received SW 'waiting' event`);
-    });
+      }, 100);
 
 
-    /**
-     * Once our new service worker is installed and starts controlling the page, 
-     * all subsequent fetch events will go through that service worker.  If our 
-     * service worker adds any special logic to handle particular fetch event, 
-     * this is the point when we know that logic will run.
-     * 
-     * The very first time our service worker is installed, it should be controlling 
-     * the current page because our service worker calls clients.claim() in its activate 
-     * event.
-     * 
-     * This event is not dispatched if the page was already controlled prior to registration.
-     */
-    zitiBrowzerRuntime.wb.addEventListener('controlling', event => {
-      zitiBrowzerRuntime.logger.info(`received SW 'controlling' event`);
-    });
-    
-
-    /**
-     * 
-     */
-    zitiBrowzerRuntime.wb.addEventListener('message', event => {
-      zitiBrowzerRuntime.logger.info(`SW event (message) type: ${event.data.type}`);
-
-      if (event.data.type === 'CACHE_UPDATED') {
-        const {updatedURL} = event.data.payload;
-    
-        zitiBrowzerRuntime.logger.info(`A newer version of ${updatedURL} is available!`);
-      }
-    });
-    
-    /**
-     * 
-     */
-    zitiBrowzerRuntime.wb.register();
-    zitiBrowzerRuntime.logger.debug(`################ SW register completed ################`);
-
-    setTimeout(async function() {
       /**
        * 
        */
-      zitiBrowzerRuntime.logger.debug(`################ doing SET_CONFIG now ################`);
-      const swConfig = await zitiBrowzerRuntime.wb.messageSW({
-        type: 'SET_CONFIG', 
-        payload: {
-          zitiConfig: zitiBrowzerRuntime.zitiConfig
-        } 
-      });
-      zitiBrowzerRuntime.logger.info(`SET_CONFIG complete`);
+      window.fetch = zitiFetch;
+      window.XMLHttpRequest = ZitiXMLHttpRequest;
+    }
 
-      // Send all existing cookies to the sw
-      let theCookies = document.cookie.split(';');
-      for (var i = 0 ; i < theCookies.length; i++) {
-        let cookie = theCookies[i].split('=');
-        zitiBrowzerRuntime.wb.messageSW({
-          type: 'SET_COOKIE', 
-          payload: {
-            name: cookie[0], 
-            value: cookie[1]
-          } 
-        });
-      }   
+  })();
 
-    }, 100);
+}
 
 
-    /**
-     * 
-     */
-    window.fetch = zitiFetch;
-    window.XMLHttpRequest = ZitiXMLHttpRequest;
-
-  }
-
-})();
+var regex = new RegExp( `https://${zitiBrowzerRuntime.zitiConfig.httpAgent.self.host}`, 'gi' );
+var regexSlash = new RegExp( /^\//, 'g' );
+var regexDotSlash = new RegExp( /^\.\//, 'g' );
+var regexZBWASM   = new RegExp( /libcrypto.wasm/, 'g' );
 
 
 /**
@@ -409,11 +452,11 @@ const zitiFetch = async ( url, opts ) => {
   // We want to intercept fetch requests that target the Ziti HTTP Agent... that is...
   // ...we want to intercept any request from the web app that targets the server from which the app was loaded.
 
-  var regex = new RegExp( zitiBrowzerRuntime.zitiConfig.httpAgent.self.host, 'g' );
-  var regexSlash = new RegExp( /^\//, 'g' );
-  var regexDotSlash = new RegExp( /^\.\//, 'g' );
-
-  if (url.match( regex )) { // yes, the request is targeting the Ziti HTTP Agent
+  if (url.match( regexZBWASM )) { // the request seeks z-b-r/wasm
+    zitiBrowzerRuntime.logger.trace('zitiFetch: seeking Ziti z-b-r/wasm, bypassing intercept of [%s]', url);
+    return window._ziti_realFetch(url, opts);
+  }
+  else if (url.match( regex )) { // yes, the request is targeting the Ziti HTTP Agent
 
     // let isExpired = await zitiBrowzerRuntime.zitiContext.isCertExpired();
 
@@ -423,6 +466,8 @@ const zitiFetch = async ( url, opts ) => {
     zitiBrowzerRuntime.logger.trace( 'zitiFetch: transformed URL: ', newUrl.toString());
 
     serviceName = await zitiBrowzerRuntime.zitiContext.shouldRouteOverZiti( newUrl );
+
+    zitiBrowzerRuntime.logger.trace( 'zitiFetch: serviceName: ', serviceName);
 
     if (isUndefined(serviceName)) { // If we have no serviceConfig associated with the hostname:port, do not intercept
       zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
@@ -454,7 +499,13 @@ const zitiFetch = async ( url, opts ) => {
 
     url = newUrl.toString();
 
-  } else {  // the request is targeting the raw internet
+  } 
+  if (url.toLowerCase().includes( zitiBrowzerRuntime.controllerApi.toLowerCase() )) {   // seeking Ziti Controller
+  // if (url.match( zitiBrowzerRuntime.regexControllerAPI )) {   // seeking Ziti Controller
+    zitiBrowzerRuntime.logger.trace('zitiFetch: seeking Ziti Controller, bypassing intercept of [%s]', url);
+    return window._ziti_realFetch(url, opts);
+  }
+  else {  // the request is targeting the raw internet
 
     var newUrl = new URL( url );
 
@@ -502,9 +553,13 @@ const zitiFetch = async ( url, opts ) => {
    *  ------------ Now Routing over Ziti -----------------
    *  ----------------------------------------------------
    */ 
-  zitiBrowzerRuntime.logger.trace('zitiFetch(): serviceConfig match; intercepting [%s]', url);
 
-	return new Promise( async (resolve, reject) => {
+
+  zitiBrowzerRuntime.logger.trace('zitiFetch: serviceConfig match; intercepting [%s]', url);
+
+  let response = await zitiBrowzerRuntime._fetchSemaphore.runExclusive( async ( value ) => {
+
+    zitiBrowzerRuntime.logger.trace('zitiFetch: now inside _fetchSemaphore count[%o]: url[%o]', value, url);
 
     opts.serviceName = serviceName;
 
@@ -554,19 +609,27 @@ const zitiFetch = async ( url, opts ) => {
 
       let response = new Response( responseStream, { "status": zitiResponse.status, "headers":  headers } );
       
-      zitiBrowzerRuntime.logger.trace(`formed native response: `, response);
+      zitiBrowzerRuntime.logger.trace('zitiFetch: now inside _fetchSemaphore count[%o]: response for request.url[%o] is [%o]', value, url, response);
       
-      resolve(response);
+      return response;
 
+
+  }).catch(( err ) => {
+    zitiBrowzerRuntime.logger.error(err);
+    return new Promise( async (_, reject) => {
+      reject( err );
+    });
   });
+
+  return response;
 
 }
 
 
 
- /**
-  * 
-  */
+/**
+ * 
+ */
 window.fetch = zitiFetch;
 window.XMLHttpRequest = ZitiXMLHttpRequest;
 

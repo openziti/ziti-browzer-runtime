@@ -1,3 +1,12 @@
+# [0.9.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.8.1...v0.9.0) (2022-07-15)
+
+
+### Features
+
+* Zitified ZAC enablement ([#63](https://github.com/openziti/ziti-browzer-runtime/issues/63)) ([01434ac](https://github.com/openziti/ziti-browzer-runtime/commit/01434acfc1d3ded5fed85b332d35c05ddb9aafdb))
+
+
+
 ## [0.8.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.8.0...v0.8.1) (2022-06-21)
 
 

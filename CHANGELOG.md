@@ -1,3 +1,18 @@
+# [0.11.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.8.1...v0.11.0) (2022-07-16)
+
+
+### Bug Fixes
+
+* semver ([#65](https://github.com/openziti/ziti-browzer-runtime/issues/65)) ([3b754e6](https://github.com/openziti/ziti-browzer-runtime/commit/3b754e6389da8f69f9ca23a870a76d8879751b3d))
+
+
+### Features
+
+* Optional WASM Load ([#64](https://github.com/openziti/ziti-browzer-runtime/issues/64)) ([f2b4a58](https://github.com/openziti/ziti-browzer-runtime/commit/f2b4a58b77e2c036ae0560b3e8a4204e08d4b55e))
+* Zitified ZAC enablement ([#63](https://github.com/openziti/ziti-browzer-runtime/issues/63)) ([01434ac](https://github.com/openziti/ziti-browzer-runtime/commit/01434acfc1d3ded5fed85b332d35c05ddb9aafdb))
+
+
+
 ## [0.8.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.8.0...v0.8.1) (2022-06-21)
 
 

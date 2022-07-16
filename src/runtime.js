@@ -174,11 +174,11 @@ class ZitiBrowzerRuntime {
 
     window._zitiContext = this.zitiContext; // allow WASM to find us
 
-    if (!options.loadedViaHTTPAgent) {
+    await this.zitiContext.initialize({
+      loadWASM: !options.loadedViaHTTPAgent   // instantiate the internal WebAssembly ONLY if we were not injected by the HTTP Agent
+    });
 
-      await this.zitiContext.initialize(); // this instantiates the internal WebAssembly
-
-    }
+    await window.zitiBrowzerRuntime.zitiContext.listControllerVersion();
 
     this.initialized = true;
 

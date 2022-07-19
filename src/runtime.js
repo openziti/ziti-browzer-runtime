@@ -384,7 +384,17 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       zitiBrowzerRuntime.wb.register();
       zitiBrowzerRuntime.logger.debug(`################ SW register completed ################`);
 
+      /**
+       * 
+       */
+      window.fetch = zitiFetch;
+      window.XMLHttpRequest = ZitiXMLHttpRequest;
+              
       setTimeout(async function() {
+        // Let SW know we have established all intercepts, so it is now free to load the terget app's JS
+        zitiBrowzerRuntime.logger.debug(`################ sending ZBR_INIT_COMPLETE now ################`);
+        zitiBrowzerRuntime.wb.messageSW({type: 'ZBR_INIT_COMPLETE'});
+
         /**
          * 
          */
@@ -414,12 +424,6 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
       }, 100);
 
-
-      /**
-       * 
-       */
-      window.fetch = zitiFetch;
-      window.XMLHttpRequest = ZitiXMLHttpRequest;
     }
 
   })();
@@ -476,14 +480,14 @@ const zitiFetch = async ( url, opts ) => {
 
     url = newUrl.toString();
 
-  } else if ( (url.match( regexSlash )) || ((url.match( regexDotSlash ))) ) { // the request starts with a slash
+  } else if ( (url.match( regexSlash )) || ((url.match( regexDotSlash ))) ) { // the request starts with a slash, or dot-slash
 
     // let isExpired = await zitiBrowzerRuntime.zitiContext.isCertExpired();
 
     let newUrl;
     let baseURIUrl = new URL( document.baseURI );
     if (baseURIUrl.hostname === zitiBrowzerRuntime.zitiConfig.httpAgent.self.host) {
-      newUrl = new URL( 'https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.target.service + ':' + zitiBrowzerRuntime.zitiConfig.httpAgent.target.port + url );
+      newUrl = new URL( 'https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.target.service + ':' + zitiBrowzerRuntime.zitiConfig.httpAgent.target.port + '/' + url );
     } else {
       let baseURI = document.baseURI.replace(/\.\/$/, '');
       newUrl = new URL( baseURI + url );

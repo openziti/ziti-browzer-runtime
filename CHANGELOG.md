@@ -1,3 +1,12 @@
+## [0.11.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.11.0...v0.11.1) (2022-07-19)
+
+
+### Bug Fixes
+
+* OWASP JuiceShop fixes ([#70](https://github.com/openziti/ziti-browzer-runtime/issues/70)) ([5a7b6c8](https://github.com/openziti/ziti-browzer-runtime/commit/5a7b6c8575ff16a77f37267ad49a4b8fc097382a))
+
+
+
 # [0.11.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.8.1...v0.11.0) (2022-07-16)
 
 

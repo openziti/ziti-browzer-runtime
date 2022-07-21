@@ -21,6 +21,7 @@ import {
   ZitiFormData,
   BrowserStdout,
   http,
+  ZITI_EVP_PKEY_EC,
 } from '@openziti/ziti-browzer-core';
 
 import {Workbox} from'workbox-window';
@@ -38,7 +39,7 @@ import { ZitiXMLHttpRequest } from './http/ziti-xhr';
 import { buildInfo } from './buildInfo'
 
 
-var MAX_ZITI_FETCH_COUNT = 1;   // aka the maximum number of concurrent Ziti Network Requests (TEMP)
+var MAX_ZITI_FETCH_COUNT = 10;   // aka the maximum number of concurrent Ziti Network Requests (TEMP)
 
 
 /**
@@ -171,6 +172,8 @@ class ZitiBrowzerRuntime {
 
     });
     this.logger.trace(`ZitiContext created`);
+
+    this.zitiContext.setKeyTypeEC();
 
     window._zitiContext = this.zitiContext; // allow WASM to find us
 

@@ -1,3 +1,12 @@
+## [0.11.5](https://github.com/openziti/ziti-browzer-runtime/compare/v0.11.4...v0.11.5) (2022-07-21)
+
+
+### Bug Fixes
+
+* Need for Speed: make EC keys the default ([#74](https://github.com/openziti/ziti-browzer-runtime/issues/74)) ([ced0f58](https://github.com/openziti/ziti-browzer-runtime/commit/ced0f58a19242380f302150cba19a01b8e07993f))
+
+
+
 ## [0.11.4](https://github.com/openziti/ziti-browzer-runtime/compare/v0.11.3...v0.11.4) (2022-07-20)
 
 

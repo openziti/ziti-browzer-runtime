@@ -1,3 +1,12 @@
+## [0.11.6](https://github.com/openziti/ziti-browzer-runtime/compare/v0.11.5...v0.11.6) (2022-07-21)
+
+
+### Bug Fixes
+
+* typo ([#75](https://github.com/openziti/ziti-browzer-runtime/issues/75)) ([50f69ee](https://github.com/openziti/ziti-browzer-runtime/commit/50f69ee3a6a702be6e9e294f8115b76b2da25e9c))
+
+
+
 ## [0.11.5](https://github.com/openziti/ziti-browzer-runtime/compare/v0.11.4...v0.11.5) (2022-07-21)
 
 

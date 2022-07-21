@@ -21,7 +21,6 @@ import {
   ZitiFormData,
   BrowserStdout,
   http,
-  ZITI_EVP_PKEY_EC,
 } from '@openziti/ziti-browzer-core';
 
 import {Workbox} from'workbox-window';

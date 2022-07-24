@@ -1157,10 +1157,10 @@
     "@types/emscripten" "^1.39.6"
     "@wasmer/wasi" "^1.0.2"
 
-"@openziti/ziti-browzer-core@^0.16.4":
-  version "0.16.4"
-  resolved "https://registry.yarnpkg.com/@openziti/ziti-browzer-core/-/ziti-browzer-core-0.16.4.tgz#c92a241edbb16a2c50cf2cf96a9a6516d55abb3d"
-  integrity sha512-saGXuqea1KERDYOlpjZH/xRuCMyReS6rn/3+z+F6c27hy6qSutD9isC+eQ/wt90ELBIh2DEra/5B7n70yKil4w==
+"@openziti/ziti-browzer-core@^0.16.5":
+  version "0.16.5"
+  resolved "https://registry.yarnpkg.com/@openziti/ziti-browzer-core/-/ziti-browzer-core-0.16.5.tgz#71878ef537ef557cf5037c5235235c3d5d488a5f"
+  integrity sha512-33Lyjm4UFf/snuAP5+tzSuqQ8RMySEbYiporgLIe0KsZbrXojq+nEjCPH5+PJpHORKU8vk0+Sezm5X7z2gLqYw==
   dependencies:
     "@openziti/libcrypto-js" "^0.9.0"
     "@openziti/ziti-browzer-edge-client" "^0.2.0"

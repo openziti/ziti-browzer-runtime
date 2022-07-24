@@ -364,11 +364,14 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
        * 
        */
       zitiBrowzerRuntime.wb.addEventListener('message', event => {
+
         zitiBrowzerRuntime.logger.info(`SW event (message) type: ${event.data.type}`);
+        
         if (event.data.type === 'CACHE_UPDATED') {
           const {updatedURL} = event.data.payload;
           zitiBrowzerRuntime.logger.info(`A newer version of ${updatedURL} is available!`);
         }
+        
         else if (event.data.type === 'SET_COOKIE') {
           let cookie = event.data.payload.replace('HttpOnly','');
           zitiBrowzerRuntime.logger.info(`A COOKIE has arrived with val ${event.data.payload}`);
@@ -377,6 +380,32 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
           zitiBrowzerRuntime.logger.info(`document.cookie after: `, document.cookie);
           event.ports[0].postMessage( 'OK' );
         }
+
+        else if (event.data.type === 'IDP_TOKEN_RESET_NEEDED') {
+
+          zitiBrowzerRuntime.logger.info(`A ${event.data.type} msg was received!`);
+
+          document.cookie = "appSession=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";  // delete the appSession cookie
+
+          event.ports[0].postMessage( {result: 'OK' } );
+
+          setTimeout(function() {
+            zitiBrowzerRuntime.logger.debug(`################ doing page reload now ################`);
+            window.location.reload();
+          }, 100);
+        }
+
+        else if (event.data.type === 'ZITI_CONFIG_NEEDED') {
+
+          zitiBrowzerRuntime.wb.messageSW({
+            type: 'SET_CONFIG', 
+            payload: {
+              zitiConfig: zitiBrowzerRuntime.zitiConfig
+            } 
+          });
+
+        }
+        
       });
       
       /**

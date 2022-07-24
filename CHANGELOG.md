@@ -1,3 +1,12 @@
+## [0.11.7](https://github.com/openziti/ziti-browzer-runtime/compare/v0.11.6...v0.11.7) (2022-07-24)
+
+
+### Bug Fixes
+
+* JWT expiration improvements ([#76](https://github.com/openziti/ziti-browzer-runtime/issues/76)) ([bfb4bda](https://github.com/openziti/ziti-browzer-runtime/commit/bfb4bda38e2feba57708b7e01b6dce2135805927))
+
+
+
 ## [0.11.6](https://github.com/openziti/ziti-browzer-runtime/compare/v0.11.5...v0.11.6) (2022-07-21)
 
 

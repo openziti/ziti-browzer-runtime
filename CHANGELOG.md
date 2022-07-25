@@ -1,3 +1,12 @@
+## [0.11.8](https://github.com/openziti/ziti-browzer-runtime/compare/v0.11.7...v0.11.8) (2022-07-25)
+
+
+### Bug Fixes
+
+* correct missing Buffer reference ([#77](https://github.com/openziti/ziti-browzer-runtime/issues/77)) ([eec1633](https://github.com/openziti/ziti-browzer-runtime/commit/eec163318a8ee32f2107fa9a0e5de7de937d2f58))
+
+
+
 ## [0.11.7](https://github.com/openziti/ziti-browzer-runtime/compare/v0.11.6...v0.11.7) (2022-07-24)
 
 

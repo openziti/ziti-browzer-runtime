@@ -517,7 +517,7 @@ const zitiFetch = async ( url, opts ) => {
     let newUrl;
     let baseURIUrl = new URL( document.baseURI );
     if (baseURIUrl.hostname === zitiBrowzerRuntime.zitiConfig.httpAgent.self.host) {
-      newUrl = new URL( 'https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.target.service + ':' + zitiBrowzerRuntime.zitiConfig.httpAgent.target.port + '/' + url );
+      newUrl = new URL( 'https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.target.service + ':' + zitiBrowzerRuntime.zitiConfig.httpAgent.target.port + url );
     } else {
       let baseURI = document.baseURI.replace(/\.\/$/, '');
       newUrl = new URL( baseURI + url );

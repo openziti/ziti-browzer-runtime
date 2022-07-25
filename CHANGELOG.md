@@ -1,3 +1,12 @@
+## [0.11.9](https://github.com/openziti/ziti-browzer-runtime/compare/v0.11.8...v0.11.9) (2022-07-25)
+
+
+### Bug Fixes
+
+* correct dbl slash that caused inappropriate 301's ([#78](https://github.com/openziti/ziti-browzer-runtime/issues/78)) ([12b2a52](https://github.com/openziti/ziti-browzer-runtime/commit/12b2a52f04f1fe5fc4cf40c8e03e358ea49a4f2e))
+
+
+
 ## [0.11.8](https://github.com/openziti/ziti-browzer-runtime/compare/v0.11.7...v0.11.8) (2022-07-25)
 
 

@@ -512,7 +512,9 @@ const zitiFetch = async ( url, opts ) => {
 
   } else if ( (url.match( regexSlash )) || ((url.match( regexDotSlash ))) ) { // the request starts with a slash, or dot-slash
 
-    // let isExpired = await zitiBrowzerRuntime.zitiContext.isCertExpired();
+    if ( url.match( regexDotSlash ) ) {
+      url = url.slice(1); // remove the 'dot'
+    }
 
     let newUrl;
     let baseURIUrl = new URL( document.baseURI );
@@ -598,7 +600,7 @@ const zitiFetch = async ( url, opts ) => {
     opts.serviceName = serviceName;
 
     /**
-     * Let ziti-bbrowzer-core.context do the needful
+     * Let ziti-browzer-core.context do the needful
      */
     var zitiResponse = await zitiBrowzerRuntime.zitiContext.httpFetch( url, opts);
 
@@ -650,9 +652,10 @@ const zitiFetch = async ( url, opts ) => {
 
   }).catch(( err ) => {
     zitiBrowzerRuntime.logger.error(err);
-    return new Promise( async (_, reject) => {
-      reject( err );
-    });
+    // return new Promise( async (_, reject) => {
+    //   reject( err );
+    // });
+    return undefined;
   });
 
   return response;

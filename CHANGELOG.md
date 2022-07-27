@@ -1,3 +1,12 @@
+## [0.11.10](https://github.com/openziti/ziti-browzer-runtime/compare/v0.11.9...v0.11.10) (2022-07-27)
+
+
+### Bug Fixes
+
+* remove extraneous dot in URL transform ([#79](https://github.com/openziti/ziti-browzer-runtime/issues/79)) ([296f945](https://github.com/openziti/ziti-browzer-runtime/commit/296f945abf0f63e39710573b01f57968082f98e5))
+
+
+
 ## [0.11.9](https://github.com/openziti/ziti-browzer-runtime/compare/v0.11.8...v0.11.9) (2022-07-25)
 
 

@@ -1,3 +1,12 @@
+## [0.11.12](https://github.com/openziti/ziti-browzer-runtime/compare/v0.11.10...v0.11.12) (2022-08-02)
+
+
+### Bug Fixes
+
+* semver ([#83](https://github.com/openziti/ziti-browzer-runtime/issues/83)) ([2e07092](https://github.com/openziti/ziti-browzer-runtime/commit/2e07092521ccb729271c3005016bfc9c01496092))
+
+
+
 ## [0.11.10](https://github.com/openziti/ziti-browzer-runtime/compare/v0.11.9...v0.11.10) (2022-07-27)
 
 

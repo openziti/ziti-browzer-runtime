@@ -197,10 +197,10 @@ class ZitiBrowzerRuntime {
     return new Promise((resolve) => {
       (function waitForInitializationComplete() {
         if (!zitiBrowzerRuntime.initialized) {
-          zitiBrowzerRuntime.logger.trace(`waitForInitializationComplete() on ${zitiBrowzerRuntime._uuid} still not initialized`);
+          // zitiBrowzerRuntime.logger.trace(`waitForInitializationComplete() on ${zitiBrowzerRuntime._uuid} still not initialized`);
           setTimeout(waitForInitializationComplete, 100);  
         } else {
-          zitiBrowzerRuntime.logger.trace(`waitForInitializationComplete() on ${zitiBrowzerRuntime._uuid} completed`);
+          // zitiBrowzerRuntime.logger.trace(`waitForInitializationComplete() on ${zitiBrowzerRuntime._uuid} completed`);
           return resolve();
         }
       })();
@@ -385,13 +385,11 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
           zitiBrowzerRuntime.logger.info(`A ${event.data.type} msg was received!`);
 
-          document.cookie = "appSession=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/;";  // delete the appSession cookie
-
           event.ports[0].postMessage( {result: 'OK' } );
 
           setTimeout(function() {
-            zitiBrowzerRuntime.logger.debug(`################ doing page reload now ################`);
-            window.location.reload();
+            zitiBrowzerRuntime.logger.debug(`################ doing root-page page reload now ################`);
+            window.location.replace('https://' + this.zitiConfig.httpAgent.self.host + '/');
           }, 100);
         }
 
@@ -504,7 +502,7 @@ const zitiFetch = async ( url, opts ) => {
     zitiBrowzerRuntime.logger.trace( 'zitiFetch: serviceName: ', serviceName);
 
     if (isUndefined(serviceName)) { // If we have no serviceConfig associated with the hostname:port, do not intercept
-      zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
+      // zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
       return window._ziti_realFetch(url, opts);
     }  
 
@@ -529,7 +527,7 @@ const zitiFetch = async ( url, opts ) => {
     serviceName = await zitiBrowzerRuntime.zitiContext.shouldRouteOverZiti( newUrl );
 
     if (isUndefined(serviceName)) { // If we have no serviceConfig associated with the hostname:port, do not intercept
-      zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
+      // zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
       return window._ziti_realFetch(url, opts);
     }  
 
@@ -577,7 +575,7 @@ const zitiFetch = async ( url, opts ) => {
 
       // } else {
 
-        zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
+        // zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
         return window._ziti_realFetch(url, opts);
   
       // }
@@ -595,7 +593,7 @@ const zitiFetch = async ( url, opts ) => {
 
   let response = await zitiBrowzerRuntime._fetchSemaphore.runExclusive( async ( value ) => {
 
-    zitiBrowzerRuntime.logger.trace('zitiFetch: now inside _fetchSemaphore count[%o]: url[%o]', value, url);
+    // zitiBrowzerRuntime.logger.trace('zitiFetch: now inside _fetchSemaphore count[%o]: url[%o]', value, url);
 
     opts.serviceName = serviceName;
 
@@ -645,17 +643,18 @@ const zitiFetch = async ( url, opts ) => {
 
       let response = new Response( responseStream, { "status": zitiResponse.status, "headers":  headers } );
       
-      zitiBrowzerRuntime.logger.trace('zitiFetch: now inside _fetchSemaphore count[%o]: response for request.url[%o] is [%o]', value, url, response);
+      // zitiBrowzerRuntime.logger.trace('zitiFetch: now inside _fetchSemaphore count[%o]: response for request.url[%o] is [%o]', value, url, response);
       
       return response;
 
 
-  }).catch(( err ) => {
-    zitiBrowzerRuntime.logger.error(err);
-    // return new Promise( async (_, reject) => {
-    //   reject( err );
-    // });
-    return undefined;
+  // }
+  // ).catch(( err ) => {
+  //   zitiBrowzerRuntime.logger.error(err);
+  //   // return new Promise( async (_, reject) => {
+  //   //   reject( err );
+  //   // });
+  //   return undefined;
   });
 
   return response;

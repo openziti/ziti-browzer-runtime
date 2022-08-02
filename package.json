@@ -93,7 +93,7 @@
   },
   "dependencies": {
     "@babel/runtime": "^7.17.9",
-    "@openziti/ziti-browzer-core": "^0.16.6",
+    "@openziti/ziti-browzer-core": "^0.16.7",
     "cookie-interceptor": "^1.0.0",
     "core-js": "^3.22.8",
     "js-base64": "^3.7.2",

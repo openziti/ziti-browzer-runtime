@@ -1,3 +1,12 @@
+# [0.12.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.11.12...v0.12.0) (2022-08-03)
+
+
+### Features
+
+* no limits on simultaneous requests ([#84](https://github.com/openziti/ziti-browzer-runtime/issues/84)) ([4baf69e](https://github.com/openziti/ziti-browzer-runtime/commit/4baf69ec8d937a2abb6974c9f24b69abbe39e1a7))
+
+
+
 ## [0.11.12](https://github.com/openziti/ziti-browzer-runtime/compare/v0.11.10...v0.11.12) (2022-08-02)
 
 

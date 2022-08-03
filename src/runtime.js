@@ -38,8 +38,6 @@ import { ZitiXMLHttpRequest } from './http/ziti-xhr';
 import { buildInfo } from './buildInfo'
 
 
-var MAX_ZITI_FETCH_COUNT = 10;   // aka the maximum number of concurrent Ziti Network Requests (TEMP)
-
 
 /**
  * 
@@ -70,9 +68,6 @@ class ZitiBrowzerRuntime {
     this.initialized    = false;
 
     this._uuid          = uuidv4();
-
-    // this._fetchSemaphore = withTimeout(new Semaphore( MAX_ZITI_FETCH_COUNT ), 10000, new Error('timeout waiting for _fetchSemaphore'));
-    this._fetchSemaphore = withTimeout(new Semaphore( MAX_ZITI_FETCH_COUNT ), 10000);
 
     this.version        = _options.version;
     this.core           = _options.core;
@@ -591,72 +586,54 @@ const zitiFetch = async ( url, opts ) => {
 
   zitiBrowzerRuntime.logger.trace('zitiFetch: serviceConfig match; intercepting [%s]', url);
 
-  let response = await zitiBrowzerRuntime._fetchSemaphore.runExclusive( async ( value ) => {
+  opts.serviceName = serviceName;
 
-    // zitiBrowzerRuntime.logger.trace('zitiFetch: now inside _fetchSemaphore count[%o]: url[%o]', value, url);
+  /**
+   * Let ziti-browzer-core.context do the needful
+   */
+  var zitiResponse = await zitiBrowzerRuntime.zitiContext.httpFetch( url, opts);
 
-    opts.serviceName = serviceName;
+  zitiBrowzerRuntime.logger.trace(`Got zitiResponse: `, zitiResponse);
 
-    /**
-     * Let ziti-browzer-core.context do the needful
-     */
-    var zitiResponse = await zitiBrowzerRuntime.zitiContext.httpFetch( url, opts);
+  /**
+   * Now that ziti-browzer-core has returned us a ZitiResponse, instantiate a fresh native Response object that we 
+   * will return to the Browser. This requires us to:
+   * 
+   * 1) propagate the HTTP headers, status, etc
+   * 2) pipe the HTTP response body 
+   */
 
-    zitiBrowzerRuntime.logger.trace(`Got zitiResponse: `, zitiResponse);
+  var zitiHeaders = zitiResponse.headers.raw();
+  var headers = new Headers();
+  const keys = Object.keys(zitiHeaders);
+  for (let i = 0; i < keys.length; i++) {
+    const key = keys[i];
+    const val = zitiHeaders[key][0];
+    headers.append( key, val);
+    zitiBrowzerRuntime.logger.trace( 'zitiResponse.headers: ', key, val);
+  }
+  headers.append( 'x-ziti-browzer-runtime-version', pjson.version );
 
-    /**
-     * Now that ziti-browzer-core has returned us a ZitiResponse, instantiate a fresh native Response object that we 
-     * will return to the Browser. This requires us to:
-     * 
-     * 1) propagate the HTTP headers, status, etc
-     * 2) pipe the HTTP response body 
-     */
-
-      var zitiHeaders = zitiResponse.headers.raw();
-      var headers = new Headers();
-      const keys = Object.keys(zitiHeaders);
-      for (let i = 0; i < keys.length; i++) {
-        const key = keys[i];
-        const val = zitiHeaders[key][0];
-        headers.append( key, val);
-        zitiBrowzerRuntime.logger.trace( 'zitiResponse.headers: ', key, val);
+  var responseBlob = await zitiResponse.blob();
+  var responseBlobStream = responseBlob.stream();               
+  const responseStream = new ReadableStream({
+      start(controller) {
+          function push() {
+              var chunk = responseBlobStream.read();
+              if (chunk) {
+                  controller.enqueue(chunk);
+                  push();  
+              } else {
+                  controller.close();
+                  return;
+              }
+          };
+          push();
       }
-      headers.append( 'x-ziti-browzer-runtime-version', pjson.version );
-
-      var responseBlob = await zitiResponse.blob();
-      var responseBlobStream = responseBlob.stream();               
-      const responseStream = new ReadableStream({
-          start(controller) {
-              function push() {
-                  var chunk = responseBlobStream.read();
-                  if (chunk) {
-                      controller.enqueue(chunk);
-                      push();  
-                  } else {
-                      controller.close();
-                      return;
-                  }
-              };
-              push();
-          }
-      });
-
-      let response = new Response( responseStream, { "status": zitiResponse.status, "headers":  headers } );
-      
-      // zitiBrowzerRuntime.logger.trace('zitiFetch: now inside _fetchSemaphore count[%o]: response for request.url[%o] is [%o]', value, url, response);
-      
-      return response;
-
-
-  // }
-  // ).catch(( err ) => {
-  //   zitiBrowzerRuntime.logger.error(err);
-  //   // return new Promise( async (_, reject) => {
-  //   //   reject( err );
-  //   // });
-  //   return undefined;
   });
 
+  let response = new Response( responseStream, { "status": zitiResponse.status, "headers":  headers } );
+        
   return response;
 
 }

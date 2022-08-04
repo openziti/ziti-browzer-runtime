@@ -1,3 +1,12 @@
+# [0.13.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.12.0...v0.13.0) (2022-08-04)
+
+
+### Features
+
+* add 'toast' mechanism ([#85](https://github.com/openziti/ziti-browzer-runtime/issues/85)) ([879c7c8](https://github.com/openziti/ziti-browzer-runtime/commit/879c7c80a0e615732b511f5788147b16ffe38c29))
+
+
+
 # [0.12.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.11.12...v0.12.0) (2022-08-03)
 
 

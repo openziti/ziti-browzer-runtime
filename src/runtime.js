@@ -95,7 +95,7 @@ class ZitiBrowzerRuntime {
       let value = cookie.substring(cookie.indexOf("=") + 1);
       let cookie_value = value.substring(0, value.indexOf(";"));
 
-      zitiBrowzerRuntime.wb.messageSW({
+      window.zitiBrowzerRuntime.wb.messageSW({
         type: 'SET_COOKIE', 
         payload: {
           name: name, 
@@ -106,6 +106,24 @@ class ZitiBrowzerRuntime {
       return cookie;
     });
 
+    // Toast infra
+    if (typeof Polipop !== 'undefined') {
+      this.polipop = new Polipop('ziti-browzer-toast', {
+        layout: 'popups',
+        position: 'center',
+        insert: 'after',
+        theme: 'compact',
+        pool: 10,
+        sticky: false,
+        progressbar: true,
+        headerText: 'OpenZiti browZer',
+        effect: 'slide',
+        closer: false,
+        life: 5000,
+        icons: true,
+      });
+    }
+  
   }
 
 
@@ -181,6 +199,7 @@ class ZitiBrowzerRuntime {
 
     this.logger.trace(`ZitiBrowzerRuntime ${this._uuid} has been initialized`);
 
+    this.toastInfo(`Runtime v${pjson.version} now initialized`);
   };
 
 
@@ -220,7 +239,29 @@ class ZitiBrowzerRuntime {
     }
     return "";
   }
+
   
+  /**
+   * 
+   */
+  _toast(content, type) {
+      if (this.polipop) {
+        this.polipop.add({content: content, title: `OpenZiti BrowZer: ${type}`, type: type});
+      }
+    }
+  
+  toastInfo(content) {
+    this._toast(content, `info`);
+  }
+  toastSuccess(content) {
+    this._toast(content, `success`);
+  }
+  toastWarning(content) {
+    this._toast(content, `warning`);
+  }
+  toastError(content) {
+    this._toast(content, `error`);
+  }
 }
 
 /**
@@ -275,6 +316,15 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
     }
 
+    window.addEventListener('online', (e) => {
+      window.zitiBrowzerRuntime.logger.trace(`ZitiBrowzerRuntime ${window.zitiBrowzerRuntime._uuid} 'networkOnlineEvent' has been received:  `, e);
+      window.zitiBrowzerRuntime.toastSuccess(`The network has come back online`);
+    });
+    window.addEventListener('offline', (e) => {
+      window.zitiBrowzerRuntime.logger.trace(`ZitiBrowzerRuntime ${window.zitiBrowzerRuntime._uuid} 'networkOfflineEvent' has been received: `, e);
+      window.zitiBrowzerRuntime.toastError(`The network has gone offline`);    
+    });
+
     /**
      * 
      */
@@ -283,7 +333,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       /**
        * The very first time our service worker installs, it will NOT have intercepted any fetch events for
        * the page page load.  We therefore reload the page after the service worker is engaged so it will 
-       * begin intercepting HTTP requests, as well as will be available to provide this Page a keypair.
+       * begin intercepting HTTP requests.
        */
       zitiBrowzerRuntime.wb.addEventListener('installed', async event => {
         zitiBrowzerRuntime.logger.info(`received SW 'installed' event`);
@@ -445,6 +495,8 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         }
         zitiBrowzerRuntime.logger.info(`SET_COOKIE operations now complete`);
 
+        const swVersionObject = await zitiBrowzerRuntime.wb.messageSW({type: 'GET_VERSION'});
+        zitiBrowzerRuntime.toastInfo(`ServiceWorker v${swVersionObject.version} now initialized`);
       }, 100);
 
     }

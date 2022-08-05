@@ -1,3 +1,12 @@
+# [0.14.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.13.0...v0.14.0) (2022-08-05)
+
+
+### Features
+
+* add SW reload event mechanism ([#86](https://github.com/openziti/ziti-browzer-runtime/issues/86)) ([5a69d98](https://github.com/openziti/ziti-browzer-runtime/commit/5a69d98ff4caad1d6720d4a152c57153f83dcf02))
+
+
+
 # [0.13.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.12.0...v0.13.0) (2022-08-04)
 
 

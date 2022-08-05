@@ -434,8 +434,20 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
           setTimeout(function() {
             zitiBrowzerRuntime.logger.debug(`################ doing root-page page reload now ################`);
-            window.location.replace('https://' + this.zitiConfig.httpAgent.self.host + '/');
+            window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.self.host + '/');
           }, 100);
+        }
+
+        else if (event.data.type === 'RELOAD') {
+
+          zitiBrowzerRuntime.logger.info(`A ${event.data.type} msg was received!`);
+
+          zitiBrowzerRuntime.toastWarning(`ServiceWorker initiated a reload - stand by`);
+
+          setTimeout(function() {
+            zitiBrowzerRuntime.logger.debug(`################ doing root-page page reload now ################`);
+            window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.self.host + '/');
+          }, 2500);
         }
 
         else if (event.data.type === 'ZITI_CONFIG_NEEDED') {

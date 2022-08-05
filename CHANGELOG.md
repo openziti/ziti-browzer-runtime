@@ -1,3 +1,12 @@
+## [0.14.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.14.0...v0.14.1) (2022-08-05)
+
+
+### Bug Fixes
+
+* correct unneeded unregister/reloads ([#87](https://github.com/openziti/ziti-browzer-runtime/issues/87)) ([8d4a884](https://github.com/openziti/ziti-browzer-runtime/commit/8d4a8843ac3b9a0727260baa78cb17c5b1fcd671))
+
+
+
 # [0.14.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.13.0...v0.14.0) (2022-08-05)
 
 

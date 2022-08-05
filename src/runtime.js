@@ -452,12 +452,16 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
         else if (event.data.type === 'ZITI_CONFIG_NEEDED') {
 
-          zitiBrowzerRuntime.wb.messageSW({
-            type: 'SET_CONFIG', 
-            payload: {
-              zitiConfig: zitiBrowzerRuntime.zitiConfig
-            } 
-          });
+          setTimeout(function() {
+            zitiBrowzerRuntime.logger.debug(`sending SET_CONFIG reply to SW`);
+            zitiBrowzerRuntime.wb.messageSW({
+              type: 'SET_CONFIG', 
+              payload: {
+                zitiConfig: zitiBrowzerRuntime.zitiConfig
+              } 
+            });
+            zitiBrowzerRuntime.logger.debug(`SET_CONFIG reply has ben sent to SW`);
+          }, 10);
 
         }
         

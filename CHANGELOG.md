@@ -1,3 +1,12 @@
+## [0.14.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.14.1...v0.14.2) (2022-08-08)
+
+
+### Bug Fixes
+
+* correct 401's on img loads following SW reactivation ([#88](https://github.com/openziti/ziti-browzer-runtime/issues/88)) ([4303e65](https://github.com/openziti/ziti-browzer-runtime/commit/4303e657ec1f3020a6fcbe30326521a9034adbc7))
+
+
+
 ## [0.14.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.14.0...v0.14.1) (2022-08-05)
 
 

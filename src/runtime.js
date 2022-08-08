@@ -453,6 +453,21 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         else if (event.data.type === 'ZITI_CONFIG_NEEDED') {
 
           setTimeout(function() {
+            
+            // First send all existing cookies to the sw
+            let theCookies = document.cookie.split(';');
+            for (var i = 0 ; i < theCookies.length; i++) {
+              let cookie = theCookies[i].split('=');
+              zitiBrowzerRuntime.logger.debug(`sending cookie to SW ${cookie[0]} ${cookie[1]}`);
+              zitiBrowzerRuntime.wb.messageSW({
+                type: 'SET_COOKIE', 
+                payload: {
+                  name: cookie[0], 
+                  value: cookie[1]
+                } 
+              });
+            }
+
             zitiBrowzerRuntime.logger.debug(`sending SET_CONFIG reply to SW`);
             zitiBrowzerRuntime.wb.messageSW({
               type: 'SET_CONFIG', 
@@ -461,7 +476,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
               } 
             });
             zitiBrowzerRuntime.logger.debug(`SET_CONFIG reply has ben sent to SW`);
-          }, 10);
+          }, 25);
 
         }
         

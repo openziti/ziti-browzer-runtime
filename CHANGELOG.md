@@ -1,3 +1,12 @@
+# [0.15.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.14.2...v0.15.0) (2022-08-09)
+
+
+### Features
+
+* specify SW version when registering ([#89](https://github.com/openziti/ziti-browzer-runtime/issues/89)) ([cebe98a](https://github.com/openziti/ziti-browzer-runtime/commit/cebe98adc301724c784d6b12be49773490af25da))
+
+
+
 ## [0.14.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.14.1...v0.14.2) (2022-08-08)
 
 

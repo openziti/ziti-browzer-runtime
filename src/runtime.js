@@ -83,7 +83,8 @@ class ZitiBrowzerRuntime {
     this.wb             = new Workbox(
       'https://' + this.zitiConfig.httpAgent.self.host + '/' 
       + this.zitiConfig.browzer.sw.location 
-      + '?controllerApi=' + encodeURIComponent(this.zitiConfig.controller.api)
+      + '?swVersion='     + encodeURIComponent(this.zitiConfig.browzer.sw.version)
+      + '&controllerApi=' + encodeURIComponent(this.zitiConfig.controller.api)
       + '&logLevel='      + encodeURIComponent(this.zitiConfig.browzer.sw.logLevel)
     );
 

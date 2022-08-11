@@ -194,8 +194,6 @@ class ZitiBrowzerRuntime {
       loadWASM: !options.loadedViaHTTPAgent   // instantiate the internal WebAssembly ONLY if we were not injected by the HTTP Agent
     });
 
-    await window.zitiBrowzerRuntime.zitiContext.listControllerVersion();
-
     this.initialized = true;
 
     this.logger.trace(`ZitiBrowzerRuntime ${this._uuid} has been initialized`);
@@ -295,6 +293,8 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
     console.log('now inside async IIFE to initialize the runtime and register the SW');
 
     const loadedViaHTTPAgent = document.getElementById('from-ziti-http-agent');
+
+    const loadedViaSWBootstrap = document.getElementById('ziti-browzer-sw-bootstrap');
 
     /**
      * 
@@ -496,13 +496,15 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       window.XMLHttpRequest = ZitiXMLHttpRequest;
               
       setTimeout(async function() {
-        // Let SW know we have established all intercepts, so it is now free to load the terget app's JS
         zitiBrowzerRuntime.logger.debug(`################ sending ZBR_INIT_COMPLETE now ################`);
-        zitiBrowzerRuntime.wb.messageSW({type: 'ZBR_INIT_COMPLETE'});
+        // zitiBrowzerRuntime.wb.messageSW({type: 'ZBR_INIT_COMPLETE'});
+        navigator.serviceWorker.controller.postMessage({
+          type: 'ZBR_INIT_COMPLETE',
+        });
+      }, 50);
 
-        /**
-         * 
-         */
+      setTimeout(async function() {
+
         zitiBrowzerRuntime.logger.debug(`################ doing SET_CONFIG now ################`);
         const swConfig = await zitiBrowzerRuntime.wb.messageSW({
           type: 'SET_CONFIG', 
@@ -527,9 +529,19 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         }
         zitiBrowzerRuntime.logger.info(`SET_COOKIE operations now complete`);
 
+      }, 100);
+
+      setTimeout(async function() {
         const swVersionObject = await zitiBrowzerRuntime.wb.messageSW({type: 'GET_VERSION'});
         zitiBrowzerRuntime.toastInfo(`ServiceWorker v${swVersionObject.version} now initialized`);
-      }, 100);
+      }, 200);
+
+      if (loadedViaSWBootstrap) {
+        setTimeout(function() {
+          zitiBrowzerRuntime.logger.debug(`################ loadedViaSWBootstrap detected -- doing page reload now ################`);
+          window.location.reload();
+        }, 300);
+      }
 
     }
 

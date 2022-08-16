@@ -198,7 +198,10 @@ class ZitiBrowzerRuntime {
 
     this.logger.trace(`ZitiBrowzerRuntime ${this._uuid} has been initialized`);
 
-    this.toastInfo(`Runtime v${pjson.version} now initialized`);
+    let controllerVersion = await zitiBrowzerRuntime.zitiContext.listControllerVersion();
+
+    this.toastInfo(`Runtime v${pjson.version} now initialized<br/><br/>Connected to Controller ${controllerVersion.version}`);
+
   };
 
 
@@ -245,7 +248,7 @@ class ZitiBrowzerRuntime {
    */
   _toast(content, type) {
       if (this.polipop) {
-        this.polipop.add({content: content, title: `OpenZiti BrowZer: ${type}`, type: type});
+        this.polipop.add({content: content, title: `OpenZiti BrowZer`, type: type});
       }
     }
   

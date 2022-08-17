@@ -394,7 +394,6 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
        */
       zitiBrowzerRuntime.wb.addEventListener('activated', async event => {
         zitiBrowzerRuntime.logger.info(`received SW 'activated' event`);
-        zitiBrowzerRuntime.toastInfo(`ServiceWorker 'activated' event`);
       });
 
       
@@ -420,7 +419,6 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
        */
       zitiBrowzerRuntime.wb.addEventListener('controlling', event => {
         zitiBrowzerRuntime.logger.info(`received SW 'controlling' event`);
-        zitiBrowzerRuntime.toastInfo(`ServiceWorker 'controlling' event`);
       });
       
 

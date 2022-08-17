@@ -1,3 +1,12 @@
+# [0.17.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.16.1...v0.17.0) (2022-08-17)
+
+
+### Features
+
+* ensure SW controls page before attempting to send config ([#92](https://github.com/openziti/ziti-browzer-runtime/issues/92)) ([ed1b9dc](https://github.com/openziti/ziti-browzer-runtime/commit/ed1b9dce01505be3e35beb52f00e94541732aadc))
+
+
+
 ## [0.16.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.16.0...v0.16.1) (2022-08-16)
 
 

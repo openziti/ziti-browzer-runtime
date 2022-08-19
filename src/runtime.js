@@ -336,6 +336,14 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
     window.addEventListener('online', (e) => {
       window.zitiBrowzerRuntime.logger.trace(`ZitiBrowzerRuntime ${window.zitiBrowzerRuntime._uuid} 'networkOnlineEvent' has been received:  `, e);
       window.zitiBrowzerRuntime.toastSuccess(`The network has come back online`);
+      window.zitiBrowzerRuntime.toastWarning(`Page will reload in 5 seconds...`);
+      setTimeout(function() {
+        window.zitiBrowzerRuntime.wb.messageSW({
+          type: 'UNREGISTER', 
+          payload: {
+          } 
+        });
+      }, 5000);
     });
     window.addEventListener('offline', (e) => {
       window.zitiBrowzerRuntime.logger.trace(`ZitiBrowzerRuntime ${window.zitiBrowzerRuntime._uuid} 'networkOfflineEvent' has been received: `, e);
@@ -459,7 +467,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
           zitiBrowzerRuntime.logger.info(`A ${event.data.type} msg was received!`);
 
-          zitiBrowzerRuntime.toastWarning(`ServiceWorker initiated a reload - stand by`);
+          zitiBrowzerRuntime.toastWarning(`Page reload initiated - stand by`);
 
           setTimeout(function() {
             zitiBrowzerRuntime.logger.debug(`################ doing root-page page reload now ################`);

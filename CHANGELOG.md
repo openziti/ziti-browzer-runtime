@@ -1,3 +1,12 @@
+## [0.17.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.17.1...v0.17.2) (2022-08-19)
+
+
+### Bug Fixes
+
+* initiate a full reload after the network comes back online ([#94](https://github.com/openziti/ziti-browzer-runtime/issues/94)) ([939e01a](https://github.com/openziti/ziti-browzer-runtime/commit/939e01a375e144b58b293f190e2017a61f89d6bb))
+
+
+
 ## [0.17.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.17.0...v0.17.1) (2022-08-19)
 
 

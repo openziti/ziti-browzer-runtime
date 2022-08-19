@@ -650,6 +650,29 @@ const zitiFetch = async ( url, opts ) => {
     url = newUrl.toString();
 
   } 
+  else if (!url.toLowerCase().startsWith('http')) {
+    url = `${zitiBrowzerRuntime.zitiConfig.httpAgent.target.path}/${url}` // add leading slash
+
+    let newUrl;
+    let baseURIUrl = new URL( document.baseURI );
+    if (baseURIUrl.hostname === zitiBrowzerRuntime.zitiConfig.httpAgent.self.host) {
+      newUrl = new URL( 'https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.target.service + ':' + zitiBrowzerRuntime.zitiConfig.httpAgent.target.port + url );
+    } else {
+      let baseURI = document.baseURI.replace(/\.\/$/, '');
+      newUrl = new URL( baseURI + url );
+    }
+    zitiBrowzerRuntime.logger.debug( 'zitiFetch: transformed URL: ', newUrl.toString());
+
+    serviceName = await zitiBrowzerRuntime.zitiContext.shouldRouteOverZiti( newUrl );
+
+    if (isUndefined(serviceName)) { // If we have no serviceConfig associated with the hostname:port, do not intercept
+      // zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
+      return window._ziti_realFetch(url, opts);
+    }
+
+    url = newUrl.toString();
+
+  }
   if (url.toLowerCase().includes( zitiBrowzerRuntime.controllerApi.toLowerCase() )) {   // seeking Ziti Controller
   // if (url.match( zitiBrowzerRuntime.regexControllerAPI )) {   // seeking Ziti Controller
     zitiBrowzerRuntime.logger.trace('zitiFetch: seeking Ziti Controller, bypassing intercept of [%s]', url);

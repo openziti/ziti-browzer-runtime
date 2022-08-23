@@ -249,6 +249,10 @@ class ZitiBrowzerRuntime {
   _toast(content, type) {
       if (this.polipop) {
         this.polipop.add({content: content, title: `OpenZiti BrowZer`, type: type});
+      } else {
+        if (type === `warning` || type === `error`) {
+          alert(content);
+        }
       }
     }
   
@@ -502,6 +506,12 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
             });
             zitiBrowzerRuntime.logger.debug(`SET_CONFIG reply has ben sent to SW`);
           }, 25);
+
+        }
+
+        else if (event.data.type === 'SERVICE_UNAVAILABLE_TO_IDENTITY') {
+
+          window.zitiBrowzerRuntime.toastWarning(`${event.data.payload.message}`);
 
         }
         

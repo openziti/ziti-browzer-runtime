@@ -109,7 +109,17 @@ class ZitiBrowzerRuntime {
 
     // Toast infra
     if (typeof Polipop !== 'undefined') {
-      this.polipop = new Polipop('ziti-browzer-toast', {
+      this._createPolipop(this);
+    }
+    else {
+      setTimeout(this._createPolipop, 1000, this);
+    }
+  
+  }
+
+  _createPolipop(self) {
+    if (typeof Polipop !== 'undefined') {
+      self.polipop = new Polipop('ziti-browzer-toast', {
         layout: 'popups',
         position: 'center',
         insert: 'after',
@@ -124,7 +134,6 @@ class ZitiBrowzerRuntime {
         icons: true,
       });
     }
-  
   }
 
 
@@ -246,27 +255,25 @@ class ZitiBrowzerRuntime {
   /**
    * 
    */
-  _toast(content, type) {
-      if (this.polipop) {
-        this.polipop.add({content: content, title: `OpenZiti BrowZer`, type: type});
-      } else {
-        if (type === `warning` || type === `error`) {
-          alert(content);
-        }
-      }
+  _toast(self, content, type) {
+    if (self.polipop) {
+      self.polipop.add({content: content, title: `OpenZiti BrowZer`, type: type});
+    } else {
+      setTimeout(self._toast, 1000, self, content, type);
     }
+  }
   
   toastInfo(content) {
-    this._toast(content, `info`);
+    this._toast(this, content, `info`);
   }
   toastSuccess(content) {
-    this._toast(content, `success`);
+    this._toast(this, content, `success`);
   }
   toastWarning(content) {
-    this._toast(content, `warning`);
+    this._toast(this, content, `warning`);
   }
   toastError(content) {
-    this._toast(content, `error`);
+    this._toast(this, content, `error`);
   }
 }
 
@@ -463,7 +470,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
           setTimeout(function() {
             zitiBrowzerRuntime.logger.debug(`################ doing root-page page reload now ################`);
-            window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.self.host + '/');
+            window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.self.host + zitiBrowzerRuntime.zitiConfig.httpAgent.target.path);
           }, 100);
         }
 
@@ -475,7 +482,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
           setTimeout(function() {
             zitiBrowzerRuntime.logger.debug(`################ doing root-page page reload now ################`);
-            window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.self.host + '/');
+            window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.self.host + zitiBrowzerRuntime.zitiConfig.httpAgent.target.path);
           }, 2500);
         }
 

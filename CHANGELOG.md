@@ -1,3 +1,12 @@
+## [0.17.4](https://github.com/openziti/ziti-browzer-runtime/compare/v0.17.3...v0.17.4) (2022-08-23)
+
+
+### Bug Fixes
+
+* correct ZBR toast handling in Apache Guacamole webapp ([#97](https://github.com/openziti/ziti-browzer-runtime/issues/97)) ([1522a77](https://github.com/openziti/ziti-browzer-runtime/commit/1522a77997f6e74cdba81f41a48303ffdea82d27))
+
+
+
 ## [0.17.3](https://github.com/openziti/ziti-browzer-runtime/compare/v0.17.2...v0.17.3) (2022-08-23)
 
 

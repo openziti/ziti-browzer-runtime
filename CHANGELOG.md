@@ -1,3 +1,12 @@
+# [0.19.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.18.0...v0.19.0) (2022-08-30)
+
+
+### Features
+
+* hotKey config ([#99](https://github.com/openziti/ziti-browzer-runtime/issues/99)) ([7e84ad7](https://github.com/openziti/ziti-browzer-runtime/commit/7e84ad71d02fe5b54cc4fc4437796ea8ad8f0739))
+
+
+
 # [0.18.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.17.4...v0.18.0) (2022-08-30)
 
 

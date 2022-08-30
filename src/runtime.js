@@ -26,7 +26,7 @@ import {
 import {Workbox} from'workbox-window';
 import jwt_decode from "jwt-decode";
 import { Base64 } from 'js-base64';
-import { isUndefined } from 'lodash-es';
+import { isUndefined, isNull } from 'lodash-es';
 import CookieInterceptor from 'cookie-interceptor';
 import { v4 as uuidv4 } from 'uuid';
 import { withTimeout, Semaphore } from 'async-mutex';
@@ -114,7 +114,9 @@ class ZitiBrowzerRuntime {
     else {
       setTimeout(this._createPolipop, 1000, this);
     }
-  
+
+    // HotKey infra
+    setTimeout(this._createHotKeys, 10000, this);    
   }
 
   _createPolipop(self) {
@@ -136,6 +138,19 @@ class ZitiBrowzerRuntime {
     }
   }
 
+  _createHotKeys(self) {
+    if (typeof hotkeys !== 'undefined') {
+      hotkeys('alt+f12', function (event, handler){
+        switch (handler.key) {
+          case 'alt+f12': alert('TEMP DEMO: you pressed alt+f12!');
+            break;
+          default: alert(event);
+        }
+      });
+    } else {
+      setTimeout(self._createHotKeys, 1000, self);
+    }
+  }
 
   /**
    * Extract the zitiConfig object from the Cookie sent from HTTP Agent
@@ -607,6 +622,18 @@ var regexZBWASM   = new RegExp( /libcrypto.wasm/, 'g' );
 
 
 /**
+ * 
+ */
+const getBrowZerSession = () => {
+  const value = `; ${document.cookie}`;
+  const parts = value.split(`; browZerSession=`);
+  if (parts.length === 2) {
+    return parts.pop().split(';').shift();
+  }
+  return null;
+}
+
+/**
  * Intercept all 'fetch' requests and route them over Ziti if the target host:port matches an active Ziti Service Config
  *
  * @param {String} url
@@ -616,9 +643,33 @@ var regexZBWASM   = new RegExp( /libcrypto.wasm/, 'g' );
  */
 const zitiFetch = async ( url, opts ) => {
 
-  zitiBrowzerRuntime.logger.trace( 'zitiFetch: entered for URL: ', url);
+  window.zitiBrowzerRuntime.logger.trace( 'zitiFetch: entered for URL: ', url);
 
-  await zitiBrowzerRuntime.awaitInitializationComplete();
+  // If the browZerSession has expired, then tear everything down and reboot
+  if (isNull(getBrowZerSession())) {
+
+    // Only initiate reboot once. If multiple HTTP requests come in, just 403 the rest below.
+    if (!window.zitiBrowzerRuntime.reauthInitiated) {
+
+      window.zitiBrowzerRuntime.reauthInitiated = true;
+
+      window.zitiBrowzerRuntime.toastError(`Your browZer Session has expired -- Re-Authentication required.`);
+
+      setTimeout(function() {
+        window.zitiBrowzerRuntime.wb.messageSW({
+          type: 'UNREGISTER', 
+          payload: {
+          } 
+        });
+      }, 100);
+      
+    }
+
+    // It doesn't really matter what we return here since everything is about to reload
+    return new Response( null, { "status": 403 } );
+  }
+
+  await window.zitiBrowzerRuntime.awaitInitializationComplete();
 
   let serviceName;
 
@@ -626,7 +677,7 @@ const zitiFetch = async ( url, opts ) => {
   // ...we want to intercept any request from the web app that targets the server from which the app was loaded.
 
   if (url.match( regexZBWASM )) { // the request seeks z-b-r/wasm
-    zitiBrowzerRuntime.logger.trace('zitiFetch: seeking Ziti z-b-r/wasm, bypassing intercept of [%s]', url);
+    window.zitiBrowzerRuntime.logger.trace('zitiFetch: seeking Ziti z-b-r/wasm, bypassing intercept of [%s]', url);
     return window._ziti_realFetch(url, opts);
   }
   else if (url.match( regex )) { // yes, the request is targeting the Ziti HTTP Agent
@@ -634,13 +685,13 @@ const zitiFetch = async ( url, opts ) => {
     // let isExpired = await zitiBrowzerRuntime.zitiContext.isCertExpired();
 
     var newUrl = new URL( url );
-    newUrl.hostname = zitiBrowzerRuntime.zitiConfig.httpAgent.target.service;
-    newUrl.port = zitiBrowzerRuntime.zitiConfig.httpAgent.target.port;
-    zitiBrowzerRuntime.logger.trace( 'zitiFetch: transformed URL: ', newUrl.toString());
+    newUrl.hostname = window.zitiBrowzerRuntime.zitiConfig.httpAgent.target.service;
+    newUrl.port = window.zitiBrowzerRuntime.zitiConfig.httpAgent.target.port;
+    window.zitiBrowzerRuntime.logger.trace( 'zitiFetch: transformed URL: ', newUrl.toString());
 
-    serviceName = await zitiBrowzerRuntime.zitiContext.shouldRouteOverZiti( newUrl );
+    serviceName = await window.zitiBrowzerRuntime.zitiContext.shouldRouteOverZiti( newUrl );
 
-    zitiBrowzerRuntime.logger.trace( 'zitiFetch: serviceName: ', serviceName);
+    window.zitiBrowzerRuntime.logger.trace( 'zitiFetch: serviceName: ', serviceName);
 
     if (isUndefined(serviceName)) { // If we have no serviceConfig associated with the hostname:port, do not intercept
       // zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);

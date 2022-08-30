@@ -1,3 +1,12 @@
+# [0.18.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.17.4...v0.18.0) (2022-08-30)
+
+
+### Features
+
+* browZerSession support ([#98](https://github.com/openziti/ziti-browzer-runtime/issues/98)) ([534ce49](https://github.com/openziti/ziti-browzer-runtime/commit/534ce49a8d2f754f219c65c78a7766390ad668dc))
+
+
+
 ## [0.17.4](https://github.com/openziti/ziti-browzer-runtime/compare/v0.17.3...v0.17.4) (2022-08-23)
 
 

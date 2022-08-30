@@ -74,8 +74,9 @@ class ZitiBrowzerRuntime {
 
     this.zitiConfig     = this.getZitiConfig();
 
-    this.logLevel       = this.zitiConfig.browzer.runtime.logLevel
-    this.controllerApi  = this.zitiConfig.controller.api
+    this.logLevel       = this.zitiConfig.browzer.runtime.logLevel;
+    this.hotKey         = this.zitiConfig.browzer.runtime.hotKey;
+    this.controllerApi  = this.zitiConfig.controller.api;
 
     this.regexControllerAPI = new RegExp( this._controllerApi, 'g' );
 
@@ -116,7 +117,7 @@ class ZitiBrowzerRuntime {
     }
 
     // HotKey infra
-    setTimeout(this._createHotKeys, 10000, this);    
+    setTimeout(this._createHotKeys, 5000, this);    
   }
 
   _createPolipop(self) {
@@ -140,9 +141,9 @@ class ZitiBrowzerRuntime {
 
   _createHotKeys(self) {
     if (typeof hotkeys !== 'undefined') {
-      hotkeys('alt+f12', function (event, handler){
+      hotkeys(self.hotKey, function (event, handler){
         switch (handler.key) {
-          case 'alt+f12': alert('TEMP DEMO: you pressed alt+f12!');
+          case self.hotKey: alert(`TEMP DEMO: you pressed ${self.hotKey}!`);
             break;
           default: alert(event);
         }

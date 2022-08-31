@@ -117,7 +117,7 @@ class ZitiBrowzerRuntime {
     }
 
     // HotKey infra
-    setTimeout(this._createHotKeys, 5000, this);    
+    setTimeout(this._createHotKey, 5000, this);    
   }
 
   _createPolipop(self) {
@@ -139,18 +139,75 @@ class ZitiBrowzerRuntime {
     }
   }
 
-  _createHotKeys(self) {
+  _createHotKey(self) {
     if (typeof hotkeys !== 'undefined') {
+
       hotkeys(self.hotKey, function (event, handler){
         switch (handler.key) {
-          case self.hotKey: alert(`TEMP DEMO: you pressed ${self.hotKey}!`);
+          case self.hotKey: 
+            self.hotKeyModal.open("#zbrHotKeyModal")
             break;
           default: alert(event);
         }
       });
+
+      self._createHotKeyModal(self);
+
     } else {
-      setTimeout(self._createHotKeys, 1000, self);
+      setTimeout(self._createHotKey, 1000, self);
     }
+  }
+
+  _createHotKeyModal(self) {
+
+    let div = document.createElement("div");
+    div.setAttribute('class', 'hystmodal');
+    div.setAttribute('id', 'zbrHotKeyModal');
+    div.setAttribute('aria-hidden', 'true');
+    document.body.appendChild(div);
+
+    let div2 = document.createElement("div");
+    div2.setAttribute('class', 'hystmodal__wrap');
+    div.appendChild(div2);
+
+    let div3 = document.createElement("div");
+    div3.setAttribute('class', 'hystmodal__window');
+    div3.setAttribute('role', 'dialog');
+    div3.setAttribute('aria-hidden', 'true');
+    div2.appendChild(div3);
+
+    let btn = document.createElement("button");
+    btn.setAttribute('class', 'hystmodal__close');
+    btn.setAttribute('data-hystclose', 'data-hystclose');
+    div3.appendChild(btn);
+
+    let div4 = document.createElement("div");
+    div4.setAttribute('class', 'hystmodal__styled');
+    div3.appendChild(div4);
+
+    let div5 = document.createElement("div");
+    div5.textContent = 'OpenZiti BrowZer Advanced Settings';
+    div5.setAttribute('style', 'margin-bottom: 30px; color: #2E3C56; font-weight: 600; font-size: 26px; line-height: 36px; text-align: center;');
+
+    div4.appendChild(div5);
+
+    self.hotKeyModal = new HystModal({
+      linkAttributeName:false,
+      catchFocus: true,
+      waitTransitions: true,
+      closeOnEsc: true,
+      beforeOpen: function(modal){
+          console.log('Message before opening the modal');
+          console.log(modal); //modal window object
+      },
+      afterClose: function(modal){
+          console.log('Message after modal has closed');
+          console.log(modal); //modal window object
+      },
+    });
+  
+    self.hotKeyModal.init();
+
   }
 
   /**

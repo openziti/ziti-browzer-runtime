@@ -1,3 +1,12 @@
+# [0.20.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.19.0...v0.20.0) (2022-08-31)
+
+
+### Features
+
+* hotKey modal support ([#100](https://github.com/openziti/ziti-browzer-runtime/issues/100)) ([71ac5e5](https://github.com/openziti/ziti-browzer-runtime/commit/71ac5e59549a621ee14a3e8153e63f8f24789dc0))
+
+
+
 # [0.19.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.18.0...v0.19.0) (2022-08-30)
 
 

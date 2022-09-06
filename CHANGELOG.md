@@ -1,3 +1,12 @@
+# [0.21.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.20.0...v0.21.0) (2022-09-06)
+
+
+### Features
+
+* client-side logLevel control ([#104](https://github.com/openziti/ziti-browzer-runtime/issues/104)) ([59f6e60](https://github.com/openziti/ziti-browzer-runtime/commit/59f6e6024b5f1990604020bf2f159adba4782408))
+
+
+
 # [0.20.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.19.0...v0.20.0) (2022-08-31)
 
 

@@ -1,3 +1,12 @@
+## [0.21.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.21.0...v0.21.1) (2022-09-06)
+
+
+### Bug Fixes
+
+* add missing file ([#105](https://github.com/openziti/ziti-browzer-runtime/issues/105)) ([85d6fd3](https://github.com/openziti/ziti-browzer-runtime/commit/85d6fd31fcc22453953d676ff77a5030dfab74ec))
+
+
+
 # [0.21.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.20.0...v0.21.0) (2022-09-06)
 
 

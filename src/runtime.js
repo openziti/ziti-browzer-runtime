@@ -26,7 +26,7 @@ import {
 import {Workbox} from'workbox-window';
 import jwt_decode from "jwt-decode";
 import { Base64 } from 'js-base64';
-import { isUndefined, isNull } from 'lodash-es';
+import { isUndefined, isNull, isEqual } from 'lodash-es';
 import CookieInterceptor from 'cookie-interceptor';
 import { v4 as uuidv4 } from 'uuid';
 import { withTimeout, Semaphore } from 'async-mutex';
@@ -36,6 +36,7 @@ import { flatOptions } from './utils/flat-options'
 import { defaultOptions } from './options'
 import { ZitiXMLHttpRequest } from './http/ziti-xhr';
 import { buildInfo } from './buildInfo'
+import { ZitiBrowzerLocalStorage } from './utils/localstorage';
 
 
 
@@ -71,6 +72,7 @@ class ZitiBrowzerRuntime {
 
     this.version        = _options.version;
     this.core           = _options.core;
+    this.localStorage   = _options.localStorage;
 
     this.zitiConfig     = this.getZitiConfig();
 
@@ -158,6 +160,31 @@ class ZitiBrowzerRuntime {
     }
   }
 
+  async _saveLogLevel(loglevelValue) {
+    await window.zitiBrowzerRuntime.localStorage.setWithExpiry(
+      'ZITI_BROWZER_RUNTIME_LOGLEVEL',
+      loglevelValue, 
+      new Date(8640000000000000)
+    );
+  }
+
+  _generateLogLevelOption(option, logLevel) {
+    let html = isEqual(option.toLowerCase(), logLevel) ? `<option value="${option.toLowerCase()}" selected>${option}</option>` : `<option value="${option.toLowerCase()}">${option}</option>`;
+    return html;
+  }
+  _generateLogLevelOptions() {
+
+    let html = '<option value="">Choose</option>';
+        html += window.zitiBrowzerRuntime._generateLogLevelOption('Silent', window.zitiBrowzerRuntime.logLevel);
+        html += window.zitiBrowzerRuntime._generateLogLevelOption('Error', window.zitiBrowzerRuntime.logLevel);
+        html += window.zitiBrowzerRuntime._generateLogLevelOption('Warning', window.zitiBrowzerRuntime.logLevel);
+        html += window.zitiBrowzerRuntime._generateLogLevelOption('Info', window.zitiBrowzerRuntime.logLevel);
+        html += window.zitiBrowzerRuntime._generateLogLevelOption('Debug', window.zitiBrowzerRuntime.logLevel);
+        html += window.zitiBrowzerRuntime._generateLogLevelOption('Trace', window.zitiBrowzerRuntime.logLevel);
+
+    return html;
+  }
+
   _createHotKeyModal(self) {
 
     let div = document.createElement("div");
@@ -186,10 +213,121 @@ class ZitiBrowzerRuntime {
     div3.appendChild(div4);
 
     let div5 = document.createElement("div");
-    div5.textContent = 'OpenZiti BrowZer Advanced Settings';
-    div5.setAttribute('style', 'margin-bottom: 30px; color: #2E3C56; font-weight: 600; font-size: 26px; line-height: 36px; text-align: center;');
-
     div4.appendChild(div5);
+
+    let img = document.createElement("img");
+    img.setAttribute('src', `https://${window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.host}/ziti-browzer-logo.svg`);
+    img.setAttribute('style', 'width: 14%;');
+    div5.appendChild(img);
+
+    let span1 = document.createElement("span");
+    span1.textContent = 'OpenZiti BrowZer Advanced Settings';
+    span1.setAttribute('style', 'margin-bottom: 30px; color: #2a6eda; font-weight: 600; font-size: 20px; line-height: 36px; display: table; margin: 0px auto; margin-top: -50px;');
+    div5.appendChild(span1);
+
+    let htmlString = `
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
+<div class="container" style="width:580px;">
+    <div class="row">
+        <section class="col-xs-12 col-sm-8 col-sm-offset-2 col-xl-6 col-xl-offset-3 my-4">
+            <div>
+            <br/>
+            <form action="https://browzercurt.ziti.netfoundry.io">
+                <fieldset>
+                    <div class="row">
+                        <div class="form-group col-xs-12" id="Client-side_Logging_Level__div">
+                        <label for="Client-side_Logging_Level">Client-side Logging Level *</label>
+                        <select name="ziti-browzer-loglevel" id="ziti-browzer-loglevel" required="required" autofocus="autofocus" class="form-control">
+                          ${window.zitiBrowzerRuntime._generateLogLevelOptions()}
+                        </select>
+                        </div>
+                    </div>
+                    <br/>
+                    <br/>
+                    <hr>
+                    <div class="row">
+                        <div class="form-group col-xs-12" id="How_would_you_rate_OpenZiti_BrowZer___div">
+                        <label for="How_would_you_rate_OpenZiti_BrowZer_">On a scale from 0-10, how likely are you to recommend OpenZiti BrowZer to a friend or colleague?</label>
+                        <select name="ziti-browzer-nps" id="ziti-browzer-nps" class="form-control">
+                            <option value="">Choose</option>
+                            <option value="10">10 - Extremely likely</option>
+                            <option value="9">9</option>
+                            <option value="8">8</option>
+                            <option value="7">7</option>
+                            <option value="6">6</option>
+                            <option value="5">5</option>
+                            <option value="4">4</option>
+                            <option value="3">3</option>
+                            <option value="2">2</option>
+                            <option value="1">1</option>
+                            <option value="0">0 - Not at all likely</option>
+                        </select>
+                        </div>
+                    </div>
+                    <div class="row">
+                        <div class="form-group col-xs-12" id="What_do_you_think_needs_improvement___div">
+                        <label for="What_do_you_think_needs_improvement_">What do you think needs improvement?</label>
+                        <textarea name="ziti-browzer-improvement" id="ziti-browzer-improvement" class="form-control"></textarea>
+                        </div>
+                    </div>
+                    <br>
+                    <div class="row" style="padding-bottom: 15px;>
+                        <div class="col-xs-12">
+                          <button type="submit" id="ziti-browzer-hidden-button" class="hiddenButton" style="display:none"></button>
+                          <button type="button" id="ziti-browzer-save-button"   class="btn btn-primary">Save</button>
+                        </div>
+                    </div>
+                </fieldset>
+            </form>
+            </div>
+        </section>
+    </div>
+</div>
+`;
+
+    div5.insertAdjacentHTML('beforeend', htmlString);
+
+    
+
+    let saveButton = document.getElementById("ziti-browzer-save-button");
+
+    saveButton.onclick = function() {
+
+      let hiddenButton = document.getElementById("ziti-browzer-hidden-button");
+
+      hiddenButton.onclick = function(e) {
+
+        let loglevel = document.getElementById("ziti-browzer-loglevel");
+        let loglevelValue = loglevel.value;
+        if (!isEqual(loglevelValue, '')) {
+          window.zitiBrowzerRuntime._saveLogLevel(loglevelValue);
+          e.preventDefault();
+          window.zitiBrowzerRuntime.toastSuccess(`New logLevel of '${loglevelValue}' now in effect`);
+          window.zitiBrowzerRuntime.hotKeyModal.close();
+          window.zitiBrowzerRuntime.toastWarning(`Page will reload in 5 seconds...`);
+          setTimeout(function() {
+            window.zitiBrowzerRuntime.wb.messageSW({
+              type: 'UNREGISTER', 
+              payload: {
+              } 
+            });
+          }, 3000);    
+        }
+
+        /**
+         * TODO: send rating to HTTP Agent
+         */
+
+        // let rating = document.getElementById("ziti-browzer-rating");
+        // let ratingValue = rating.value;
+
+      };
+  
+      hiddenButton.click();
+    };
+
+
+
 
     self.hotKeyModal = new HystModal({
       linkAttributeName:false,
@@ -282,7 +420,7 @@ class ZitiBrowzerRuntime {
 
     let controllerVersion = await zitiBrowzerRuntime.zitiContext.listControllerVersion();
 
-    this.toastInfo(`Runtime v${pjson.version} now initialized<br/><br/>Connected to Controller ${controllerVersion.version}`);
+    this.toastInfo(`Runtime v${pjson.version} now initialized<br/><br/>Connected to Controller ${controllerVersion.version}<br/>HotKey is '${window.zitiBrowzerRuntime.hotKey}'`);
 
   };
 
@@ -294,7 +432,7 @@ class ZitiBrowzerRuntime {
   awaitInitializationComplete() {
     return new Promise((resolve) => {
       (function waitForInitializationComplete() {
-        if (!zitiBrowzerRuntime.initialized) {
+        if (!window.zitiBrowzerRuntime.initialized) {
           // zitiBrowzerRuntime.logger.trace(`waitForInitializationComplete() on ${zitiBrowzerRuntime._uuid} still not initialized`);
           setTimeout(waitForInitializationComplete, 100);  
         } else {
@@ -367,6 +505,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       }
     ),
 
+    localStorage: new ZitiBrowzerLocalStorage({}),
   });
 
   window.zitiBrowzerRuntime = zitiBrowzerRuntime;
@@ -614,23 +753,33 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
        */
       await await_serviceWorker_controller();
 
+      window.zitiBrowzerRuntime.logLevel = await window.zitiBrowzerRuntime.localStorage.get(
+        'ZITI_BROWZER_RUNTIME_LOGLEVEL',
+      );
+      window.zitiBrowzerRuntime.zitiConfig.browzer.sw.logLevel = window.zitiBrowzerRuntime.logLevel;
+      window.zitiBrowzerRuntime.zitiConfig.browzer.runtime.logLevel = window.zitiBrowzerRuntime.logLevel;  
+      window.zitiBrowzerRuntime.logger.logLevel = window.zitiBrowzerRuntime.logLevel;
+
       /**
        *  Let the SW know that the ZBR has completed initialization
        */
-      zitiBrowzerRuntime.logger.debug(`sending msg: ZBR_INIT_COMPLETE`);
-      navigator.serviceWorker.controller.postMessage({
-        type: 'ZBR_INIT_COMPLETE',
-      });
-
+       zitiBrowzerRuntime.logger.debug(`sending msg: ZBR_INIT_COMPLETE`);
+       navigator.serviceWorker.controller.postMessage({
+         type: 'ZBR_INIT_COMPLETE',
+         payload: {
+          zitiConfig: window.zitiBrowzerRuntime.zitiConfig
+        }
+       });
+         
       /**
        *  Provide the SW with the latest zitiConfig
        */
-      zitiBrowzerRuntime.logger.debug(`sending msg: SET_CONFIG`);
+      window.zitiBrowzerRuntime.logger.debug(`sending msg: SET_CONFIG`);
 
-      const swConfig = await zitiBrowzerRuntime.wb.messageSW({
+      const swConfig = await window.zitiBrowzerRuntime.wb.messageSW({
         type: 'SET_CONFIG', 
         payload: {
-          zitiConfig: zitiBrowzerRuntime.zitiConfig
+          zitiConfig: window.zitiBrowzerRuntime.zitiConfig
         } 
       });
 
@@ -701,6 +850,8 @@ const getBrowZerSession = () => {
  */
 const zitiFetch = async ( url, opts ) => {
 
+  await window.zitiBrowzerRuntime.awaitInitializationComplete();
+
   window.zitiBrowzerRuntime.logger.trace( 'zitiFetch: entered for URL: ', url);
 
   // If the browZerSession has expired, then tear everything down and reboot
@@ -727,7 +878,6 @@ const zitiFetch = async ( url, opts ) => {
     return new Response( null, { "status": 403 } );
   }
 
-  await window.zitiBrowzerRuntime.awaitInitializationComplete();
 
   let serviceName;
 

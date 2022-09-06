@@ -39,6 +39,12 @@ const defaultOptions = {
     core: null,
 
     /**
+     * See {@link Options.localStorage}
+     *
+     */
+     localStorage: null,
+
+    /**
      * See {@link Options.wb}
      *
      */

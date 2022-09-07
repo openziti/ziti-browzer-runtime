@@ -120,6 +120,72 @@ class ZitiBrowzerRuntime {
 
     // HotKey infra
     setTimeout(this._createHotKey, 5000, this);    
+
+    // Click intercept infra
+    setTimeout(this._createClickIntercept, 3000, this);        
+  }
+
+  /**
+   *  Determine if the specified DOM element contains the `download` attribute
+   */
+  _isAElementWithDownloadAttr(target) {
+    if (isEqual(target.nodeName, 'A')) {
+      if (!isNull(target.attributes.getNamedItem('download'))) {
+        return true;
+      } else {
+        return false;
+      }
+    }
+  }
+
+  /**
+   *  Intercept mouse clicks that occur anywhere in the DOM.
+   *  We need to do this in order to properly handle attempts to 
+   *  download items in the web app's UI that contain the `download` 
+   *  attribute.
+   */
+  _createClickIntercept(self) {
+
+    const bodyEls = document.getElementsByTagName('body');
+
+    if (bodyEls.length > 0) {
+
+      bodyEls[0].onclick = function(e) {
+
+        // Some web apps will wrap the <a> element in an <svg> element,
+        // or ever deeped, with a <path> element.  We therefore need to
+        // walk the DOM tree up a few levels to determine if there is an
+        // <a> element involved.  We limit the search, however, to 3.
+        let maxDepth = 3;
+
+        let target = e.target;
+        let found = false;
+
+        // Walk the DOM
+        while (!found && (maxDepth > 0)) {
+          if (self._isAElementWithDownloadAttr(target)) {
+            found = true;
+          } else {
+            target = target.parentElement;
+          }
+        }
+
+        // If we determined that an <a download> element is involved
+        if (found) {
+
+          e.preventDefault(); // Take control of the click
+          
+          // Cause the browser to do a download over Ziti
+          let hrefURL = new URL( target.href );
+          if (!hrefURL.searchParams.has('download')) {
+            hrefURL.searchParams.append('download', '1');
+          }
+          window.location = hrefURL.toString();
+        }
+
+      }
+    }
+
   }
 
   _createPolipop(self) {

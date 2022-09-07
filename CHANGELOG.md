@@ -1,3 +1,12 @@
+## [0.21.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.21.1...v0.21.2) (2022-09-07)
+
+
+### Bug Fixes
+
+* correct attachment downloads in Mattermost ([#106](https://github.com/openziti/ziti-browzer-runtime/issues/106)) ([47d3f5e](https://github.com/openziti/ziti-browzer-runtime/commit/47d3f5ec9a801e87959873a685720e6c8d6c8b7d))
+
+
+
 ## [0.21.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.21.0...v0.21.1) (2022-09-06)
 
 

@@ -1,3 +1,12 @@
+## [0.21.3](https://github.com/openziti/ziti-browzer-runtime/compare/v0.21.2...v0.21.3) (2022-09-09)
+
+
+### Bug Fixes
+
+* correct click handling depth ([#107](https://github.com/openziti/ziti-browzer-runtime/issues/107)) ([994d055](https://github.com/openziti/ziti-browzer-runtime/commit/994d055f2f2edcf4fe81b72adf288cc53fb76a61))
+
+
+
 ## [0.21.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.21.1...v0.21.2) (2022-09-07)
 
 

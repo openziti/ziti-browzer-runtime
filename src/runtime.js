@@ -168,6 +168,7 @@ class ZitiBrowzerRuntime {
           } else {
             target = target.parentElement;
           }
+          maxDepth--;
         }
 
         // If we determined that an <a download> element is involved

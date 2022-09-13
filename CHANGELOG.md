@@ -1,3 +1,12 @@
+## [0.21.4](https://github.com/openziti/ziti-browzer-runtime/compare/v0.21.3...v0.21.4) (2022-09-13)
+
+
+### Bug Fixes
+
+* don't hang if some wsER's are offline ([#108](https://github.com/openziti/ziti-browzer-runtime/issues/108)) ([58144a6](https://github.com/openziti/ziti-browzer-runtime/commit/58144a6b32146525a95c00ccde12a24276b15343))
+
+
+
 ## [0.21.3](https://github.com/openziti/ziti-browzer-runtime/compare/v0.21.2...v0.21.3) (2022-09-09)
 
 

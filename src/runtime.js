@@ -118,12 +118,85 @@ class ZitiBrowzerRuntime {
       setTimeout(this._createPolipop, 1000, this);
     }
 
+    // Click visability infra
+    setTimeout(this._createVisabilityIntercept, 2000, this);        
+
     // HotKey infra
     setTimeout(this._createHotKey, 5000, this);    
 
     // Click intercept infra
     setTimeout(this._createClickIntercept, 3000, this);        
   }
+
+
+  /**
+   * 
+   */
+  _determineVisibilityChangeReloadNeeded() {
+
+    let activeChannelCount = window.zitiBrowzerRuntime.core.context.activeChannelCount();
+
+    window.zitiBrowzerRuntime.logger.trace(`activeChannelCount is ${activeChannelCount}`);
+
+    if (activeChannelCount < 1) return true;
+
+    return false;
+  }
+
+  _handleVisibilityChange() {
+
+    window.zitiBrowzerRuntime.logger.warn(`_handleVisibilityChange: visibilityState is ${document.visibilityState}`);
+
+    if (document.visibilityState === "visible") {
+
+      if (window.zitiBrowzerRuntime._determineVisibilityChangeReloadNeeded()) {
+
+        window.zitiBrowzerRuntime.toastWarning(`No active channels -- Page reboot needed.`);
+
+        setTimeout(function() {
+          window.zitiBrowzerRuntime.logger.warn(`No active channels -- Page reboot needed`);
+          window.zitiBrowzerRuntime.wb.messageSW({
+            type: 'UNREGISTER', 
+            payload: {
+            } 
+          });
+        }, 500);
+
+      }
+    }
+  }
+  
+  _reloadNeededHeartbeat(self) {
+
+    if (self.logger) {
+
+      self.logger.trace(`_reloadNeededHeartbeat: visibilityState is ${document.visibilityState}`);
+
+      if (document.visibilityState === "visible") {
+
+        if (window.zitiBrowzerRuntime._determineVisibilityChangeReloadNeeded()) {
+
+          window.zitiBrowzerRuntime.toastWarning(`No active channels -- Page reboot needed.`);
+
+          setTimeout(function() {
+            window.zitiBrowzerRuntime.logger.warn(`No active channels -- Page reboot needed`);
+            window.zitiBrowzerRuntime.wb.messageSW({
+              type: 'UNREGISTER', 
+              payload: {
+              } 
+            });
+          }, 500);
+        }
+      }
+    }
+
+    setTimeout(self._reloadNeededHeartbeat, 1000*2, self );
+  }
+
+  _createVisabilityIntercept(self) {
+    document.addEventListener("visibilitychange", self._handleVisibilityChange, false);
+  }
+
 
   /**
    *  Determine if the specified DOM element contains the `download` attribute
@@ -577,6 +650,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
   window.zitiBrowzerRuntime = zitiBrowzerRuntime;
 
+  window.zitiBrowzerRuntime._reloadNeededHeartbeat(window.zitiBrowzerRuntime);
 
   /**
    * Use an async IIFE to initialize the runtime and register the SW.

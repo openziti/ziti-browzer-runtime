@@ -1,3 +1,12 @@
+## [0.21.5](https://github.com/openziti/ziti-browzer-runtime/compare/v0.21.4...v0.21.5) (2022-10-19)
+
+
+### Bug Fixes
+
+* channel/ws close handling ([#118](https://github.com/openziti/ziti-browzer-runtime/issues/118)) ([99b5b94](https://github.com/openziti/ziti-browzer-runtime/commit/99b5b94e28627a7e45f31c8ef07260bb10a7d97b))
+
+
+
 ## [0.21.4](https://github.com/openziti/ziti-browzer-runtime/compare/v0.21.3...v0.21.4) (2022-09-13)
 
 

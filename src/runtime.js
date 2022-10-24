@@ -82,6 +82,7 @@ class ZitiBrowzerRuntime {
 
     this.regexControllerAPI = new RegExp( this._controllerApi, 'g' );
 
+    this.noActiveChannelDetectedCounter    = 0;
 
     this.wb             = new Workbox(
       'https://' + this.zitiConfig.httpAgent.self.host + '/' 
@@ -118,9 +119,6 @@ class ZitiBrowzerRuntime {
       setTimeout(this._createPolipop, 1000, this);
     }
 
-    // Click visability infra
-    setTimeout(this._createVisabilityIntercept, 2000, this);        
-
     // HotKey infra
     setTimeout(this._createHotKey, 5000, this);    
 
@@ -138,32 +136,21 @@ class ZitiBrowzerRuntime {
 
     window.zitiBrowzerRuntime.logger.trace(`activeChannelCount is ${activeChannelCount}`);
 
-    if (activeChannelCount < 1) return true;
+    if (activeChannelCount < 1) {
+      // If there are active Channels, increment the nuber of times we've seen that state
+      window.zitiBrowzerRuntime.noActiveChannelDetectedCounter ++;
+      window.zitiBrowzerRuntime.logger.trace(`noActiveChannelDetectedCounter is ${window.zitiBrowzerRuntime.noActiveChannelDetectedCounter}`);
+
+      // If we have seen too many cycles where there are no active Channels, then trigger a reboot
+      if (window.zitiBrowzerRuntime.noActiveChannelDetectedCounter > 1) {
+        return true;
+      }
+    } else {
+      // If there are active channels, then reset the threshold
+      window.zitiBrowzerRuntime.noActiveChannelDetectedCounter == 0;
+    }
 
     return false;
-  }
-
-  _handleVisibilityChange() {
-
-    window.zitiBrowzerRuntime.logger.warn(`_handleVisibilityChange: visibilityState is ${document.visibilityState}`);
-
-    if (document.visibilityState === "visible") {
-
-      if (window.zitiBrowzerRuntime._determineVisibilityChangeReloadNeeded()) {
-
-        window.zitiBrowzerRuntime.toastWarning(`No active channels -- Page reboot needed.`);
-
-        setTimeout(function() {
-          window.zitiBrowzerRuntime.logger.warn(`No active channels -- Page reboot needed`);
-          window.zitiBrowzerRuntime.wb.messageSW({
-            type: 'UNREGISTER', 
-            payload: {
-            } 
-          });
-        }, 500);
-
-      }
-    }
   }
   
   _reloadNeededHeartbeat(self) {
@@ -190,11 +177,7 @@ class ZitiBrowzerRuntime {
       }
     }
 
-    setTimeout(self._reloadNeededHeartbeat, 1000*2, self );
-  }
-
-  _createVisabilityIntercept(self) {
-    document.addEventListener("visibilitychange", self._handleVisibilityChange, false);
+    setTimeout(self._reloadNeededHeartbeat, 1000*5, self );
   }
 
 

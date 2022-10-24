@@ -1,3 +1,12 @@
+## [0.21.6](https://github.com/openziti/ziti-browzer-runtime/compare/v0.21.5...v0.21.6) (2022-10-24)
+
+
+### Bug Fixes
+
+* be less aggressive with 'no channel' reboot ([#121](https://github.com/openziti/ziti-browzer-runtime/issues/121)) ([49f8739](https://github.com/openziti/ziti-browzer-runtime/commit/49f8739f15573025100425647ba542a29a21d8e6))
+
+
+
 ## [0.21.5](https://github.com/openziti/ziti-browzer-runtime/compare/v0.21.4...v0.21.5) (2022-10-19)
 
 

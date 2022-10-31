@@ -83,6 +83,7 @@ class ZitiBrowzerRuntime {
     this.regexControllerAPI = new RegExp( this._controllerApi, 'g' );
 
     this.noActiveChannelDetectedCounter    = 0;
+    this.noActiveChannelDetectedThreshold  = _options.noActiveChannelDetectedThreshold;
 
     this.wb             = new Workbox(
       'https://' + this.zitiConfig.httpAgent.self.host + '/' 
@@ -130,7 +131,7 @@ class ZitiBrowzerRuntime {
   /**
    * 
    */
-  _determineVisibilityChangeReloadNeeded() {
+  _determineReloadNeeded() {
 
     let activeChannelCount = window.zitiBrowzerRuntime.core.context.activeChannelCount();
 
@@ -142,7 +143,7 @@ class ZitiBrowzerRuntime {
       window.zitiBrowzerRuntime.logger.trace(`noActiveChannelDetectedCounter is ${window.zitiBrowzerRuntime.noActiveChannelDetectedCounter}`);
 
       // If we have seen too many cycles where there are no active Channels, then trigger a reboot
-      if (window.zitiBrowzerRuntime.noActiveChannelDetectedCounter > 1) {
+      if (window.zitiBrowzerRuntime.noActiveChannelDetectedCounter > window.zitiBrowzerRuntime.noActiveChannelDetectedThreshold) {
         return true;
       }
     } else {
@@ -161,12 +162,12 @@ class ZitiBrowzerRuntime {
 
       if (document.visibilityState === "visible") {
 
-        if (window.zitiBrowzerRuntime._determineVisibilityChangeReloadNeeded()) {
+        if (window.zitiBrowzerRuntime._determineReloadNeeded()) {
 
-          window.zitiBrowzerRuntime.toastWarning(`No active channels -- Page reboot needed.`);
+          window.zitiBrowzerRuntime.toastWarning(`No active Channels -- Page reboot needed.`);
 
           setTimeout(function() {
-            window.zitiBrowzerRuntime.logger.warn(`No active channels -- Page reboot needed`);
+            window.zitiBrowzerRuntime.logger.warn(`No active Channels -- Page reboot needed`);
             window.zitiBrowzerRuntime.wb.messageSW({
               type: 'UNREGISTER', 
               payload: {

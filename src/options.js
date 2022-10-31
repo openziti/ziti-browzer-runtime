@@ -44,6 +44,11 @@ const defaultOptions = {
      */
      localStorage: null,
 
+     /**
+      * 
+      */
+     noActiveChannelDetectedThreshold: 2,
+
     /**
      * See {@link Options.wb}
      *

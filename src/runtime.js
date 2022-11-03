@@ -82,6 +82,7 @@ class ZitiBrowzerRuntime {
 
     this.regexControllerAPI = new RegExp( this._controllerApi, 'g' );
 
+    this.noActiveChannelDetectedEnabled    = false;
     this.noActiveChannelDetectedCounter    = 0;
     this.noActiveChannelDetectedThreshold  = _options.noActiveChannelDetectedThreshold;
 
@@ -133,6 +134,8 @@ class ZitiBrowzerRuntime {
    */
   _determineReloadNeeded() {
 
+    if (!window.zitiBrowzerRuntime.noActiveChannelDetectedEnabled) return false;
+
     let activeChannelCount = window.zitiBrowzerRuntime.core.context.activeChannelCount();
 
     window.zitiBrowzerRuntime.logger.trace(`activeChannelCount is ${activeChannelCount}`);
@@ -181,6 +184,15 @@ class ZitiBrowzerRuntime {
     setTimeout(self._reloadNeededHeartbeat, 1000*5, self );
   }
 
+  _zbrPing(self) {
+    window.zitiBrowzerRuntime.wb.messageSW({
+      type: 'ZBR_PING', 
+      payload: {
+        timestamp: Date.now()
+      } 
+    });
+    setTimeout(self._zbrPing, 1000, self );
+  }
 
   /**
    *  Determine if the specified DOM element contains the `download` attribute
@@ -544,6 +556,8 @@ class ZitiBrowzerRuntime {
 
     let controllerVersion = await zitiBrowzerRuntime.zitiContext.listControllerVersion();
 
+    this.logger.trace(`ZitiBrowzerRuntime connected to Controller ${controllerVersion.version}`);
+
     this.toastInfo(`Runtime v${pjson.version} now initialized<br/><br/>Connected to Controller ${controllerVersion.version}<br/>HotKey is '${window.zitiBrowzerRuntime.hotKey}'`);
 
   };
@@ -697,6 +711,15 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       window.zitiBrowzerRuntime.logger.trace(`ZitiBrowzerRuntime ${window.zitiBrowzerRuntime._uuid} 'networkOfflineEvent' has been received: `, e);
       window.zitiBrowzerRuntime.toastError(`The network has gone offline`);    
     });
+
+    const terminationEvent = 'onpagehide' in self ? 'pagehide' : 'unload';
+    window.addEventListener(terminationEvent, (e) => {
+      setTimeout(function() {
+        window.zitiBrowzerRuntime.logger.trace(`ZitiBrowzerRuntime page-terminationEvent setting window.location to: ${window.zitiBrowzerRuntime.zitiConfig.httpAgent.target.path}`);
+        window.location = window.zitiBrowzerRuntime.zitiConfig.httpAgent.target.path;
+      }, 5);
+      window.zitiBrowzerRuntime.logger.trace(`ZitiBrowzerRuntime page-terminationEvent '${terminationEvent}' has been received: `, e);
+    }, { capture: true });
 
     /**
      * 
@@ -858,6 +881,10 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
           window.zitiBrowzerRuntime.toastWarning(`${event.data.payload.message}`);
 
         }
+
+        else if (event.data.type === 'PING') {
+          event.ports[0].postMessage('PONG');
+        }
         
       });
       
@@ -924,6 +951,8 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         });
       }
 
+      setTimeout(window.zitiBrowzerRuntime._zbrPing, 1000, window.zitiBrowzerRuntime );
+
       /**
        *  Announce the SW version
        */
@@ -941,6 +970,8 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       }
 
     }
+
+    window.zitiBrowzerRuntime.noActiveChannelDetectedEnabled = true;
 
   })();
 

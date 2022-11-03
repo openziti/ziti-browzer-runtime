@@ -1,3 +1,12 @@
+# [0.22.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.21.7...v0.22.0) (2022-11-03)
+
+
+### Features
+
+* hard refresh recovery ([#125](https://github.com/openziti/ziti-browzer-runtime/issues/125)) ([568a553](https://github.com/openziti/ziti-browzer-runtime/commit/568a5537ef8f90fef7d5842570cf444bd2d6f9af))
+
+
+
 ## [0.21.7](https://github.com/openziti/ziti-browzer-runtime/compare/v0.21.6...v0.21.7) (2022-10-31)
 
 

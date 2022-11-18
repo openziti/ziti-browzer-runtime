@@ -1,3 +1,12 @@
+# [0.23.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.22.0...v0.23.0) (2022-11-18)
+
+
+### Features
+
+* support for Jenkins, Jellyfin ([#128](https://github.com/openziti/ziti-browzer-runtime/issues/128)) ([1c6d12d](https://github.com/openziti/ziti-browzer-runtime/commit/1c6d12d2ce87fa5291aa4c92ffe7c8e2d5b7aefe))
+
+
+
 # [0.22.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.21.7...v0.22.0) (2022-11-03)
 
 

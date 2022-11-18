@@ -114,12 +114,8 @@ class ZitiBrowzerRuntime {
     });
 
     // Toast infra
-    if (typeof Polipop !== 'undefined') {
-      this._createPolipop(this);
-    }
-    else {
-      setTimeout(this._createPolipop, 1000, this);
-    }
+    this.PolipopCreated = false;
+    setTimeout(this._createPolipop, 1000, this);
 
     // HotKey infra
     setTimeout(this._createHotKey, 5000, this);    
@@ -259,21 +255,36 @@ class ZitiBrowzerRuntime {
   }
 
   _createPolipop(self) {
-    if (typeof Polipop !== 'undefined') {
-      self.polipop = new Polipop('ziti-browzer-toast', {
-        layout: 'popups',
-        position: 'center',
-        insert: 'after',
-        theme: 'compact',
-        pool: 10,
-        sticky: false,
-        progressbar: true,
-        headerText: 'OpenZiti browZer',
-        effect: 'slide',
-        closer: false,
-        life: 5000,
-        icons: true,
-      });
+
+    if (!this.PolipopCreated) {
+      try {
+        if (typeof Polipop !== 'undefined') {
+          self.polipop = new Polipop('ziti-browzer-toast', {
+            layout: 'popups',
+            position: 'center',
+            insert: 'after',
+            theme: 'compact',
+            pool: 10,
+            sticky: false,
+            progressbar: true,
+            headerText: 'OpenZiti browZer',
+            effect: 'slide',
+            closer: false,
+            life: 3000,
+            icons: true,
+          });
+          this.PolipopCreated = true;
+          self.logger.debug(`_createPolipop: Polipop bootstrap completed`);
+        }
+        else {
+          self.logger.debug(`_createPolipop: awaiting Polipop bootstrap`);
+          setTimeout(this._createPolipop, 1000, this);
+        }
+      }
+      catch (e) {
+        self.logger.debug(`_createPolipop: bootstrap error ${e}`);
+        setTimeout(this._createPolipop, 1000, this);
+      }
     }
   }
 
@@ -349,7 +360,13 @@ class ZitiBrowzerRuntime {
     div3.appendChild(div4);
 
     let div5 = document.createElement("div");
+    div5.setAttribute('class', 'zitiBrowzerRuntimeSettings');
     div4.appendChild(div5);
+
+    let css = document.createElement("link");
+    css.setAttribute('rel', 'stylesheet');
+    css.setAttribute('href', `https://${window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.host}/ziti-browzer-css.css`);
+    div5.appendChild(css);
 
     let img = document.createElement("img");
     img.setAttribute('src', `https://${window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.host}/ziti-browzer-logo.svg`);
@@ -362,7 +379,6 @@ class ZitiBrowzerRuntime {
     div5.appendChild(span1);
 
     let htmlString = `
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@3.4.1/dist/css/bootstrap.min.css" integrity="sha256-bZLfwXAP04zRMK2BjiO8iu9pf4FbLqX6zitd+tIvLhE=" crossorigin="anonymous">
 <div class="container" style="width:580px;">
     <div class="row">
         <section class="col-xs-12 col-sm-8 col-sm-offset-2 col-xl-6 col-xl-offset-3 my-4">
@@ -422,8 +438,6 @@ class ZitiBrowzerRuntime {
 `;
 
     div5.insertAdjacentHTML('beforeend', htmlString);
-
-    
 
     let saveButton = document.getElementById("ziti-browzer-save-button");
 
@@ -554,11 +568,10 @@ class ZitiBrowzerRuntime {
 
     this.logger.trace(`ZitiBrowzerRuntime ${this._uuid} has been initialized`);
 
-    let controllerVersion = await zitiBrowzerRuntime.zitiContext.listControllerVersion();
+    window.zitiBrowzerRuntime.controllerVersion = await zitiBrowzerRuntime.zitiContext.listControllerVersion();
 
-    this.logger.trace(`ZitiBrowzerRuntime connected to Controller ${controllerVersion.version}`);
+    this.logger.trace(`ZitiBrowzerRuntime connected to Controller ${window.zitiBrowzerRuntime.controllerVersion.version}`);
 
-    this.toastInfo(`Runtime v${pjson.version} now initialized<br/><br/>Connected to Controller ${controllerVersion.version}<br/>HotKey is '${window.zitiBrowzerRuntime.hotKey}'`);
 
   };
 
@@ -614,6 +627,25 @@ class ZitiBrowzerRuntime {
   
   toastInfo(content) {
     this._toast(this, content, `info`);
+  }
+  async toastInfoThrottled(content) {
+    let timeStamp = await window.zitiBrowzerRuntime.localStorage.get(
+      'ZITI_BROWZER_RUNTIME_TOAST_INFO_TIMESTAMP',
+    );
+    let delta = 999999;
+    if (timeStamp) {
+      console.log(`existing toastInfoTimeStamp is [${timeStamp}]`);
+      delta = Date.now() - timeStamp;
+      console.log(`existing toastInfoTimeStamp delta is [${delta}]`);
+    }
+    if (delta > (1000*60)) {
+      this._toast(this, content, `info`);
+    }
+    window.zitiBrowzerRuntime.localStorage.setWithExpiry(
+      'ZITI_BROWZER_RUNTIME_TOAST_INFO_TIMESTAMP',
+      Date.now(), 
+      new Date(8640000000000000)
+    );
   }
   toastSuccess(content) {
     this._toast(this, content, `success`);
@@ -714,10 +746,14 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
     const terminationEvent = 'onpagehide' in self ? 'pagehide' : 'unload';
     window.addEventListener(terminationEvent, (e) => {
-      setTimeout(function() {
-        window.zitiBrowzerRuntime.logger.trace(`ZitiBrowzerRuntime page-terminationEvent setting window.location to: ${window.zitiBrowzerRuntime.zitiConfig.httpAgent.target.path}`);
-        window.location = window.zitiBrowzerRuntime.zitiConfig.httpAgent.target.path;
-      }, 5);
+
+      // some web apps
+      if (!window.location.href.includes('#!')) {
+        setTimeout(function() {
+          window.zitiBrowzerRuntime.logger.trace(`ZitiBrowzerRuntime page-terminationEvent setting window.location to: ${window.zitiBrowzerRuntime.zitiConfig.httpAgent.target.path}`);
+          window.location = window.zitiBrowzerRuntime.zitiConfig.httpAgent.target.path;
+        }, 5);
+      }
       window.zitiBrowzerRuntime.logger.trace(`ZitiBrowzerRuntime page-terminationEvent '${terminationEvent}' has been received: `, e);
     }, { capture: true });
 
@@ -908,6 +944,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       window.zitiBrowzerRuntime.logLevel = await window.zitiBrowzerRuntime.localStorage.get(
         'ZITI_BROWZER_RUNTIME_LOGLEVEL',
       );
+      window.zitiBrowzerRuntime.logger.trace(`local ZITI_BROWZER_RUNTIME_LOGLEVEL is [${window.zitiBrowzerRuntime.logLevel}]`);
       window.zitiBrowzerRuntime.zitiConfig.browzer.sw.logLevel = window.zitiBrowzerRuntime.logLevel;
       window.zitiBrowzerRuntime.zitiConfig.browzer.runtime.logLevel = window.zitiBrowzerRuntime.logLevel;  
       window.zitiBrowzerRuntime.logger.logLevel = window.zitiBrowzerRuntime.logLevel;
@@ -957,7 +994,18 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
        *  Announce the SW version
        */
       const swVersionObject = await zitiBrowzerRuntime.wb.messageSW({type: 'GET_VERSION'});
-      zitiBrowzerRuntime.toastInfo(`ServiceWorker v${swVersionObject.version} now initialized`);
+      await zitiBrowzerRuntime.toastInfoThrottled(
+`
+ZBR  v${pjson.version} initialized.
+<br/>
+ZBSW v${swVersionObject.version} initialized.
+<br/>
+CTRL ${window.zitiBrowzerRuntime.controllerVersion.version} connected.
+<br/>
+<br/>
+HotKey:  '<strong>${window.zitiBrowzerRuntime.hotKey}</strong>'
+`);
+
 
       /**
        *  If the ZBR was loaded via a SW bootstrap, then reload the page to complete the bootstrap cycle
@@ -1046,8 +1094,6 @@ const zitiFetch = async ( url, opts ) => {
   }
   else if (url.match( regex )) { // yes, the request is targeting the Ziti HTTP Agent
 
-    // let isExpired = await zitiBrowzerRuntime.zitiContext.isCertExpired();
-
     var newUrl = new URL( url );
     newUrl.hostname = window.zitiBrowzerRuntime.zitiConfig.httpAgent.target.service;
     newUrl.port = window.zitiBrowzerRuntime.zitiConfig.httpAgent.target.port;
@@ -1091,12 +1137,24 @@ const zitiFetch = async ( url, opts ) => {
 
   } 
   else if (!url.toLowerCase().startsWith('http')) {
-    url = `${zitiBrowzerRuntime.zitiConfig.httpAgent.target.path}/${url}` // add leading slash
 
+    let href = window.location.href;
+    const substrings = href.split('/');
+
+    href = substrings.length === 1
+      ? href // delimiter is not part of the string
+      : substrings.slice(0, -1).join('/');
+    
+    href = href + '/' + url;
+  
     let newUrl;
-    let baseURIUrl = new URL( document.baseURI );
+    let baseURIUrl = new URL( href );
     if (baseURIUrl.hostname === zitiBrowzerRuntime.zitiConfig.httpAgent.self.host) {
-      newUrl = new URL( 'https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.target.service + ':' + zitiBrowzerRuntime.zitiConfig.httpAgent.target.port + url );
+  
+      newUrl = new URL( href );
+      newUrl.hostname = zitiBrowzerRuntime.zitiConfig.httpAgent.target.service;
+      newUrl.port = zitiBrowzerRuntime.zitiConfig.httpAgent.target.port;
+
     } else {
       let baseURI = document.baseURI.replace(/\.\/$/, '');
       newUrl = new URL( baseURI + url );
@@ -1170,6 +1228,8 @@ const zitiFetch = async ( url, opts ) => {
 
   zitiBrowzerRuntime.logger.trace('zitiFetch: serviceConfig match; intercepting [%s]', url);
 
+  opts = opts || {};
+
   opts.serviceName = serviceName;
 
   /**
@@ -1216,7 +1276,13 @@ const zitiFetch = async ( url, opts ) => {
       }
   });
 
-  let response = new Response( responseStream, { "status": zitiResponse.status, "headers":  headers } );
+  let response;
+
+  if (zitiResponse.status === 204) {
+    response = new Response( undefined, { "status": zitiResponse.status, "headers":  headers } );
+  } else {
+    response = new Response( responseStream, { "status": zitiResponse.status, "headers":  headers } );
+  }
         
   return response;
 

@@ -145,7 +145,8 @@
     display: inline-block;
     max-width: 100%;
     margin-bottom: 5px;
-    font-weight: 700
+    font-weight: 700;
+    color: #1c6cda;
 }
 
 .zitiBrowzerRuntimeSettings .form-control {

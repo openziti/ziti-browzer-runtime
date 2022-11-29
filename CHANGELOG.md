@@ -1,3 +1,12 @@
+## [0.24.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.24.0...v0.24.1) (2022-11-29)
+
+
+### Bug Fixes
+
+* improve relative URL handling ([#134](https://github.com/openziti/ziti-browzer-runtime/issues/134)) ([37f06ed](https://github.com/openziti/ziti-browzer-runtime/commit/37f06ed9f168046c5b40c74c4b181444ef077164))
+
+
+
 # [0.24.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.23.1...v0.24.0) (2022-11-27)
 
 

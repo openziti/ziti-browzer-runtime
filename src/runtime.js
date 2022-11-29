@@ -850,7 +850,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         }
         
         else if (event.data.type === 'SET_COOKIE') {
-          let cookie = event.data.payload.replace('HttpOnly','');
+          let cookie = event.data.payload.replace(/HttpOnly/gi,'');
           zitiBrowzerRuntime.logger.info(`A COOKIE has arrived with val ${event.data.payload}`);
           zitiBrowzerRuntime.logger.info(`document.cookie before: `, document.cookie);
           document.cookie = cookie;
@@ -1019,8 +1019,6 @@ HotKey:  '<strong>${window.zitiBrowzerRuntime.hotKey}</strong>'
 
     }
 
-    window.zitiBrowzerRuntime.noActiveChannelDetectedEnabled = true;
-
   })();
 
 }
@@ -1055,6 +1053,8 @@ const getBrowZerSession = () => {
 const zitiFetch = async ( url, opts ) => {
 
   await window.zitiBrowzerRuntime.awaitInitializationComplete();
+
+  window.zitiBrowzerRuntime.noActiveChannelDetectedEnabled = true;
 
   window.zitiBrowzerRuntime.logger.trace( 'zitiFetch: entered for URL: ', url);
 
@@ -1138,14 +1138,19 @@ const zitiFetch = async ( url, opts ) => {
   } 
   else if (!url.toLowerCase().startsWith('http')) {
 
-    let href = window.location.href;
-    const substrings = href.split('/');
+    // We have a 'relative' URL
 
-    href = substrings.length === 1
-      ? href // delimiter is not part of the string
-      : substrings.slice(0, -1).join('/');
-    
-    href = href + '/' + url;
+    let href;
+
+    if (url.includes('/')) {
+      href = `${window.location.origin}/${url}`;
+    } else {
+      const substrings = window.location.pathname.split('/');
+      let pathname = substrings.length === 1
+            ? window.location.pathname // delimiter is not part of the string
+            : substrings.slice(0, -1).join('/');
+      href = `${window.location.origin}${pathname}/${url}`;
+    }
   
     let newUrl;
     let baseURIUrl = new URL( href );

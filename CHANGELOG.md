@@ -1,3 +1,12 @@
+# [0.25.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.24.1...v0.25.0) (2023-01-23)
+
+
+### Features
+
+* phase-1 https service support ([#147](https://github.com/openziti/ziti-browzer-runtime/issues/147)) ([6c4d2ac](https://github.com/openziti/ziti-browzer-runtime/commit/6c4d2acfbbc63751fb4cceced8ba5b162f08a3c7))
+
+
+
 ## [0.24.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.24.0...v0.24.1) (2022-11-29)
 
 

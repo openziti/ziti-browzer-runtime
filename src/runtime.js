@@ -194,11 +194,13 @@ class ZitiBrowzerRuntime {
    *  Determine if the specified DOM element contains the `download` attribute
    */
   _isAElementWithDownloadAttr(target) {
-    if (isEqual(target.nodeName, 'A')) {
-      if (!isNull(target.attributes.getNamedItem('download'))) {
-        return true;
-      } else {
-        return false;
+    if (target) {
+      if (isEqual(target.nodeName, 'A')) {
+        if (!isNull(target.attributes.getNamedItem('download'))) {
+          return true;
+        } else {
+          return false;
+        }
       }
     }
   }
@@ -227,7 +229,7 @@ class ZitiBrowzerRuntime {
         let found = false;
 
         // Walk the DOM
-        while (!found && (maxDepth > 0)) {
+        while (!found && target && (maxDepth > 0)) {
           if (self._isAElementWithDownloadAttr(target)) {
             found = true;
           } else {
@@ -760,6 +762,14 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
     /**
      * 
      */
+    var isSafari = navigator.vendor && navigator.vendor.indexOf('Apple') > -1 &&
+        navigator.userAgent &&
+        navigator.userAgent.indexOf('CriOS') == -1 &&
+        navigator.userAgent.indexOf('FxiOS') == -1;
+
+    /**
+     * 
+     */
     if ('serviceWorker' in navigator) {
 
       /**
@@ -786,10 +796,17 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         }
 
         if (!event.isUpdate) {
-          setTimeout(function() {
-            zitiBrowzerRuntime.logger.debug(`################ doing page reload now ################`);
-            window.location.reload();
-          }, 100);
+          if (isSafari) {
+            zitiBrowzerRuntime.logger.debug(`################ doing Safari page reload now ################`);
+            setTimeout(function() {
+              window.location.href = window.location.href;
+            }, 100);
+          } else {
+            zitiBrowzerRuntime.logger.debug(`################ doing Chromium page reload now ################`);
+            setTimeout(function() {
+              window.location.reload();  
+            }, 100);
+          }
         }
 
       });
@@ -1054,7 +1071,7 @@ const zitiFetch = async ( url, opts ) => {
 
   await window.zitiBrowzerRuntime.awaitInitializationComplete();
 
-  window.zitiBrowzerRuntime.noActiveChannelDetectedEnabled = true;
+  // window.zitiBrowzerRuntime.noActiveChannelDetectedEnabled = true;
 
   window.zitiBrowzerRuntime.logger.trace( 'zitiFetch: entered for URL: ', url);
 
@@ -1189,38 +1206,36 @@ const zitiFetch = async ( url, opts ) => {
 
     if (isUndefined(serviceName)) { // If we have no serviceConfig associated with the hostname:port
 
-      // let routeOverCORSProxy = await ziti._ctx.shouldRouteOverCORSProxy( url );
+      let routeOverCORSProxy = zitiBrowzerRuntime.zitiContext.shouldRouteOverCORSProxy( url );
 
-      // if (routeOverCORSProxy) {     // If hostname:port is something we need to CORS Proxy
+      if (routeOverCORSProxy) {     // If hostname:port is something we need to CORS Proxy
 
-      //   ziti._ctx.logger.warn('zitiFetch(): doing CORS Proxying of [%s]', url);
+        zitiBrowzerRuntime.logger.warn('zitiFetch(): doing CORS Proxying of [%s]', url);
 
-      //   let newUrl = new URL( url );
-      //   let corsTargetHostname = newUrl.hostname;
-      //   let corsTargetPort = newUrl.port;
-      //   if (corsTargetPort === '') {
-      //     if (newUrl.protocol === 'https:') {
-      //       corsTargetPort = '443';
-      //     } else {
-      //       corsTargetPort = '80';
-      //     }
-      //   }
+        let corsTargetHostname = newUrl.hostname;
+        let corsTargetPort = newUrl.port;
+        if (corsTargetPort === '') {
+          if (newUrl.protocol === 'https:') {
+            corsTargetPort = '443';
+          } else {
+            corsTargetPort = '80';
+          }
+        }
       
-      //   let corsTargetPathname = newUrl.pathname;
-      //   newUrl.hostname = zitiConfig.httpAgent.self.host;
-      //   newUrl.port = 443;
-      //   newUrl.pathname = '/ziti-cors-proxy/' + corsTargetHostname + ':' + corsTargetPort + corsTargetPathname;
-      //   // newUrl.pathname = '/ziti-cors-proxy/' + corsTargetHostname  + corsTargetPathname;
-      //   ziti._ctx.logger.warn( 'zitiFetch: transformed URL: ', newUrl.toString());   
+        let corsTargetPathname = newUrl.pathname;
+        newUrl.hostname = window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.host;
+        newUrl.port = 443;
+        newUrl.pathname = '/ziti-cors-proxy/' + corsTargetHostname + ':' + corsTargetPort + corsTargetPathname;
+        zitiBrowzerRuntime.logger.warn( 'zitiFetch: transformed URL: ', newUrl.toString());   
 
-      //   return window.realFetch(newUrl, opts); // Send special request to HTTP Agent
+        return window._ziti_realFetch(newUrl, opts); // Send special request to HTTP Agent
 
-      // } else {
+      } else {
 
         // zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
         return window._ziti_realFetch(url, opts);
   
-      // }
+      }
 
     }  
   }
@@ -1230,6 +1245,7 @@ const zitiFetch = async ( url, opts ) => {
    *  ----------------------------------------------------
    */ 
 
+  window.zitiBrowzerRuntime.noActiveChannelDetectedEnabled = true;
 
   zitiBrowzerRuntime.logger.trace('zitiFetch: serviceConfig match; intercepting [%s]', url);
 

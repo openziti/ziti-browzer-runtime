@@ -142,6 +142,8 @@ function ZitiXMLHttpRequest () {
    */
   this.open = function(method, url, async, user, password) {
 
+    // console.log(`XHR: method=${method}, url=${url}`);
+
     this.abort();
     errorFlag = false;
 
@@ -216,22 +218,19 @@ function ZitiXMLHttpRequest () {
       return "";
     }
 
-    let headers;
-    
-    if (typeof self.response === "Response") {
-      headers = self.response.headers.entries();
-    } else if (typeof self.response === "HttpResponse") {
-      headers = self.response.headers().entries();
+    let headersObject = Object.fromEntries(this.responseObject.headers.entries());
+
+    let str = '';
+
+    for (var prop in headersObject) {
+      if (Object.prototype.hasOwnProperty.call(headersObject, prop)) {
+        str = str + (prop + ':' + headersObject[prop] + '\r\n');
+      }
     }
 
-    var result = "";
+    console.log(str);
 
-    for (var header in headers) {
-      var headerValue = headers[header][0];
-      result += header + ": " + headerValue + "\r\n";
-    }
-  
-    return result.substr(0, result.length - 2);
+    return str;
   };
 
   /**
@@ -267,9 +266,9 @@ function ZitiXMLHttpRequest () {
     sendFlag = true;
 
     // As per spec, this is called here for historical reasons.
-    self.dispatchEvent("readystatechange");
+    this.dispatchEvent("readystatechange");
 
-    self.dispatchEvent("loadstart");
+    this.dispatchEvent("loadstart");
 
     settings.body = data;
 
@@ -277,12 +276,16 @@ function ZitiXMLHttpRequest () {
 
     response = await fetch(settings.url, settings);
 
-    self.status = response.status;
+    this.status = response.status;
+
+    let self = this;
 
     response.blob().then(async function(blob) {
       self.responseBodyText = await blob.text();
+      // console.log(`XHR: responseBodyText=${self.responseBodyText}`);
       self.responseText = self.responseBodyText;
       self.response = self.responseBodyText;
+      self.responseObject = response;
       sendFlag = false;
       setState(self.DONE);
     });

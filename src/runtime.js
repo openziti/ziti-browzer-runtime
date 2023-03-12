@@ -50,6 +50,7 @@ if (typeof window._ziti_realFetch === 'undefined') {
   window._ziti_realInsertBefore   = Element.prototype.insertBefore;
   window._ziti_realAppendChild    = Element.prototype.appendChild;
   window._ziti_realSetAttribute   = Element.prototype.setAttribute;
+  window._ziti_realDocumentDomain = window.document.domain;
 }
 
 /**
@@ -87,7 +88,7 @@ class ZitiBrowzerRuntime {
     this.noActiveChannelDetectedThreshold  = _options.noActiveChannelDetectedThreshold;
 
     this.wb             = new Workbox(
-      'https://' + this.zitiConfig.httpAgent.self.host + '/' 
+      this.zitiConfig.httpAgent.self.scheme + '://' + this.zitiConfig.httpAgent.self.host + '/' 
       + this.zitiConfig.browzer.sw.location 
       + '?swVersion='     + encodeURIComponent(this.zitiConfig.browzer.sw.version)
       + '&controllerApi=' + encodeURIComponent(this.zitiConfig.controller.api)
@@ -336,6 +337,8 @@ class ZitiBrowzerRuntime {
 
   _createHotKeyModal(self) {
 
+    if (isNull(document.body)) return;
+
     let div = document.createElement("div");
     div.setAttribute('class', 'hystmodal');
     div.setAttribute('id', 'zbrHotKeyModal');
@@ -367,11 +370,11 @@ class ZitiBrowzerRuntime {
 
     let css = document.createElement("link");
     css.setAttribute('rel', 'stylesheet');
-    css.setAttribute('href', `https://${window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.host}/ziti-browzer-css.css`);
+    css.setAttribute('href', `${window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.scheme}://${window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.host}/ziti-browzer-css.css`);
     div5.appendChild(css);
 
     let img = document.createElement("img");
-    img.setAttribute('src', `https://${window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.host}/ziti-browzer-logo.svg`);
+    img.setAttribute('src', `${window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.scheme}://${window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.host}/ziti-browzer-logo.svg`);
     img.setAttribute('style', 'width: 14%;');
     div5.appendChild(img);
 
@@ -505,7 +508,7 @@ class ZitiBrowzerRuntime {
    */
   getZitiConfig() {
 
-    let zitiConfig = this.getCookie('__Secure-ziti-browzer-config');
+    let zitiConfig = this.getCookie('__ziti-browzer-config');
     zitiConfig = decodeURIComponent(zitiConfig);
     zitiConfig = Base64.decode(zitiConfig);
     zitiConfig = JSON.parse(zitiConfig);
@@ -519,7 +522,7 @@ class ZitiBrowzerRuntime {
    */
    getJWT() {
 
-    let jwt = this.getCookie('__Secure-ziti-browzer-jwt');
+    let jwt = this.getCookie('__ziti-browzer-jwt');
     let decodedJWT = jwt_decode(jwt);
 
     return decodedJWT;
@@ -868,10 +871,10 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         
         else if (event.data.type === 'SET_COOKIE') {
           let cookie = event.data.payload.replace(/HttpOnly/gi,'');
-          zitiBrowzerRuntime.logger.info(`A COOKIE has arrived with val ${event.data.payload}`);
-          zitiBrowzerRuntime.logger.info(`document.cookie before: `, document.cookie);
+          // zitiBrowzerRuntime.logger.info(`A COOKIE has arrived with val ${event.data.payload}`);
+          // zitiBrowzerRuntime.logger.info(`document.cookie before: `, document.cookie);
           document.cookie = cookie;
-          zitiBrowzerRuntime.logger.info(`document.cookie after: `, document.cookie);
+          // zitiBrowzerRuntime.logger.info(`document.cookie after: `, document.cookie);
           event.ports[0].postMessage( 'OK' );
         }
 
@@ -952,18 +955,19 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
        */
       window.fetch = zitiFetch;
       window.XMLHttpRequest = ZitiXMLHttpRequest;
+      window.document.zitidomain = zitiDocumentDomain;
 
       /**
        *  Ensure the SW is controlling this page before continuing, else the msgs we attempt to send the SW will fail, leading to bootstrapping hangs
        */
       await await_serviceWorker_controller();
 
-      window.zitiBrowzerRuntime.logLevel = await window.zitiBrowzerRuntime.localStorage.get(
+      let logLevel = await window.zitiBrowzerRuntime.localStorage.get(
         'ZITI_BROWZER_RUNTIME_LOGLEVEL',
       );
-      window.zitiBrowzerRuntime.logger.trace(`local ZITI_BROWZER_RUNTIME_LOGLEVEL is [${window.zitiBrowzerRuntime.logLevel}]`);
-      window.zitiBrowzerRuntime.zitiConfig.browzer.sw.logLevel = window.zitiBrowzerRuntime.logLevel;
-      window.zitiBrowzerRuntime.zitiConfig.browzer.runtime.logLevel = window.zitiBrowzerRuntime.logLevel;  
+      window.zitiBrowzerRuntime.logLevel = logLevel ? logLevel : window.zitiBrowzerRuntime.logLevel;
+      window.zitiBrowzerRuntime.zitiConfig.browzer.sw.logLevel = logLevel ? logLevel : window.zitiBrowzerRuntime.zitiConfig.browzer.sw.logLevel;
+      window.zitiBrowzerRuntime.zitiConfig.browzer.runtime.logLevel = logLevel ? logLevel : window.zitiBrowzerRuntime.zitiConfig.browzer.runtime.logLevel;  
       window.zitiBrowzerRuntime.logger.logLevel = window.zitiBrowzerRuntime.logLevel;
 
       /**
@@ -1309,6 +1313,9 @@ const zitiFetch = async ( url, opts ) => {
 
 }
 
+const zitiDocumentDomain = ( arg ) => {
+  console.log('zitiDocumentDomain entered: arg is: ', arg);
+}
 
 
 /**
@@ -1316,4 +1323,5 @@ const zitiFetch = async ( url, opts ) => {
  */
 window.fetch = zitiFetch;
 window.XMLHttpRequest = ZitiXMLHttpRequest;
+window.document.zitidomain = zitiDocumentDomain;
 

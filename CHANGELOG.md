@@ -1,3 +1,12 @@
+# [0.26.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.25.0...v0.26.0) (2023-03-12)
+
+
+### Features
+
+* listen on HTTP support ([#153](https://github.com/openziti/ziti-browzer-runtime/issues/153)) ([7f0f63c](https://github.com/openziti/ziti-browzer-runtime/commit/7f0f63c4f6e5aa87c8bbfff94bc6aabb69502e2d))
+
+
+
 # [0.25.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.24.1...v0.25.0) (2023-01-23)
 
 

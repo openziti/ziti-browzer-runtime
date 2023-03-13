@@ -1,3 +1,12 @@
+## [0.26.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.26.0...v0.26.1) (2023-03-13)
+
+
+### Bug Fixes
+
+* Eliminate stray abort() ([#154](https://github.com/openziti/ziti-browzer-runtime/issues/154)) ([a62e8c8](https://github.com/openziti/ziti-browzer-runtime/commit/a62e8c865b0023acc1718c95f516b05ca0242096))
+
+
+
 # [0.26.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.25.0...v0.26.0) (2023-03-12)
 
 

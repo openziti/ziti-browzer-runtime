@@ -144,7 +144,6 @@ function ZitiXMLHttpRequest () {
 
     // console.log(`XHR: method=${method}, url=${url}`);
 
-    this.abort();
     errorFlag = false;
 
     // Check for valid request method

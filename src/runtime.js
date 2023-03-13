@@ -1125,7 +1125,7 @@ const zitiFetch = async ( url, opts ) => {
     window.zitiBrowzerRuntime.logger.trace( 'zitiFetch: serviceName: ', serviceName);
 
     if (isUndefined(serviceName)) { // If we have no serviceConfig associated with the hostname:port, do not intercept
-      // zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
+      zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
       return window._ziti_realFetch(url, opts);
     }  
 
@@ -1150,7 +1150,7 @@ const zitiFetch = async ( url, opts ) => {
     serviceName = await zitiBrowzerRuntime.zitiContext.shouldRouteOverZiti( newUrl );
 
     if (isUndefined(serviceName)) { // If we have no serviceConfig associated with the hostname:port, do not intercept
-      // zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
+      zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
       return window._ziti_realFetch(url, opts);
     }  
 
@@ -1190,7 +1190,7 @@ const zitiFetch = async ( url, opts ) => {
     serviceName = await zitiBrowzerRuntime.zitiContext.shouldRouteOverZiti( newUrl );
 
     if (isUndefined(serviceName)) { // If we have no serviceConfig associated with the hostname:port, do not intercept
-      // zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
+      zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
       return window._ziti_realFetch(url, opts);
     }
 
@@ -1236,7 +1236,7 @@ const zitiFetch = async ( url, opts ) => {
 
       } else {
 
-        // zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
+        zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
         return window._ziti_realFetch(url, opts);
   
       }

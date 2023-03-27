@@ -91,6 +91,7 @@
     "tinyify": "^3.0.0"
   },
   "dependencies": {
+    "@auth0/auth0-spa-js": "^2.0.4",
     "@babel/runtime": "^7.17.9",
     "@openziti/ziti-browzer-core": "^0.18.0",
     "cookie-interceptor": "^1.0.0",

@@ -24,13 +24,13 @@ const defaultOptions = {
      * See {@link Options.version}
      *
      */
-     version: 'unknown',
+    version: 'unknown',
 
     /**
      * See {@link Options.logLevel}
      *
      */
-     logLevel: 'Silent',
+    logLevel: 'Silent',
 
     /**
      * See {@link Options.core}
@@ -42,12 +42,12 @@ const defaultOptions = {
      * See {@link Options.localStorage}
      *
      */
-     localStorage: null,
+    localStorage: null,
 
      /**
       * 
       */
-     noActiveChannelDetectedThreshold: 2,
+    noActiveChannelDetectedThreshold: 2,
 
     /**
      * See {@link Options.wb}
@@ -59,7 +59,14 @@ const defaultOptions = {
      * See {@link Options.controllerApi}
      *
      */
-     controllerApi: null,
+    controllerApi: null,
+
+    /**
+     * See {@link Options.authTokenName}
+     *
+     */
+    authTokenName: '__ziti-access-token',
+
 };
 
 export {

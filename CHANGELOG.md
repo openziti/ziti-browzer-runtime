@@ -1,3 +1,12 @@
+# [0.27.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.26.1...v0.27.0) (2023-03-27)
+
+
+### Features
+
+* add prerelease publishing job ([#156](https://github.com/openziti/ziti-browzer-runtime/issues/156)) ([4bcf5d3](https://github.com/openziti/ziti-browzer-runtime/commit/4bcf5d35bb05fb34a7fa85c0d8aaf4f5e9886bfb))
+
+
+
 ## [0.26.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.26.0...v0.26.1) (2023-03-13)
 
 

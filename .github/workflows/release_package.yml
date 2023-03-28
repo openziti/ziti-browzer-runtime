@@ -20,19 +20,17 @@ jobs:
           registry-url: https://registry.npmjs.org/
           node-version: '14'
 
-      # Install dependencies (required by Run tests step)
-      #- name: Install dependencies
-      #  run: yarn install
+      - name: Install
+        run: yarn install --immutable
 
-      # Tests
-      #- name: Run tests
-      #  run: yarn test
+      - name: Build
+        run: yarn run build
 
       # Configure Git
-      # - name: Git configuration
-      #   run: |
-      #     git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
-      #     git config --global user.name "GitHub Actions"
+      - name: Git configuration
+        run: |
+          git config --global user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git config --global user.name "GitHub Actions"
 
       # Bump package version
       # Use tag latest

@@ -523,6 +523,40 @@ class ZitiBrowzerRuntime {
     return zitiConfig;
   }
 
+  doIdpLogout() {
+
+    window.zitiBrowzerRuntime.toastError(`Your browZer Session has expired -- Re-Authentication required.`);
+
+    window.zitiBrowzerRuntime.logger.trace( `idpAuthHealthEventEventHandler: ${window.zitiBrowzerRuntime.authTokenName} has expired and will be torn down`);
+
+    // purge the cookie
+    document.cookie = window.zitiBrowzerRuntime.authTokenName+'=; Max-Age=-99999999;';  
+
+    // do the OIDC logout
+    window.zitiBrowzerRuntime.auth0Client.logout({
+      logoutParams: {
+        returnTo: window.location.origin
+      }
+    });            
+
+  }
+
+  idpAuthHealthEventEventHandler(idpAuthHealthEvent) {  
+
+    this.logger.trace(`idpAuthHealthEventEventHandler() `, idpAuthHealthEvent);
+
+    if (idpAuthHealthEvent.expired) {
+
+      // Only initiate reboot once
+      if (!window.zitiBrowzerRuntime.reauthInitiated) {
+
+        window.zitiBrowzerRuntime.reauthInitiated = true;
+
+        doIdpLogout();
+
+      }
+    }
+  }
 
   /**
    * Initialize the ZitiBrowzerRuntime
@@ -646,6 +680,8 @@ class ZitiBrowzerRuntime {
     window.zitiBrowzerRuntime.controllerVersion = await zitiBrowzerRuntime.zitiContext.listControllerVersion();
 
     this.logger.trace(`ZitiBrowzerRuntime connected to Controller ${window.zitiBrowzerRuntime.controllerVersion.version}`);
+
+    this.zitiContext.on('idpAuthHealthEvent', this.idpAuthHealthEventEventHandler);
 
     return true;
   };
@@ -986,6 +1022,14 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
           }, 2500);
         }
 
+        else if (event.data.type === 'ACCESS_TOKEN_EXPIRED') {
+
+          zitiBrowzerRuntime.logger.info(`A ${event.data.type} msg was received!`);
+
+          zitiBrowzerRuntime.doIdpLogout();
+
+        }
+
         else if (event.data.type === 'ZITI_CONFIG_NEEDED') {
 
           setTimeout(function() {
@@ -1139,37 +1183,6 @@ var regexZBWASM   = new RegExp( /libcrypto.wasm/, 'g' );
 
 
 /**
- * 
- */
-const isAuthTokenExpired = () => {
-
-  let now = new Date().getTime(); // in ms
-  let ttl = window.zitiBrowzerRuntime.decoded_id_token_exp - now;
-  window.zitiBrowzerRuntime.logger.trace( `isAuthTokenExpired: ${window.zitiBrowzerRuntime.authTokenName} ttl is ${ttl}`);
-
-  if (ttl <= 0) { // the auth token has expired, so take steps to cause a re-auth dialog to render
-
-    window.zitiBrowzerRuntime.logger.trace( `isAuthTokenExpired: ${window.zitiBrowzerRuntime.authTokenName} has expired and will be torn down`);
-
-    // purge the cookie
-    document.cookie = window.zitiBrowzerRuntime.authTokenName+'=; Max-Age=-99999999;';  
-
-    // do the OIDC logout
-    window.zitiBrowzerRuntime.auth0Client.logout({
-      logoutParams: {
-        returnTo: window.location.origin
-      }
-    });
-  
-    return true;
-  }
-  
-  window.zitiBrowzerRuntime.logger.trace( `isAuthTokenExpired: ${window.zitiBrowzerRuntime.authTokenName} is still valid`);
-  return false;
-
-}
-
-/**
  * Intercept all 'fetch' requests and route them over Ziti if the target host:port matches an active Ziti Service Config
  *
  * @param {String} url
@@ -1188,31 +1201,6 @@ const zitiFetch = async ( url, opts ) => {
   // window.zitiBrowzerRuntime.noActiveChannelDetectedEnabled = true;
 
   window.zitiBrowzerRuntime.logger.trace( 'zitiFetch: entered for URL: ', url);
-
-  // If the authToken has expired, then tear everything down and reboot
-  if (isAuthTokenExpired()) {
-
-    // Only initiate reboot once. If multiple HTTP requests come in, just 403 the rest below.
-    if (!window.zitiBrowzerRuntime.reauthInitiated) {
-
-      window.zitiBrowzerRuntime.reauthInitiated = true;
-
-      window.zitiBrowzerRuntime.toastError(`Your browZer Session has expired -- Re-Authentication required.`);
-
-      setTimeout(function() {
-        window.zitiBrowzerRuntime.wb.messageSW({
-          type: 'UNREGISTER', 
-          payload: {
-          } 
-        });
-      }, 100);
-      
-    }
-
-    // It doesn't really matter what we return here since everything is about to reload
-    return new Response( null, { "status": 403 } );
-  }
-
 
   let serviceName;
 

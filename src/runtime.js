@@ -594,6 +594,11 @@ class ZitiBrowzerRuntime {
       }    
     });
 
+    let initResults = {
+      authenticated:  true,
+      unregisterSW:   false
+    };
+
     /**
      *  Logic devoted to acquiring an access_token from the IdP runs _ONLY_
      *  when this ZBR has been loaded from the BrowZer Gateway (not the ZBSW).
@@ -642,11 +647,8 @@ class ZitiBrowzerRuntime {
       }
 
       if (!this.isAuthenticated) {
-        this.logger.trace(`isAuthenticated: ${this.isAuthenticated} so skipping creation of zitiContext`);
-        return false;
+        initResults.authenticated = false;
       }
-
-      this.logger.trace(`isAuthenticated: ${this.isAuthenticated} so creating zitiContext`);
 
     } else {  // Loaded from ZBSW
 
@@ -661,60 +663,57 @@ class ZitiBrowzerRuntime {
         // the ZBSW, which will cause a full page reboot, starting from the top again, and causing the IdP auth dialog
         // to reengage.
 
-        setTimeout(function() {
-          window.zitiBrowzerRuntime.logger.warn(`No valid IdP authentication present -- Page reboot needed`);
-          window.zitiBrowzerRuntime.wb.messageSW({
-            type: 'UNREGISTER', 
-            payload: {
-            } 
-          });
-        }, 500);
+        initResults.authenticated = false;
+        initResults.unregisterSW = true;
 
-        return false;
-
-      } else {
-        this.isAuthenticated = true;
       }
+
     }
 
-    this.zitiContext = this.core.createZitiContext({
+    this.logger.trace(`initResults: `, initResults);
 
-      logger:         this.logger,
-      controllerApi:  this.controllerApi,
+    if (initResults.authenticated) {
 
-      sdkType:        pjson.name,
-      sdkVersion:     pjson.version,
-      sdkBranch:      buildInfo.sdkBranch,
-      sdkRevision:    buildInfo.sdkRevision,
-  
-      token_type:     this.zitiConfig.token_type,
-      access_token:   this.zitiConfig.access_token,
+      this.zitiContext = this.core.createZitiContext({
 
-      apiSessionHeartbeatTimeMin: (1),
-      apiSessionHeartbeatTimeMax: (2),
-  
-    });
-    this.logger.trace(`ZitiContext created`);
+        logger:         this.logger,
+        controllerApi:  this.controllerApi,
 
-    this.zitiContext.setKeyTypeEC();
+        sdkType:        pjson.name,
+        sdkVersion:     pjson.version,
+        sdkBranch:      buildInfo.sdkBranch,
+        sdkRevision:    buildInfo.sdkRevision,
+    
+        token_type:     this.zitiConfig.token_type,
+        access_token:   this.zitiConfig.access_token,
 
-    window._zitiContext = this.zitiContext; // allow WASM to find us
+        apiSessionHeartbeatTimeMin: (1),
+        apiSessionHeartbeatTimeMax: (2),
+    
+      });
+      this.logger.trace(`ZitiContext created`);
 
-    await this.zitiContext.initialize({
-      loadWASM: !options.loadedViaHTTPAgent   // instantiate the internal WebAssembly ONLY if we were not injected by the HTTP Agent
-    });
+      this.zitiContext.setKeyTypeEC();
 
-    this.initialized = true;
+      window._zitiContext = this.zitiContext; // allow WASM to find us
 
-    this.logger.trace(`ZitiBrowzerRuntime ${this._uuid} has been initialized`);
+      await this.zitiContext.initialize({
+        loadWASM: !options.loadedViaHTTPAgent   // instantiate the internal WebAssembly ONLY if we were not injected by the HTTP Agent
+      });
 
-    window.zitiBrowzerRuntime.controllerVersion = await zitiBrowzerRuntime.zitiContext.listControllerVersion();
+      this.initialized = true;
 
-    this.logger.trace(`ZitiBrowzerRuntime connected to Controller ${window.zitiBrowzerRuntime.controllerVersion.version}`);
+      this.logger.trace(`ZitiBrowzerRuntime ${this._uuid} has been initialized`);
 
-    this.zitiContext.on('idpAuthHealthEvent', this.idpAuthHealthEventEventHandler);
+      window.zitiBrowzerRuntime.controllerVersion = await zitiBrowzerRuntime.zitiContext.listControllerVersion();
 
-    return true;
+      this.logger.trace(`ZitiBrowzerRuntime connected to Controller ${window.zitiBrowzerRuntime.controllerVersion.version}`);
+
+      this.zitiContext.on('idpAuthHealthEvent', this.idpAuthHealthEventEventHandler);
+      
+    }
+
+    return initResults;
   };
 
 
@@ -851,11 +850,11 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
     /**
      * 
      */
-    let doEnroll = await zitiBrowzerRuntime.initialize({loadedViaHTTPAgent: (loadedViaHTTPAgent ? true : false)});
+    let initResults = await zitiBrowzerRuntime.initialize({loadedViaHTTPAgent: (loadedViaHTTPAgent ? true : false)});
 
     console.log('returned from call to zitiBrowzerRuntime.initialize');
 
-    if (doEnroll && !loadedViaHTTPAgent) {  
+    if (initResults.authenticated && !loadedViaHTTPAgent) {
 
       /**
        * 
@@ -906,13 +905,6 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         navigator.userAgent &&
         navigator.userAgent.indexOf('CriOS') == -1 &&
         navigator.userAgent.indexOf('FxiOS') == -1;
-
-    /**
-     * 
-     */
-    if (!window.zitiBrowzerRuntime.isAuthenticated) {
-      return;
-    }
 
     /**
      * 
@@ -1136,11 +1128,19 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       window.zitiBrowzerRuntime.zitiConfig.browzer.runtime.logLevel = logLevel ? logLevel : window.zitiBrowzerRuntime.zitiConfig.browzer.runtime.logLevel;  
       window.zitiBrowzerRuntime.logger.logLevel = window.zitiBrowzerRuntime.logLevel;
 
+      if (initResults.unregisterSW) {
+        window.zitiBrowzerRuntime.wb.messageSW({
+          type: 'UNREGISTER', 
+          payload: {
+          } 
+        });
+      }
+  
       /**
        *  Let the SW know that the ZBR has completed initialization
        */
        zitiBrowzerRuntime.logger.debug(`sending msg: ZBR_INIT_COMPLETE`);
-       navigator.serviceWorker.controller.postMessage({
+       window.zitiBrowzerRuntime.wb.messageSW({
          type: 'ZBR_INIT_COMPLETE',
          payload: {
           zitiConfig: window.zitiBrowzerRuntime.zitiConfig

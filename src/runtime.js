@@ -24,7 +24,6 @@ import {
 } from '@openziti/ziti-browzer-core';
 
 import {Workbox} from'workbox-window';
-import jwt_decode from "jwt-decode";
 import { Base64 } from 'js-base64';
 import { isUndefined, isNull, isEqual } from 'lodash-es';
 import CookieInterceptor from 'cookie-interceptor';
@@ -597,7 +596,7 @@ class ZitiBrowzerRuntime {
 
     /**
      *  Logic devoted to acquiring an access_token from the IdP runs _ONLY_
-     *  when this ZBR has been loaded from teh BrowZer Gateway (not the ZBSW).
+     *  when this ZBR has been loaded from the BrowZer Gateway (not the ZBSW).
      * 
      *  If we were loaded via the ZBSW, then the the access_token we
      *  need is in a cookie, and we will obtain it from there instead of 
@@ -623,9 +622,6 @@ class ZitiBrowzerRuntime {
           this.zitiConfig.access_token = token.id_token;
           this.logger.trace(`zitiConfig.access_token: ${this.zitiConfig.access_token}`);
           document.cookie = this.authTokenName + "=" + this.zitiConfig.access_token + "; path=/";
-
-          var decoded_id_token = jwt_decode(token.id_token);
-          this.decoded_id_token_exp = (decoded_id_token.exp * 1000);
 
           this.isAuthenticated = await this.auth0Client.isAuthenticated();
 
@@ -656,10 +652,29 @@ class ZitiBrowzerRuntime {
 
       this.zitiConfig.token_type = 'Bearer';
       this.zitiConfig.access_token = this.getCookie( this.authTokenName );
-      this.isAuthenticated = true;
-      var decoded_id_token = jwt_decode(this.zitiConfig.access_token);
-      this.decoded_id_token_exp = (decoded_id_token.exp * 1000);
 
+      if (isEqual(this.zitiConfig.access_token, '')) {
+      
+        // If we were loaded by the ZBSW, but the auth token cookie is NOT present, it means that it expired, and
+        // the IdP logout was initiated...which will do a redirect to the root of the app, which will land us here.
+        // Being loaded by the ZBSW, but with no auth token cookie, means we need to be heavy-handed and unregister
+        // the ZBSW, which will cause a full page reboot, starting from the top again, and causing the IdP auth dialog
+        // to reengage.
+
+        setTimeout(function() {
+          window.zitiBrowzerRuntime.logger.warn(`No valid IdP authentication present -- Page reboot needed`);
+          window.zitiBrowzerRuntime.wb.messageSW({
+            type: 'UNREGISTER', 
+            payload: {
+            } 
+          });
+        }, 500);
+
+        return false;
+
+      } else {
+        this.isAuthenticated = true;
+      }
     }
 
     this.zitiContext = this.core.createZitiContext({

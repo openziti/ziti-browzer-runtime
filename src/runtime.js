@@ -525,19 +525,31 @@ class ZitiBrowzerRuntime {
 
   doIdpLogout() {
 
-    window.zitiBrowzerRuntime.toastError(`Your browZer Session has expired -- Re-Authentication required.`);
+    window.zitiBrowzerRuntime.toastError(`Your browZer Session has expired -- Re-Authentication required -- stand by.`);
 
-    window.zitiBrowzerRuntime.logger.trace( `idpAuthHealthEventEventHandler: ${window.zitiBrowzerRuntime.authTokenName} has expired and will be torn down`);
+    window.zitiBrowzerRuntime.logger.trace( `doIdpLogout: ${window.zitiBrowzerRuntime.authTokenName} has expired and will be torn down`);
 
     // purge the cookie
     document.cookie = window.zitiBrowzerRuntime.authTokenName+'=; Max-Age=-99999999;';  
 
-    // do the OIDC logout
-    window.zitiBrowzerRuntime.auth0Client.logout({
-      logoutParams: {
-        returnTo: window.location.origin
-      }
-    });            
+    // Run the following on a delay so the toast can be read by user, and so that we do not block the SW messaging
+    setTimeout(function() {
+
+      // do the OIDC logout
+      window.zitiBrowzerRuntime.auth0Client.logout({
+        logoutParams: {
+          returnTo: window.location.origin
+        }
+      });            
+
+    }, 3000);
+
+    setTimeout(function() {
+
+      zitiBrowzerRuntime.logger.debug(`doIdpLogout: ################ doing root-page page reload now ################`);
+      window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.self.host + zitiBrowzerRuntime.zitiConfig.httpAgent.target.path);
+    
+    }, 5000);
 
   }
 
@@ -662,6 +674,10 @@ class ZitiBrowzerRuntime {
   
       token_type:     this.zitiConfig.token_type,
       access_token:   this.zitiConfig.access_token,
+
+      apiSessionHeartbeatTimeMin: (1),
+      apiSessionHeartbeatTimeMax: (2),
+  
     });
     this.logger.trace(`ZitiContext created`);
 
@@ -1026,7 +1042,14 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
           zitiBrowzerRuntime.logger.info(`A ${event.data.type} msg was received!`);
 
-          zitiBrowzerRuntime.doIdpLogout();
+          // Only initiate reboot once
+          if (!window.zitiBrowzerRuntime.reauthInitiated) {
+
+            window.zitiBrowzerRuntime.reauthInitiated = true;
+
+            doIdpLogout();
+
+          }
 
         }
 

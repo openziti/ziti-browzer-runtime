@@ -1140,7 +1140,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
        *  Let the SW know that the ZBR has completed initialization
        */
        zitiBrowzerRuntime.logger.debug(`sending msg: ZBR_INIT_COMPLETE`);
-       window.zitiBrowzerRuntime.wb.messageSW({
+       navigator.serviceWorker.controller.postMessage({
          type: 'ZBR_INIT_COMPLETE',
          payload: {
           zitiConfig: window.zitiBrowzerRuntime.zitiConfig

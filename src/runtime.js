@@ -564,7 +564,7 @@ class ZitiBrowzerRuntime {
 
         window.zitiBrowzerRuntime.reauthInitiated = true;
 
-        doIdpLogout();
+        window.zitiBrowzerRuntime.doIdpLogout();
 
       }
     }
@@ -1047,7 +1047,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
             window.zitiBrowzerRuntime.reauthInitiated = true;
 
-            doIdpLogout();
+            window.zitiBrowzerRuntime.doIdpLogout();
 
           }
 

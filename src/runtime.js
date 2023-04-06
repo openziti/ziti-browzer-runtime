@@ -672,6 +672,8 @@ class ZitiBrowzerRuntime {
 
     this.logger.trace(`initResults: `, initResults);
 
+    this.isAuthenticated = initResults.authenticated;
+
     if (initResults.authenticated) {
 
       this.zitiContext = this.core.createZitiContext({

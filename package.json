@@ -1,6 +1,6 @@
 {
   "name": "@openziti/ziti-browzer-runtime",
-  "version": "0.27.1-beta.10",
+  "version": "0.28.0",
   "type": "module",
   "description": "The Ziti JavaScript runtime that is auto-injected into the Page of a Zitified web app",
   "scripts": {

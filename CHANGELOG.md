@@ -1,3 +1,12 @@
+# [0.28.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.27.0...v0.28.0) (2023-04-10)
+
+
+### Features
+
+* Move OIDC tasks to ZBR ([#157](https://github.com/openziti/ziti-browzer-runtime/issues/157)) ([2c288a2](https://github.com/openziti/ziti-browzer-runtime/commit/2c288a25d2225210b35b88f8a34b86b71a993bda))
+
+
+
 # [0.27.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.26.1...v0.27.0) (2023-03-27)
 
 

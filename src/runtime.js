@@ -24,7 +24,6 @@ import {
 } from '@openziti/ziti-browzer-core';
 
 import {Workbox} from'workbox-window';
-import jwt_decode from "jwt-decode";
 import { Base64 } from 'js-base64';
 import { isUndefined, isNull, isEqual } from 'lodash-es';
 import CookieInterceptor from 'cookie-interceptor';
@@ -37,6 +36,7 @@ import { defaultOptions } from './options'
 import { ZitiXMLHttpRequest } from './http/ziti-xhr';
 import { buildInfo } from './buildInfo'
 import { ZitiBrowzerLocalStorage } from './utils/localstorage';
+import { Auth0Client } from '@auth0/auth0-spa-js';
 
 
 
@@ -74,6 +74,7 @@ class ZitiBrowzerRuntime {
     this.version        = _options.version;
     this.core           = _options.core;
     this.localStorage   = _options.localStorage;
+    this.authTokenName  = _options.authTokenName;
 
     this.zitiConfig     = this.getZitiConfig();
 
@@ -97,19 +98,23 @@ class ZitiBrowzerRuntime {
 
     CookieInterceptor.init(); // Hijack the `document.cookie` object
 
+    let self = this;
+
     CookieInterceptor.write.use( function ( cookie ) {
       
       let name = cookie.substring(0, cookie.indexOf("="));
       let value = cookie.substring(cookie.indexOf("=") + 1);
       let cookie_value = value.substring(0, value.indexOf(";"));
 
-      window.zitiBrowzerRuntime.wb.messageSW({
-        type: 'SET_COOKIE', 
-        payload: {
-          name: name, 
-          value: cookie_value
-        } 
-      });
+      if (!isEqual(name, self.authTokenName)) {
+        window.zitiBrowzerRuntime.wb.messageSW({
+          type: 'SET_COOKIE', 
+          payload: {
+            name: name, 
+            value: cookie_value
+          } 
+        });
+      }
 
       return cookie;
     });
@@ -122,9 +127,10 @@ class ZitiBrowzerRuntime {
     setTimeout(this._createHotKey, 5000, this);    
 
     // Click intercept infra
-    setTimeout(this._createClickIntercept, 3000, this);        
-  }
+    setTimeout(this._createClickIntercept, 3000, this);
 
+    this.auth0Client = null;
+  }  
 
   /**
    * 
@@ -516,18 +522,52 @@ class ZitiBrowzerRuntime {
     return zitiConfig;
   }
 
+  doIdpLogout() {
 
-  /**
-   * Extract the JWT object from the Cookie sent from HTTP Agent
-   */
-   getJWT() {
+    window.zitiBrowzerRuntime.toastError(`Your browZer Session has expired -- Re-Authentication required -- stand by.`);
 
-    let jwt = this.getCookie('__ziti-browzer-jwt');
-    let decodedJWT = jwt_decode(jwt);
+    window.zitiBrowzerRuntime.logger.trace( `doIdpLogout: ${window.zitiBrowzerRuntime.authTokenName} has expired and will be torn down`);
 
-    return decodedJWT;
+    // purge the cookie
+    document.cookie = window.zitiBrowzerRuntime.authTokenName+'=; Max-Age=-99999999;';  
+
+    // Run the following on a delay so the toast can be read by user, and so that we do not block the SW messaging
+    setTimeout(function() {
+
+      // do the OIDC logout
+      window.zitiBrowzerRuntime.auth0Client.logout({
+        logoutParams: {
+          returnTo: window.location.origin
+        }
+      });            
+
+    }, 3000);
+
+    setTimeout(function() {
+
+      zitiBrowzerRuntime.logger.debug(`doIdpLogout: ################ doing root-page page reload now ################`);
+      window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.self.host + zitiBrowzerRuntime.zitiConfig.httpAgent.target.path);
+    
+    }, 5000);
+
   }
 
+  idpAuthHealthEventEventHandler(idpAuthHealthEvent) {  
+
+    this.logger.trace(`idpAuthHealthEventEventHandler() `, idpAuthHealthEvent);
+
+    if (idpAuthHealthEvent.expired) {
+
+      // Only initiate reboot once
+      if (!window.zitiBrowzerRuntime.reauthInitiated) {
+
+        window.zitiBrowzerRuntime.reauthInitiated = true;
+
+        window.zitiBrowzerRuntime.doIdpLogout();
+
+      }
+    }
+  }
 
   /**
    * Initialize the ZitiBrowzerRuntime
@@ -543,41 +583,139 @@ class ZitiBrowzerRuntime {
     });
     this.logger.trace(`ZitiBrowzerRuntime ${this._uuid} initializing`);
 
-    this.zitiConfig.decodedJWT = this.getJWT();
-
-    this.zitiContext = this.core.createZitiContext({
-
-      logger:         this.logger,
-      controllerApi:  this.controllerApi,
-
-      sdkType:        pjson.name,
-      sdkVersion:     pjson.version,
-      sdkBranch:      buildInfo.sdkBranch,
-      sdkRevision:    buildInfo.sdkRevision,
-  
-      token_type:     this.zitiConfig.decodedJWT.token_type,
-      access_token:   this.zitiConfig.decodedJWT.access_token,
-
-    });
-    this.logger.trace(`ZitiContext created`);
-
-    this.zitiContext.setKeyTypeEC();
-
-    window._zitiContext = this.zitiContext; // allow WASM to find us
-
-    await this.zitiContext.initialize({
-      loadWASM: !options.loadedViaHTTPAgent   // instantiate the internal WebAssembly ONLY if we were not injected by the HTTP Agent
+    /**
+     *  Instantiate the IdP client
+     */
+    this.auth0Client = new Auth0Client({
+      domain:   this.zitiConfig.idp.host,
+      clientId: this.zitiConfig.idp.clientId,
+      authorizationParams: {
+        redirect_uri: `${window.location.origin}`
+      }    
     });
 
-    this.initialized = true;
+    let initResults = {
+      authenticated:  true,
+      unregisterSW:   false
+    };
 
-    this.logger.trace(`ZitiBrowzerRuntime ${this._uuid} has been initialized`);
+    /**
+     *  Logic devoted to acquiring an access_token from the IdP runs _ONLY_
+     *  when this ZBR has been loaded from the BrowZer Gateway (not the ZBSW).
+     * 
+     *  If we were loaded via the ZBSW, then the the access_token we
+     *  need is in a cookie, and we will obtain it from there instead of 
+     *  interacting with the IdP because doing so will lead to a never ending loop.
+     */
+    if (options.loadedViaHTTPAgent) {
 
-    window.zitiBrowzerRuntime.controllerVersion = await zitiBrowzerRuntime.zitiContext.listControllerVersion();
+      this.isAuthenticated = await this.auth0Client.isAuthenticated();
 
-    this.logger.trace(`ZitiBrowzerRuntime connected to Controller ${window.zitiBrowzerRuntime.controllerVersion.version}`);
+      this.logger.trace(`isAuthenticated: ${this.isAuthenticated}`);
 
+      if (!this.isAuthenticated) {
 
+        const query = window.location.search;
+        if (query.includes("code=") && query.includes("state=")) {
+      
+          // Process the login state
+          await this.auth0Client.handleRedirectCallback();
+
+          const token = await this.auth0Client.getTokenSilently({detailedResponse: true});
+
+          this.zitiConfig.token_type = 'Bearer';
+          this.zitiConfig.access_token = token.id_token;
+          this.logger.trace(`zitiConfig.access_token: ${this.zitiConfig.access_token}`);
+          document.cookie = this.authTokenName + "=" + this.zitiConfig.access_token + "; path=/";
+
+          this.isAuthenticated = await this.auth0Client.isAuthenticated();
+
+          this.logger.trace(`isAuthenticated: ${this.isAuthenticated}`);
+
+          // Use replaceState to redirect the user away and remove the querystring parameters
+          window.history.replaceState({}, document.title, "/");
+
+        } else {
+
+          await this.auth0Client.loginWithRedirect({
+            authorizationParams: {
+              redirect_uri: `${window.location.origin}`
+            }
+          });
+        }
+
+      }
+
+      if (!this.isAuthenticated) {
+        initResults.authenticated = false;
+      }
+
+    } else {  // Loaded from ZBSW
+
+      this.zitiConfig.token_type = 'Bearer';
+      this.zitiConfig.access_token = this.getCookie( this.authTokenName );
+
+      if (isEqual(this.zitiConfig.access_token, '')) {
+      
+        // If we were loaded by the ZBSW, but the auth token cookie is NOT present, it means that it expired, and
+        // the IdP logout was initiated...which will do a redirect to the root of the app, which will land us here.
+        // Being loaded by the ZBSW, but with no auth token cookie, means we need to be heavy-handed and unregister
+        // the ZBSW, which will cause a full page reboot, starting from the top again, and causing the IdP auth dialog
+        // to reengage.
+
+        initResults.authenticated = false;
+        initResults.unregisterSW = true;
+
+      }
+
+    }
+
+    this.logger.trace(`initResults: `, initResults);
+
+    this.isAuthenticated = initResults.authenticated;
+
+    if (initResults.authenticated) {
+
+      this.zitiContext = this.core.createZitiContext({
+
+        logger:         this.logger,
+        controllerApi:  this.controllerApi,
+
+        sdkType:        pjson.name,
+        sdkVersion:     pjson.version,
+        sdkBranch:      buildInfo.sdkBranch,
+        sdkRevision:    buildInfo.sdkRevision,
+    
+        token_type:     this.zitiConfig.token_type,
+        access_token:   this.zitiConfig.access_token,
+
+        apiSessionHeartbeatTimeMin: (1),
+        apiSessionHeartbeatTimeMax: (2),
+    
+      });
+      this.logger.trace(`ZitiContext created`);
+
+      this.zitiContext.setKeyTypeEC();
+
+      window._zitiContext = this.zitiContext; // allow WASM to find us
+
+      await this.zitiContext.initialize({
+        loadWASM: !options.loadedViaHTTPAgent   // instantiate the internal WebAssembly ONLY if we were not injected by the HTTP Agent
+      });
+
+      this.initialized = true;
+
+      this.logger.trace(`ZitiBrowzerRuntime ${this._uuid} has been initialized`);
+
+      window.zitiBrowzerRuntime.controllerVersion = await zitiBrowzerRuntime.zitiContext.listControllerVersion();
+
+      this.logger.trace(`ZitiBrowzerRuntime connected to Controller ${window.zitiBrowzerRuntime.controllerVersion.version}`);
+
+      this.zitiContext.on('idpAuthHealthEvent', this.idpAuthHealthEventEventHandler);
+      
+    }
+
+    return initResults;
   };
 
 
@@ -714,11 +852,11 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
     /**
      * 
      */
-    await zitiBrowzerRuntime.initialize({loadedViaHTTPAgent: (loadedViaHTTPAgent ? true : false)});
+    let initResults = await zitiBrowzerRuntime.initialize({loadedViaHTTPAgent: (loadedViaHTTPAgent ? true : false)});
 
     console.log('returned from call to zitiBrowzerRuntime.initialize');
 
-    if (!loadedViaHTTPAgent) {  
+    if (initResults.authenticated && !loadedViaHTTPAgent) {
 
       /**
        * 
@@ -790,12 +928,19 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         //
         if (isUndefined(swVersionObject.zitiConfig)) {
 
+          zitiBrowzerRuntime.logger.debug(`################ sending SET_CONFIG to SW now ################`, zitiBrowzerRuntime.zitiConfig);
+
           const swConfig = await zitiBrowzerRuntime.wb.messageSW({
             type: 'SET_CONFIG', 
             payload: {
               zitiConfig: zitiBrowzerRuntime.zitiConfig
             } 
           });
+        }
+        else {
+
+          zitiBrowzerRuntime.logger.debug(`################ received zitiConfig from SW  ################`, swVersionObject.zitiConfig);
+
         }
 
         if (!event.isUpdate) {
@@ -902,6 +1047,21 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
           }, 2500);
         }
 
+        else if (event.data.type === 'ACCESS_TOKEN_EXPIRED') {
+
+          zitiBrowzerRuntime.logger.info(`A ${event.data.type} msg was received!`);
+
+          // Only initiate reboot once
+          if (!window.zitiBrowzerRuntime.reauthInitiated) {
+
+            window.zitiBrowzerRuntime.reauthInitiated = true;
+
+            window.zitiBrowzerRuntime.doIdpLogout();
+
+          }
+
+        }
+
         else if (event.data.type === 'ZITI_CONFIG_NEEDED') {
 
           setTimeout(function() {
@@ -970,6 +1130,14 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       window.zitiBrowzerRuntime.zitiConfig.browzer.runtime.logLevel = logLevel ? logLevel : window.zitiBrowzerRuntime.zitiConfig.browzer.runtime.logLevel;  
       window.zitiBrowzerRuntime.logger.logLevel = window.zitiBrowzerRuntime.logLevel;
 
+      if (initResults.unregisterSW) {
+        window.zitiBrowzerRuntime.wb.messageSW({
+          type: 'UNREGISTER', 
+          payload: {
+          } 
+        });
+      }
+  
       /**
        *  Let the SW know that the ZBR has completed initialization
        */
@@ -999,14 +1167,17 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       let theCookies = document.cookie.split(';');
       for (var i = 0 ; i < theCookies.length; i++) {
         let cookie = theCookies[i].split('=');
-        zitiBrowzerRuntime.logger.debug(`sending msg: SET_COOKIE - ${cookie[0]} ${cookie[1]}`);
-        zitiBrowzerRuntime.wb.messageSW({
-          type: 'SET_COOKIE', 
-          payload: {
-            name: cookie[0], 
-            value: cookie[1]
-          } 
-        });
+        cookie[0] = cookie[0].replace(' ', '');
+        if (!isEqual(cookie[0], window.zitiBrowzerRuntime.authTokenName)) {
+          zitiBrowzerRuntime.logger.debug(`sending msg: SET_COOKIE - ${cookie[0]} ${cookie[1]}`);
+          zitiBrowzerRuntime.wb.messageSW({
+            type: 'SET_COOKIE', 
+            payload: {
+              name: cookie[0], 
+              value: cookie[1]
+            } 
+          });
+        }
       }
 
       setTimeout(window.zitiBrowzerRuntime._zbrPing, 1000, window.zitiBrowzerRuntime );
@@ -1052,18 +1223,6 @@ var regexZBWASM   = new RegExp( /libcrypto.wasm/, 'g' );
 
 
 /**
- * 
- */
-const getBrowZerSession = () => {
-  const value = `; ${document.cookie}`;
-  const parts = value.split(`; browZerSession=`);
-  if (parts.length === 2) {
-    return parts.pop().split(';').shift();
-  }
-  return null;
-}
-
-/**
  * Intercept all 'fetch' requests and route them over Ziti if the target host:port matches an active Ziti Service Config
  *
  * @param {String} url
@@ -1073,36 +1232,15 @@ const getBrowZerSession = () => {
  */
 const zitiFetch = async ( url, opts ) => {
 
+  if (!window.zitiBrowzerRuntime.isAuthenticated) {
+    return window._ziti_realFetch(url, opts);
+  }
+
   await window.zitiBrowzerRuntime.awaitInitializationComplete();
 
   // window.zitiBrowzerRuntime.noActiveChannelDetectedEnabled = true;
 
   window.zitiBrowzerRuntime.logger.trace( 'zitiFetch: entered for URL: ', url);
-
-  // If the browZerSession has expired, then tear everything down and reboot
-  if (isNull(getBrowZerSession())) {
-
-    // Only initiate reboot once. If multiple HTTP requests come in, just 403 the rest below.
-    if (!window.zitiBrowzerRuntime.reauthInitiated) {
-
-      window.zitiBrowzerRuntime.reauthInitiated = true;
-
-      window.zitiBrowzerRuntime.toastError(`Your browZer Session has expired -- Re-Authentication required.`);
-
-      setTimeout(function() {
-        window.zitiBrowzerRuntime.wb.messageSW({
-          type: 'UNREGISTER', 
-          payload: {
-          } 
-        });
-      }, 100);
-      
-    }
-
-    // It doesn't really matter what we return here since everything is about to reload
-    return new Response( null, { "status": 403 } );
-  }
-
 
   let serviceName;
 

@@ -9,6 +9,11 @@
   dependencies:
     "@jridgewell/trace-mapping" "^0.3.0"
 
+"@auth0/auth0-spa-js@^2.0.4":
+  version "2.0.4"
+  resolved "https://registry.yarnpkg.com/@auth0/auth0-spa-js/-/auth0-spa-js-2.0.4.tgz#81f6b5d9f72617ed30ee53cdf27dcd7a216bf2da"
+  integrity sha512-NgD6Fkm5Xnbned1VjhEW8irm1/Y8AWtdSLexgLXNwwBVgfnYicCVBu8w75m2t+4QljXkTcI7IXVEFhVmxMuxaA==
+
 "@babel/cli@^7.17.10":
   version "7.17.10"
   resolved "https://registry.yarnpkg.com/@babel/cli/-/cli-7.17.10.tgz#5ea0bf6298bb78f3b59c7c06954f9bd1c79d5943"
@@ -1170,20 +1175,20 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@openziti/libcrypto-js@^0.9.0":
-  version "0.9.0"
-  resolved "https://registry.yarnpkg.com/@openziti/libcrypto-js/-/libcrypto-js-0.9.0.tgz#db883c420a701e3f87ab4e43a7587469d16004b1"
-  integrity sha512-Ol1mKt8/4CsoiR2l2h0eVFfHvONuCbv4qf2ep6DKYH2vEO+KhAuqP6SVn3ElaMec/5UKc4MDZvk2TdlbXpOKWg==
+"@openziti/libcrypto-js@^0.13.0":
+  version "0.13.0"
+  resolved "https://registry.yarnpkg.com/@openziti/libcrypto-js/-/libcrypto-js-0.13.0.tgz#3a01a1b5edaddc85f7e6053a10ebee7873566de3"
+  integrity sha512-OmRW2LqztZdvNbPiALL6xqS8OHavDkh9J7B/hfI8fz/ChT9R5FkM7wtEI+MOkItneTytyL7P8HsPMz0KM7eyVQ==
   dependencies:
     "@types/emscripten" "^1.39.6"
     "@wasmer/wasi" "^1.0.2"
 
-"@openziti/ziti-browzer-core@^0.18.0":
-  version "0.18.0"
-  resolved "https://registry.yarnpkg.com/@openziti/ziti-browzer-core/-/ziti-browzer-core-0.18.0.tgz#6dff8796c506d6e3e70ac0df5876c98655362563"
-  integrity sha512-1OLuE1e0D4MPb1grL/SxBX9IGbJ8KSOWcygsP6tGnq4e855umCOjZHQYGjfOjLf6HKCQuPljdcAxFqjO7pNX1w==
+"@openziti/ziti-browzer-core@^0.20.1":
+  version "0.20.1"
+  resolved "https://registry.yarnpkg.com/@openziti/ziti-browzer-core/-/ziti-browzer-core-0.20.1.tgz#2f3587fecae9101076474d31a2484e9525bc7ae4"
+  integrity sha512-Z4orOvSVERfeN8uY76c5o8HKbZUtftllFfJvWWkBvE5FVnbCEjwKk6gSlCevRFMbUirwrBo5H7feo8XL+pEvQQ==
   dependencies:
-    "@openziti/libcrypto-js" "^0.9.0"
+    "@openziti/libcrypto-js" "^0.13.0"
     "@openziti/ziti-browzer-edge-client" "^0.6.0"
     asn1js "^2.4.0"
     assert "^2.0.0"

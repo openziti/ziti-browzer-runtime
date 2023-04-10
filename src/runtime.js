@@ -37,6 +37,7 @@ import { ZitiXMLHttpRequest } from './http/ziti-xhr';
 import { buildInfo } from './buildInfo'
 import { ZitiBrowzerLocalStorage } from './utils/localstorage';
 import { Auth0Client } from '@auth0/auth0-spa-js';
+import Bowser from 'bowser'; 
 
 
 
@@ -909,6 +910,37 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         navigator.userAgent.indexOf('FxiOS') == -1;
 
     /**
+     *  Detect unsupported browsers based on platform we are running on. If an unsupported browser
+     *  is detected, issue a Toast msg, and halt.
+     */
+    var browser = Bowser.getParser(window.navigator.userAgent);
+    const isSupportedBrowser = browser.satisfies({
+
+      // iOS must be using Safari because Chromium-based browsers have been
+      // hobbled by Apple such that they lack Service Worker support.
+      iOS: {
+        safari: ">=10"
+      },
+        
+      /**
+       *  Otherwise, we must have one of the following browsers
+       */
+      chrome: ">=97",    // Chrome, Brave
+      edge:   ">=97",    // Microsoft Edge
+
+    });
+    if (!isSupportedBrowser) {
+
+      let ua = Bowser.parse(window.navigator.userAgent);
+
+      let errStr = `The browser you are using:\n\n${ua.browser.name} v${ua.browser.version}\n\nis currently unsupported by\nOpenZiti BrowZer Runtime v${window.zitiBrowzerRuntime.version}.`;
+
+      alert(errStr);
+      return;
+
+    }
+    
+    /**
      * 
      */
     if ('serviceWorker' in navigator) {
@@ -1161,32 +1193,34 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         } 
       });
 
-      /**
-       *  Provide the SW with the current set of Cookies
-       */
-      let theCookies = document.cookie.split(';');
-      for (var i = 0 ; i < theCookies.length; i++) {
-        let cookie = theCookies[i].split('=');
-        cookie[0] = cookie[0].replace(' ', '');
-        if (!isEqual(cookie[0], window.zitiBrowzerRuntime.authTokenName)) {
-          zitiBrowzerRuntime.logger.debug(`sending msg: SET_COOKIE - ${cookie[0]} ${cookie[1]}`);
-          zitiBrowzerRuntime.wb.messageSW({
-            type: 'SET_COOKIE', 
-            payload: {
-              name: cookie[0], 
-              value: cookie[1]
-            } 
-          });
+      if (isSupportedBrowser) {
+
+        /**
+         *  Provide the SW with the current set of Cookies
+         */
+        let theCookies = document.cookie.split(';');
+        for (var i = 0 ; i < theCookies.length; i++) {
+          let cookie = theCookies[i].split('=');
+          cookie[0] = cookie[0].replace(' ', '');
+          if (!isEqual(cookie[0], window.zitiBrowzerRuntime.authTokenName)) {
+            zitiBrowzerRuntime.logger.debug(`sending msg: SET_COOKIE - ${cookie[0]} ${cookie[1]}`);
+            zitiBrowzerRuntime.wb.messageSW({
+              type: 'SET_COOKIE', 
+              payload: {
+                name: cookie[0], 
+                value: cookie[1]
+              } 
+            });
+          }
         }
-      }
 
-      setTimeout(window.zitiBrowzerRuntime._zbrPing, 1000, window.zitiBrowzerRuntime );
+        setTimeout(window.zitiBrowzerRuntime._zbrPing, 1000, window.zitiBrowzerRuntime );
 
-      /**
-       *  Announce the SW version
-       */
-      const swVersionObject = await zitiBrowzerRuntime.wb.messageSW({type: 'GET_VERSION'});
-      await zitiBrowzerRuntime.toastInfoThrottled(
+        /**
+         *  Announce the SW version
+         */
+        const swVersionObject = await zitiBrowzerRuntime.wb.messageSW({type: 'GET_VERSION'});
+        await zitiBrowzerRuntime.toastInfoThrottled(
 `
 ZBR  v${pjson.version} initialized.
 <br/>
@@ -1199,14 +1233,16 @@ HotKey:  '<strong>${window.zitiBrowzerRuntime.hotKey}</strong>'
 `);
 
 
-      /**
-       *  If the ZBR was loaded via a SW bootstrap, then reload the page to complete the bootstrap cycle
-       */
-      if (loadedViaSWBootstrap) {
-        // setTimeout(function() {
-          zitiBrowzerRuntime.logger.debug(`################ loadedViaSWBootstrap detected -- doing page reload now ################`);
-          window.location.reload();
-        // }, 300);
+        /**
+         *  If the ZBR was loaded via a SW bootstrap, then reload the page to complete the bootstrap cycle
+         */
+        if (loadedViaSWBootstrap) {
+          // setTimeout(function() {
+            zitiBrowzerRuntime.logger.debug(`################ loadedViaSWBootstrap detected -- doing page reload now ################`);
+            window.location.reload();
+          // }, 300);
+        }
+
       }
 
     }

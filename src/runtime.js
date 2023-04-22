@@ -75,6 +75,7 @@ class ZitiBrowzerRuntime {
      *  is detected, issue a Toast msg, and halt.
      */
     var browser = Bowser.getParser(window.navigator.userAgent);
+    this.ua = Bowser.parse(window.navigator.userAgent);
     const isSupportedBrowser = browser.satisfies({
 
       // iOS must be using Safari because Chromium-based browsers have been
@@ -86,15 +87,14 @@ class ZitiBrowzerRuntime {
       /**
       *  Otherwise, we must have one of the following browsers
       */
-      chrome: ">=97",    // Chrome, Brave
-      edge:   ">=97",    // Microsoft Edge
+      chrome: ">=97",     // Chrome, Brave
+      edge:   ">=97",     // Microsoft Edge
+      safari: ">=10",     // Safari
 
     });
     if (!isSupportedBrowser) {
 
-      let ua = Bowser.parse(window.navigator.userAgent);
-
-      let errStr = `The browser you are using:\n\n${ua.browser.name} v${ua.browser.version}\n\nis currently unsupported by\nOpenZiti BrowZer Runtime v${_options.version}.`;
+      let errStr = `The browser you are using:\n\n${this.ua.browser.name} v${this.ua.browser.version}\n\nis currently unsupported by\nOpenZiti BrowZer Runtime v${_options.version}.`;
 
       alert(errStr);
       throw new Error(errStr);
@@ -629,7 +629,8 @@ class ZitiBrowzerRuntime {
 
     let initResults = {
       authenticated:  true,
-      unregisterSW:   false
+      unregisterSW:   false,
+      loadedViaHTTPAgent: options.loadedViaHTTPAgent
     };
 
     /**
@@ -889,7 +890,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
     console.log('returned from call to zitiBrowzerRuntime.initialize');
 
-    if (initResults.authenticated && !loadedViaHTTPAgent) {
+    if (initResults.authenticated && !initResults.loadedViaHTTPAgent) {
 
       /**
        * 
@@ -932,20 +933,33 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       }
       window.zitiBrowzerRuntime.logger.trace(`ZitiBrowzerRuntime page-terminationEvent '${terminationEvent}' has been received: `, e);
     }, { capture: true });
-
-    /**
-     * 
-     */
-    var isSafari = navigator.vendor && navigator.vendor.indexOf('Apple') > -1 &&
-        navigator.userAgent &&
-        navigator.userAgent.indexOf('CriOS') == -1 &&
-        navigator.userAgent.indexOf('FxiOS') == -1;
-
     
     /**
      * 
      */
     if ('serviceWorker' in navigator) {
+
+      /**
+       * sendMessage() is used instead of wb.messageSW() for a couple msgs where 
+       * usage of wb.messageSW was failing under Safari.
+       */
+      function sendMessage(message) {
+        // This wraps the message posting/response in a promise, which will resolve if the response doesn't
+        // contain an error, and reject with the error if it does. 
+        return new Promise(function(resolve, reject) {
+          var messageChannel = new MessageChannel();
+          messageChannel.port1.onmessage = function(event) {
+            if (event.data.error) {
+              reject(event.data.error);
+            } else {
+              resolve(event.data);
+            }
+          };      
+          // This sends the message data as well as transferring messageChannel.port2 to the service worker.
+          navigator.serviceWorker.controller.postMessage(message,
+            [messageChannel.port2]);
+        });
+      }
 
       /**
        * The very first time our service worker installs, it will NOT have intercepted any fetch events for
@@ -955,7 +969,12 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       zitiBrowzerRuntime.wb.addEventListener('installed', async event => {
         zitiBrowzerRuntime.logger.info(`received SW 'installed' event`);
       
-        const swVersionObject = await zitiBrowzerRuntime.wb.messageSW({type: 'GET_VERSION'});
+        /**
+         *  Ensure the SW is controlling this page before continuing, else the msgs we attempt to send the SW will fail, leading to bootstrapping hangs
+         */
+        await await_serviceWorker_controller();
+
+        const swVersionObject = await sendMessage({type: 'GET_VERSION'});
         zitiBrowzerRuntime.logger.info(`SW version is now: ${swVersionObject.version}`);
         zitiBrowzerRuntime.logger.info(`SW zitiConfig is now: ${swVersionObject.zitiConfig}`);
 
@@ -964,7 +983,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
           zitiBrowzerRuntime.logger.debug(`################ sending SET_CONFIG to SW now ################`, zitiBrowzerRuntime.zitiConfig);
 
-          const swConfig = await zitiBrowzerRuntime.wb.messageSW({
+          const swConfig = await sendMessage({
             type: 'SET_CONFIG', 
             payload: {
               zitiConfig: zitiBrowzerRuntime.zitiConfig
@@ -978,16 +997,16 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         }
 
         if (!event.isUpdate) {
-          if (isSafari) {
+          if (zitiBrowzerRuntime.ua.browser.name === 'Safari') {
             zitiBrowzerRuntime.logger.debug(`################ doing Safari page reload now ################`);
             setTimeout(function() {
               window.location.href = window.location.href;
-            }, 100);
+            }, 1000);
           } else {
             zitiBrowzerRuntime.logger.debug(`################ doing Chromium page reload now ################`);
             setTimeout(function() {
               window.location.reload();  
-            }, 100);
+            }, 1000);
           }
         }
 
@@ -1140,107 +1159,112 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       
       /**
        * 
-       */
-      zitiBrowzerRuntime.wb.register();
-      zitiBrowzerRuntime.logger.debug(`################ SW register completed ################`);
+       */      
+      if (initResults.authenticated && initResults.loadedViaHTTPAgent) {
 
-      /**
-       * 
-       */
-      window.fetch = zitiFetch;
-      window.XMLHttpRequest = ZitiXMLHttpRequest;
-      window.document.zitidomain = zitiDocumentDomain;
+        zitiBrowzerRuntime.wb.register();
+        zitiBrowzerRuntime.logger.debug(
+          `################ SW register completed ################`
+        );
 
-      /**
-       *  Ensure the SW is controlling this page before continuing, else the msgs we attempt to send the SW will fail, leading to bootstrapping hangs
-       */
-      await await_serviceWorker_controller();
+        /**
+         * 
+         */
+        window.fetch = zitiFetch;
+        window.XMLHttpRequest = ZitiXMLHttpRequest;
+        window.document.zitidomain = zitiDocumentDomain;
 
-      let logLevel = await window.zitiBrowzerRuntime.localStorage.get(
-        'ZITI_BROWZER_RUNTIME_LOGLEVEL',
-      );
-      window.zitiBrowzerRuntime.logLevel = logLevel ? logLevel : window.zitiBrowzerRuntime.logLevel;
-      window.zitiBrowzerRuntime.zitiConfig.browzer.sw.logLevel = logLevel ? logLevel : window.zitiBrowzerRuntime.zitiConfig.browzer.sw.logLevel;
-      window.zitiBrowzerRuntime.zitiConfig.browzer.runtime.logLevel = logLevel ? logLevel : window.zitiBrowzerRuntime.zitiConfig.browzer.runtime.logLevel;  
-      window.zitiBrowzerRuntime.logger.logLevel = window.zitiBrowzerRuntime.logLevel;
+        /**
+         *  Ensure the SW is controlling this page before continuing, else the msgs we attempt to send the SW will fail, leading to bootstrapping hangs
+         */
+        await await_serviceWorker_controller();
 
-      if (initResults.unregisterSW) {
-        window.zitiBrowzerRuntime.wb.messageSW({
-          type: 'UNREGISTER', 
-          payload: {
-          } 
-        });
-      }
-  
-      /**
-       *  Let the SW know that the ZBR has completed initialization
-       */
-       zitiBrowzerRuntime.logger.debug(`sending msg: ZBR_INIT_COMPLETE`);
-       navigator.serviceWorker.controller.postMessage({
-         type: 'ZBR_INIT_COMPLETE',
-         payload: {
-          zitiConfig: window.zitiBrowzerRuntime.zitiConfig
-        }
-       });
-         
-      /**
-       *  Provide the SW with the latest zitiConfig
-       */
-      window.zitiBrowzerRuntime.logger.debug(`sending msg: SET_CONFIG`);
+        let logLevel = await window.zitiBrowzerRuntime.localStorage.get(
+          'ZITI_BROWZER_RUNTIME_LOGLEVEL',
+        );
+        window.zitiBrowzerRuntime.logLevel = logLevel ? logLevel : window.zitiBrowzerRuntime.logLevel;
+        window.zitiBrowzerRuntime.zitiConfig.browzer.sw.logLevel = logLevel ? logLevel : window.zitiBrowzerRuntime.zitiConfig.browzer.sw.logLevel;
+        window.zitiBrowzerRuntime.zitiConfig.browzer.runtime.logLevel = logLevel ? logLevel : window.zitiBrowzerRuntime.zitiConfig.browzer.runtime.logLevel;  
+        window.zitiBrowzerRuntime.logger.logLevel = window.zitiBrowzerRuntime.logLevel;
 
-      const swConfig = await window.zitiBrowzerRuntime.wb.messageSW({
-        type: 'SET_CONFIG', 
-        payload: {
-          zitiConfig: window.zitiBrowzerRuntime.zitiConfig
-        } 
-      });
-
-      /**
-       *  Provide the SW with the current set of Cookies
-       */
-      let theCookies = document.cookie.split(';');
-      for (var i = 0 ; i < theCookies.length; i++) {
-        let cookie = theCookies[i].split('=');
-        cookie[0] = cookie[0].replace(' ', '');
-        if (!isEqual(cookie[0], window.zitiBrowzerRuntime.authTokenName)) {
-          zitiBrowzerRuntime.logger.debug(`sending msg: SET_COOKIE - ${cookie[0]} ${cookie[1]}`);
-          zitiBrowzerRuntime.wb.messageSW({
-            type: 'SET_COOKIE', 
+        if (initResults.unregisterSW) {
+          window.zitiBrowzerRuntime.wb.messageSW({
+            type: 'UNREGISTER', 
             payload: {
-              name: cookie[0], 
-              value: cookie[1]
             } 
           });
         }
+            
+        /**
+         *  Let the SW know that the ZBR has completed initialization
+         */
+        zitiBrowzerRuntime.logger.debug(`sending msg: ZBR_INIT_COMPLETE`);
+        navigator.serviceWorker.controller.postMessage({
+          type: 'ZBR_INIT_COMPLETE',
+          payload: {
+            zitiConfig: window.zitiBrowzerRuntime.zitiConfig
+          }
+        });
+          
+        /**
+         *  Provide the SW with the latest zitiConfig
+         */
+        window.zitiBrowzerRuntime.logger.debug(`sending msg: SET_CONFIG`);
+
+        const swConfig = await window.zitiBrowzerRuntime.wb.messageSW({
+          type: 'SET_CONFIG', 
+          payload: {
+            zitiConfig: window.zitiBrowzerRuntime.zitiConfig
+          } 
+        });
+
+        /**
+         *  Provide the SW with the current set of Cookies
+         */
+        let theCookies = document.cookie.split(';');
+        for (var i = 0 ; i < theCookies.length; i++) {
+          let cookie = theCookies[i].split('=');
+          cookie[0] = cookie[0].replace(' ', '');
+          if (!isEqual(cookie[0], window.zitiBrowzerRuntime.authTokenName)) {
+            zitiBrowzerRuntime.logger.debug(`sending msg: SET_COOKIE - ${cookie[0]} ${cookie[1]}`);
+            zitiBrowzerRuntime.wb.messageSW({
+              type: 'SET_COOKIE', 
+              payload: {
+                name: cookie[0], 
+                value: cookie[1]
+              } 
+            });
+          }
+        }
+
+        setTimeout(window.zitiBrowzerRuntime._zbrPing, 1000, window.zitiBrowzerRuntime );
+
+        /**
+         *  Announce the SW version
+         */
+        const swVersionObject = await zitiBrowzerRuntime.wb.messageSW({type: 'GET_VERSION'});
+        await zitiBrowzerRuntime.toastInfoThrottled(
+  `
+  ZBR  v${pjson.version} initialized.
+  <br/>
+  ZBSW v${swVersionObject.version} initialized.
+  <br/>
+  <br/>
+  HotKey:  '<strong>${window.zitiBrowzerRuntime.hotKey}</strong>'
+  `);
+
+
+        /**
+         *  If the ZBR was loaded via a SW bootstrap, then reload the page to complete the bootstrap cycle
+         */
+        if (loadedViaSWBootstrap) {
+          // setTimeout(function() {
+            zitiBrowzerRuntime.logger.debug(`################ loadedViaSWBootstrap detected -- doing page reload now ################`);
+            window.location.reload();
+          // }, 300);
+        }
+
       }
-
-      setTimeout(window.zitiBrowzerRuntime._zbrPing, 1000, window.zitiBrowzerRuntime );
-
-      /**
-       *  Announce the SW version
-       */
-      const swVersionObject = await zitiBrowzerRuntime.wb.messageSW({type: 'GET_VERSION'});
-      await zitiBrowzerRuntime.toastInfoThrottled(
-`
-ZBR  v${pjson.version} initialized.
-<br/>
-ZBSW v${swVersionObject.version} initialized.
-<br/>
-<br/>
-HotKey:  '<strong>${window.zitiBrowzerRuntime.hotKey}</strong>'
-`);
-
-
-      /**
-       *  If the ZBR was loaded via a SW bootstrap, then reload the page to complete the bootstrap cycle
-       */
-      if (loadedViaSWBootstrap) {
-        // setTimeout(function() {
-          zitiBrowzerRuntime.logger.debug(`################ loadedViaSWBootstrap detected -- doing page reload now ################`);
-          window.location.reload();
-        // }, 300);
-      }
-
     }
 
   })();

@@ -589,6 +589,8 @@ class ZitiBrowzerRuntime {
 
     this.logger.trace(`idpAuthHealthEventEventHandler() `, idpAuthHealthEvent);
 
+    return;//TEMPORARY bypass until Controller fix is released
+
     if (idpAuthHealthEvent.expired) {
 
       // Only initiate reboot once

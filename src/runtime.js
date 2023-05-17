@@ -174,7 +174,7 @@ class ZitiBrowzerRuntime {
 
     let activeChannelCount = window.zitiBrowzerRuntime.core.context.activeChannelCount();
 
-    window.zitiBrowzerRuntime.logger.trace(`activeChannelCount is ${activeChannelCount}`);
+    // window.zitiBrowzerRuntime.logger.trace(`activeChannelCount is ${activeChannelCount}`);
 
     if (activeChannelCount < 1) {
       // If there are active Channels, increment the nuber of times we've seen that state
@@ -197,7 +197,7 @@ class ZitiBrowzerRuntime {
 
     if (self.logger) {
 
-      self.logger.trace(`_reloadNeededHeartbeat: visibilityState is ${document.visibilityState}`);
+      // self.logger.trace(`_reloadNeededHeartbeat: visibilityState is ${document.visibilityState}`);
 
       if (document.visibilityState === "visible") {
 
@@ -585,9 +585,9 @@ class ZitiBrowzerRuntime {
 
   }
 
-  idpAuthHealthEventEventHandler(idpAuthHealthEvent) {  
+  idpAuthHealthEventHandler(idpAuthHealthEvent) {  
 
-    this.logger.trace(`idpAuthHealthEventEventHandler() `, idpAuthHealthEvent);
+    this.logger.trace(`idpAuthHealthEventHandler() `, idpAuthHealthEvent);
 
     return;//TEMPORARY bypass until Controller fix is released
 
@@ -602,6 +602,16 @@ class ZitiBrowzerRuntime {
 
       }
     }
+  }
+
+  noConfigForServiceEventHandler(noConfigForServiceEvent) {
+
+    this.logger.trace(`noConfigForServiceEventHandler() `, noConfigForServiceEvent);
+
+    let errStr = `Ziti Service [${noConfigForServiceEvent.serviceName}] has no associated configs.\n\nPossible Ziti network misconfiguration exists.`;
+
+    alert(errStr);
+
   }
 
   /**
@@ -747,7 +757,8 @@ class ZitiBrowzerRuntime {
 
       this.logger.trace(`ZitiBrowzerRuntime connected to Controller ${window.zitiBrowzerRuntime.controllerVersion.version}`);
 
-      this.zitiContext.on('idpAuthHealthEvent', this.idpAuthHealthEventEventHandler);
+      this.zitiContext.on('idpAuthHealthEvent',       this.idpAuthHealthEventHandler);
+      this.zitiContext.on('noConfigForServiceEvent',  this.noConfigForServiceEventHandler);
       
     }
 
@@ -1153,6 +1164,12 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
         }
 
+        else if (event.data.type === 'NO_CONFIG_FOR_SERVICE') {
+
+          window.zitiBrowzerRuntime.noConfigForServiceEventHandler(event.data.payload.event);
+
+        }
+
         else if (event.data.type === 'PING') {
           event.ports[0].postMessage('PONG');
         }
@@ -1336,7 +1353,12 @@ const zitiFetch = async ( url, opts ) => {
     let newUrl;
     let baseURIUrl = new URL( document.baseURI );
     if (baseURIUrl.hostname === zitiBrowzerRuntime.zitiConfig.httpAgent.self.host) {
-      newUrl = new URL( 'https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.target.service + ':' + zitiBrowzerRuntime.zitiConfig.httpAgent.target.port + url );
+      newUrl = new URL( 'https://' + 
+        zitiBrowzerRuntime.zitiConfig.httpAgent.target.service + 
+        ':' + 
+        (zitiBrowzerRuntime.zitiConfig.httpAgent.target.port ? zitiBrowzerRuntime.zitiConfig.httpAgent.target.port : 443) + 
+        url 
+      );
     } else {
       let baseURI = document.baseURI.replace(/\.\/$/, '');
       newUrl = new URL( baseURI + url );
@@ -1452,6 +1474,7 @@ const zitiFetch = async ( url, opts ) => {
   opts = opts || {};
 
   opts.serviceName = serviceName;
+  opts.serviceScheme = window.zitiBrowzerRuntime.zitiConfig.httpAgent.target.scheme;
 
   /**
    * Let ziti-browzer-core.context do the needful

@@ -1,3 +1,12 @@
+# [0.29.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.28.0...v0.29.0) (2023-05-17)
+
+
+### Features
+
+* add unsupported user-agent alert - fixes [#138](https://github.com/openziti/ziti-browzer-runtime/issues/138) ([#158](https://github.com/openziti/ziti-browzer-runtime/issues/158)) ([cd58ece](https://github.com/openziti/ziti-browzer-runtime/commit/cd58ece0f28241f87a67ab66a2679d7d723d4031))
+
+
+
 # [0.28.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.27.0...v0.28.0) (2023-04-10)
 
 

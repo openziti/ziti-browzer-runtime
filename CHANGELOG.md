@@ -1,3 +1,12 @@
+## [0.30.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.30.0...v0.30.1) (2023-05-19)
+
+
+### Bug Fixes
+
+* correct wb.register sequencing ([#160](https://github.com/openziti/ziti-browzer-runtime/issues/160)) ([d4df2de](https://github.com/openziti/ziti-browzer-runtime/commit/d4df2deccfd256bd1ee424871c7a70a4d95b8a6c))
+
+
+
 # [0.30.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.29.0...v0.30.0) (2023-05-17)
 
 

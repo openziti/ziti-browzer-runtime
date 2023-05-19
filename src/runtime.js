@@ -1176,15 +1176,16 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         
       });
       
+      zitiBrowzerRuntime.wb.register();
+      zitiBrowzerRuntime.logger.debug(
+        `################ SW register completed ################`
+      );
+
       /**
        * 
        */      
       if (initResults.authenticated && initResults.loadedViaHTTPAgent) {
 
-        zitiBrowzerRuntime.wb.register();
-        zitiBrowzerRuntime.logger.debug(
-          `################ SW register completed ################`
-        );
 
         /**
          * 
@@ -1256,8 +1257,6 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
           }
         }
 
-        setTimeout(window.zitiBrowzerRuntime._zbrPing, 1000, window.zitiBrowzerRuntime );
-
         /**
          *  Announce the SW version
          */
@@ -1284,6 +1283,9 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         }
 
       }
+
+      setTimeout(window.zitiBrowzerRuntime._zbrPing, 1000, window.zitiBrowzerRuntime );
+
     }
 
   })();

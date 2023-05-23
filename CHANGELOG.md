@@ -1,3 +1,12 @@
+# [0.31.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.30.1...v0.31.0) (2023-05-23)
+
+
+### Features
+
+* advanced services support ([#161](https://github.com/openziti/ziti-browzer-runtime/issues/161)) ([bee073f](https://github.com/openziti/ziti-browzer-runtime/commit/bee073fcb6221f477e804f408ecd100170f88a2b))
+
+
+
 ## [0.30.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.30.0...v0.30.1) (2023-05-19)
 
 

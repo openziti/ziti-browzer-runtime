@@ -1199,13 +1199,6 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
          */
         await await_serviceWorker_controller();
 
-        let logLevel = await window.zitiBrowzerRuntime.localStorage.get(
-          'ZITI_BROWZER_RUNTIME_LOGLEVEL',
-        );
-        window.zitiBrowzerRuntime.logLevel = logLevel ? logLevel : window.zitiBrowzerRuntime.logLevel;
-        window.zitiBrowzerRuntime.zitiConfig.browzer.sw.logLevel = logLevel ? logLevel : window.zitiBrowzerRuntime.zitiConfig.browzer.sw.logLevel;
-        window.zitiBrowzerRuntime.zitiConfig.browzer.runtime.logLevel = logLevel ? logLevel : window.zitiBrowzerRuntime.zitiConfig.browzer.runtime.logLevel;  
-        window.zitiBrowzerRuntime.logger.logLevel = window.zitiBrowzerRuntime.logLevel;
 
         if (initResults.unregisterSW) {
           window.zitiBrowzerRuntime.wb.messageSW({
@@ -1285,6 +1278,17 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       }
 
       setTimeout(window.zitiBrowzerRuntime._zbrPing, 1000, window.zitiBrowzerRuntime );
+
+      /**
+       * 
+       */
+      let logLevel = await window.zitiBrowzerRuntime.localStorage.get(
+        'ZITI_BROWZER_RUNTIME_LOGLEVEL',
+      );
+      window.zitiBrowzerRuntime.logLevel = logLevel ? logLevel : window.zitiBrowzerRuntime.logLevel;
+      window.zitiBrowzerRuntime.zitiConfig.browzer.sw.logLevel = logLevel ? logLevel : window.zitiBrowzerRuntime.zitiConfig.browzer.sw.logLevel;
+      window.zitiBrowzerRuntime.zitiConfig.browzer.runtime.logLevel = logLevel ? logLevel : window.zitiBrowzerRuntime.zitiConfig.browzer.runtime.logLevel;  
+      window.zitiBrowzerRuntime.logger.logLevel = window.zitiBrowzerRuntime.logLevel;
 
     }
 
@@ -1477,6 +1481,7 @@ const zitiFetch = async ( url, opts ) => {
 
   opts.serviceName = serviceName;
   opts.serviceScheme = window.zitiBrowzerRuntime.zitiConfig.httpAgent.target.scheme;
+  opts.serviceConnectAppData = await zitiBrowzerRuntime.zitiContext.getConnectAppDataByServiceName(serviceName);
 
   /**
    * Let ziti-browzer-core.context do the needful

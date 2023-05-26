@@ -498,14 +498,11 @@ class ZitiBrowzerRuntime {
           e.preventDefault();
           window.zitiBrowzerRuntime.toastSuccess(`New logLevel of '${loglevelValue}' now in effect`);
           window.zitiBrowzerRuntime.hotKeyModal.close();
-          window.zitiBrowzerRuntime.toastWarning(`Page will reload in 5 seconds...`);
+          window.zitiBrowzerRuntime.toastWarning(`Page will now reload...`);
           setTimeout(function() {
-            window.zitiBrowzerRuntime.wb.messageSW({
-              type: 'UNREGISTER', 
-              payload: {
-              } 
-            });
-          }, 3000);    
+            zitiBrowzerRuntime.logger.debug(`################ doing page reload now ################`);
+            window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.self.host + zitiBrowzerRuntime.zitiConfig.httpAgent.target.path);
+          }, 2000);
         }
 
         /**
@@ -901,7 +898,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
      */
     let initResults = await zitiBrowzerRuntime.initialize({loadedViaHTTPAgent: (loadedViaHTTPAgent ? true : false)});
 
-    console.log('returned from call to zitiBrowzerRuntime.initialize');
+    console.log('returned from call to zitiBrowzerRuntime.initialize -- initResults:', initResults);
 
     if (initResults.authenticated && !initResults.loadedViaHTTPAgent) {
 
@@ -1264,17 +1261,14 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
   HotKey:  '<strong>${window.zitiBrowzerRuntime.hotKey}</strong>'
   `);
 
+      }
 
-        /**
-         *  If the ZBR was loaded via a SW bootstrap, then reload the page to complete the bootstrap cycle
-         */
-        if (loadedViaSWBootstrap) {
-          // setTimeout(function() {
-            zitiBrowzerRuntime.logger.debug(`################ loadedViaSWBootstrap detected -- doing page reload now ################`);
-            window.location.reload();
-          // }, 300);
-        }
-
+      /**
+       *  If the ZBR was loaded via a SW bootstrap, then reload the page to complete the bootstrap cycle
+       */
+      if (loadedViaSWBootstrap) {
+        zitiBrowzerRuntime.logger.debug(`################ loadedViaSWBootstrap detected -- doing page reload now ################`);
+        window.location.reload();
       }
 
       setTimeout(window.zitiBrowzerRuntime._zbrPing, 1000, window.zitiBrowzerRuntime );

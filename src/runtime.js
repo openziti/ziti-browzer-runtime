@@ -891,7 +891,14 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
     const loadedViaHTTPAgent = document.getElementById('from-ziti-http-agent');
 
-    const loadedViaSWBootstrap = document.getElementById('ziti-browzer-sw-bootstrap');
+    const loadedViaSW = document.getElementById('from-ziti-browzer-sw');
+    let loadedViaSWConfigNeeded = false;
+    if (loadedViaSW) {
+      let className = loadedViaSW.className;
+      if (isEqual(className, `ziti-browzer-sw-config-needed`)) {
+        loadedViaSWConfigNeeded = true;
+      } 
+    }
 
     /**
      * 
@@ -1178,11 +1185,11 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         `################ SW register completed ################`
       );
 
+
       /**
        * 
        */      
       if (initResults.authenticated && initResults.loadedViaHTTPAgent) {
-
 
         /**
          * 
@@ -1194,7 +1201,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         /**
          *  Ensure the SW is controlling this page before continuing, else the msgs we attempt to send the SW will fail, leading to bootstrapping hangs
          */
-        await await_serviceWorker_controller();
+        // await await_serviceWorker_controller();
 
 
         if (initResults.unregisterSW) {
@@ -1247,28 +1254,35 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
           }
         }
 
-        /**
-         *  Announce the SW version
-         */
-        const swVersionObject = await zitiBrowzerRuntime.wb.messageSW({type: 'GET_VERSION'});
-        await zitiBrowzerRuntime.toastInfoThrottled(
-  `
-  ZBR  v${pjson.version} initialized.
-  <br/>
-  ZBSW v${swVersionObject.version} initialized.
-  <br/>
-  <br/>
-  HotKey:  '<strong>${window.zitiBrowzerRuntime.hotKey}</strong>'
-  `);
+        zitiBrowzerRuntime.logger.debug(`################ loadedViaHTTPAgent detected -- doing page reload now ################`);
+        window.location.reload();
 
       }
 
       /**
-       *  If the ZBR was loaded via a SW bootstrap, then reload the page to complete the bootstrap cycle
+       *  If the ZBR was loaded via a SW bootstrap, and the SW still needs the config, then send the config, then
+       *  reload the page to complete the bootstrap cycle with a fully configured SW
        */
-      if (loadedViaSWBootstrap) {
-        zitiBrowzerRuntime.logger.debug(`################ loadedViaSWBootstrap detected -- doing page reload now ################`);
-        window.location.reload();
+      if (loadedViaSW) {
+
+        zitiBrowzerRuntime.logger.debug(`################ loadedViaSW detected ################`);
+
+        if (loadedViaSWConfigNeeded) {
+          /**
+           *  Provide the SW with the latest zitiConfig
+           */
+          window.zitiBrowzerRuntime.logger.debug(`sending msg: SET_CONFIG`);
+
+          const swConfig = await window.zitiBrowzerRuntime.wb.messageSW({
+            type: 'SET_CONFIG', 
+            payload: {
+              zitiConfig: window.zitiBrowzerRuntime.zitiConfig
+            } 
+          });
+ 
+          zitiBrowzerRuntime.logger.debug(`################ loadedViaSWConfigNeeded detected -- doing page reload now ################`);
+          window.location.reload();
+        }
       }
 
       setTimeout(window.zitiBrowzerRuntime._zbrPing, 1000, window.zitiBrowzerRuntime );

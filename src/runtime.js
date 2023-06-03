@@ -21,6 +21,7 @@ import {
   ZitiFormData,
   BrowserStdout,
   http,
+  ZITI_CONSTANTS,
 } from '@openziti/ziti-browzer-core';
 
 import {Workbox} from'workbox-window';
@@ -38,6 +39,7 @@ import { buildInfo } from './buildInfo'
 import { ZitiBrowzerLocalStorage } from './utils/localstorage';
 import { Auth0Client } from '@auth0/auth0-spa-js';
 import Bowser from 'bowser'; 
+import uPlot from 'uplot';
 
 
 
@@ -163,6 +165,13 @@ class ZitiBrowzerRuntime {
     setTimeout(this._createClickIntercept, 3000, this);
 
     this.auth0Client = null;
+
+    this.xgressEventData = [
+      [(Date.now() / 1000)],  // timestamp
+      [0],                    // tx len
+      [0],                    // rx len
+    ];
+
   }  
 
   /**
@@ -177,7 +186,7 @@ class ZitiBrowzerRuntime {
     // window.zitiBrowzerRuntime.logger.trace(`activeChannelCount is ${activeChannelCount}`);
 
     if (activeChannelCount < 1) {
-      // If there are active Channels, increment the nuber of times we've seen that state
+      // If there are active Channels, increment the number of times we've seen that state
       window.zitiBrowzerRuntime.noActiveChannelDetectedCounter ++;
       window.zitiBrowzerRuntime.logger.trace(`noActiveChannelDetectedCounter is ${window.zitiBrowzerRuntime.noActiveChannelDetectedCounter}`);
 
@@ -372,6 +381,164 @@ class ZitiBrowzerRuntime {
         html += window.zitiBrowzerRuntime._generateLogLevelOption('Trace', window.zitiBrowzerRuntime.logLevel);
 
     return html;
+  }
+
+  _xgressEventPing(self) {
+
+    zitiBrowzerRuntime.updateXgressEventData({
+      type: ZITI_CONSTANTS.ZITI_EVENT_XGRESS_TX,
+      len: 0
+    });
+
+    // Remove all data-points that are too old
+    let MAX_AGE_SECONDS = 120;
+    let now = Math.floor(Date.now() / 1000);
+    function isTooOld(ts) {
+      let age = now - ts;
+      let youngEnough = (age < MAX_AGE_SECONDS);
+      return youngEnough;
+    }
+    zitiBrowzerRuntime.xgressEventData[0] = zitiBrowzerRuntime.xgressEventData[0].filter( isTooOld );
+    zitiBrowzerRuntime.xgressEventData[1].splice(0, zitiBrowzerRuntime.xgressEventData[1].length - zitiBrowzerRuntime.xgressEventData[0].length);
+    zitiBrowzerRuntime.xgressEventData[2].splice(0, zitiBrowzerRuntime.xgressEventData[2].length - zitiBrowzerRuntime.xgressEventData[0].length);
+
+    zitiBrowzerRuntime.xgressEventChart.setData( zitiBrowzerRuntime.xgressEventData);
+
+    setTimeout(self._xgressEventPing, 1000, self );
+  }
+
+  _createBottomBar(self) {
+
+    if (isNull(document.body)) {
+      let b = document.createElement("body");
+      document.body = b;
+    }
+
+    let div = document.createElement("div");
+    div.setAttribute('class', 'zitiBrowzerRuntime_bottom-bar');
+
+    let css = document.createElement("link");
+    css.setAttribute('rel', 'stylesheet');
+    css.setAttribute('href', `${window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.scheme}://${window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.host}/ziti-browzer-css.css`);
+    div.appendChild(css);
+
+    let div2 = document.createElement("div");
+    div2.setAttribute('class', 'zitiBrowzerRuntime_bottom-bar__content');
+
+    let img = document.createElement("img");
+    img.setAttribute('style', 'width: 5%;');
+    img.setAttribute('src', `${window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.scheme}://${window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.host}/ziti-browzer-logo.svg`);
+    div2.appendChild(img);
+
+    div.appendChild(div2);
+
+    let chartEl = document.createElement("div");
+    chartEl.setAttribute('id', 'zitiBrowzerRuntime_bottom-bar__chart');
+    div2.appendChild(chartEl);
+
+    /**
+     * 
+     */
+    const { bars } = uPlot.paths;
+
+    // generate bar builder with 60% bar (40% gap) & 100px max bar width
+    const _bars60_100 = bars({
+      size: [0.6, 100],
+    });            
+
+    const opts = {
+      width:  800,
+      height: 250,
+      title: `App Loading Status for [${zitiBrowzerRuntime.zitiConfig.httpAgent.target.service}]  --  Ziti BrowZer i/o (bytes)`,
+      scales: {
+        "y": {
+          auto: true,
+        }
+      },    
+      series: [
+        {
+        },
+        {
+          label:  "Send",
+          stroke: "blue",
+          width:  2,
+          paths:  _bars60_100,
+          points: {show: true},
+        },
+        {
+          label:  "Recv",
+          stroke: "green",
+          width:  2,
+          paths:  _bars60_100,
+          points: {show: true},
+        },
+      ],
+    };      
+
+    zitiBrowzerRuntime.xgressEventChart = new uPlot(opts, zitiBrowzerRuntime.xgressEventData, chartEl);
+
+    setTimeout(zitiBrowzerRuntime._xgressEventPing, 10, zitiBrowzerRuntime );
+
+    let moveLabel = document.createElement("label");
+    moveLabel.setAttribute('id', 'zitiBrowzerRuntime_bottom-bar__move');
+    moveLabel.innerText = 'Move';
+    div2.appendChild(moveLabel);
+
+    let closeLabel = document.createElement("label");
+    closeLabel.setAttribute('id', 'zitiBrowzerRuntime_bottom-bar__close');
+    closeLabel.setAttribute('class', 'zitiBrowzerRuntime_bottom-bar__close');
+    closeLabel.innerText = 'Close';
+    div2.appendChild(closeLabel);
+
+    document.body.appendChild(div);
+
+    function dragElement(elmnt) {
+
+      var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
+
+      function dragMouseDown(e) {
+        e = e || window.event;
+        e.preventDefault();
+        // get the mouse cursor position at startup:
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        document.onmouseup = closeDragElement;
+        // call a function whenever the cursor moves:
+        document.onmousemove = elementDrag;
+      }
+
+      function elementDrag(e) {
+        e = e || window.event;
+        e.preventDefault();
+        // calculate the new cursor position:
+        pos1 = pos3 - e.clientX;
+        pos2 = pos4 - e.clientY;
+        pos3 = e.clientX;
+        pos4 = e.clientY;
+        // set the element's new position:
+        elmnt.parentElement.parentElement.style.top = (elmnt.parentElement.parentElement.offsetTop - pos2) + "px";
+        elmnt.parentElement.parentElement.style.left = (elmnt.parentElement.parentElement.offsetLeft - pos1) + "px";
+      }
+
+      function closeDragElement() {
+        // stop moving when mouse button is released:
+        document.onmouseup = null;
+        document.onmousemove = null;
+      }
+
+      
+      if (document.getElementById(elmnt.id)) {
+        // if present, the header is where you move the DIV from:
+        document.getElementById(elmnt.id).onmousedown = dragMouseDown;
+      } else {
+        // otherwise, move the DIV from anywhere inside the DIV:
+        elmnt.onmousedown = dragMouseDown;
+      }
+
+    }
+
+    dragElement(document.getElementById('zitiBrowzerRuntime_bottom-bar__move'));
+
   }
 
   _createHotKeyModal(self) {
@@ -611,6 +778,27 @@ class ZitiBrowzerRuntime {
 
   }
 
+  updateXgressEventData(event) {
+
+    zitiBrowzerRuntime.xgressEventData[0].push( Math.floor(Date.now() / 1000) );
+
+    if (isEqual(event.type, ZITI_CONSTANTS.ZITI_EVENT_XGRESS_TX)) {
+      zitiBrowzerRuntime.xgressEventData[1].push( event.len);
+      zitiBrowzerRuntime.xgressEventData[2].push(0);
+    }
+    else if (isEqual(event.type, ZITI_CONSTANTS.ZITI_EVENT_XGRESS_RX)) {
+      zitiBrowzerRuntime.xgressEventData[1].push(0);
+      zitiBrowzerRuntime.xgressEventData[2].push(event.len);
+    }
+
+  }
+
+  xgressEventHandler(xgressEvent) {
+
+    zitiBrowzerRuntime.updateXgressEventData(xgressEvent);
+
+  }
+
   /**
    * Initialize the ZitiBrowzerRuntime
    *
@@ -624,6 +812,16 @@ class ZitiBrowzerRuntime {
       suffix: 'RT'  // run-time
     });
     this.logger.trace(`ZitiBrowzerRuntime ${this._uuid} initializing`);
+
+    //
+    this._createBottomBar(this);
+
+    // Facilitate removal of the bottom bar
+    document.addEventListener("click", function(e) {
+      if (e.target.className.indexOf("zitiBrowzerRuntime_bottom-bar__close") !== -1) {
+        document.body.remove(e.target.parentElement);    
+      }
+    });
 
     /**
      *  Instantiate the IdP client
@@ -756,7 +954,8 @@ class ZitiBrowzerRuntime {
 
       this.zitiContext.on('idpAuthHealthEvent',       this.idpAuthHealthEventHandler);
       this.zitiContext.on('noConfigForServiceEvent',  this.noConfigForServiceEventHandler);
-      
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_XGRESS, this.xgressEventHandler);
+
     }
 
     return initResults;
@@ -1079,7 +1278,13 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
         zitiBrowzerRuntime.logger.info(`SW event (message) type: ${event.data.type}`);
         
-        if (event.data.type === 'CACHE_UPDATED') {
+        if (event.data.type === 'XGRESS_EVENT') {
+
+          zitiBrowzerRuntime.updateXgressEventData(event.data.payload.event);
+      
+        }
+
+        else if (event.data.type === 'CACHE_UPDATED') {
           const {updatedURL} = event.data.payload;
           zitiBrowzerRuntime.logger.info(`A newer version of ${updatedURL} is available!`);
         }
@@ -1215,13 +1420,15 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         /**
          *  Let the SW know that the ZBR has completed initialization
          */
-        zitiBrowzerRuntime.logger.debug(`sending msg: ZBR_INIT_COMPLETE`);
-        navigator.serviceWorker.controller.postMessage({
-          type: 'ZBR_INIT_COMPLETE',
-          payload: {
-            zitiConfig: window.zitiBrowzerRuntime.zitiConfig
-          }
-        });
+        if (navigator.serviceWorker.controller) {
+          zitiBrowzerRuntime.logger.debug(`sending msg: ZBR_INIT_COMPLETE`);
+          navigator.serviceWorker.controller.postMessage({
+            type: 'ZBR_INIT_COMPLETE',
+            payload: {
+              zitiConfig: window.zitiBrowzerRuntime.zitiConfig
+            }
+          });
+        }
           
         /**
          *  Provide the SW with the latest zitiConfig

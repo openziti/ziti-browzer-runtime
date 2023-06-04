@@ -391,7 +391,7 @@ class ZitiBrowzerRuntime {
     });
 
     // Remove all data-points that are too old
-    let MAX_AGE_SECONDS = 120;
+    let MAX_AGE_SECONDS = 60;
     let now = Math.floor(Date.now() / 1000);
     function isTooOld(ts) {
       let age = now - ts;
@@ -449,7 +449,7 @@ class ZitiBrowzerRuntime {
     const opts = {
       width:  800,
       height: 250,
-      title: `App Loading Status for [${zitiBrowzerRuntime.zitiConfig.httpAgent.target.service}]  --  Ziti BrowZer i/o (bytes)`,
+      title: `Loading Status for Ziti Service [${zitiBrowzerRuntime.zitiConfig.httpAgent.target.service}]  --  BrowZer xgress (bytes)`,
       scales: {
         "y": {
           auto: true,
@@ -481,13 +481,13 @@ class ZitiBrowzerRuntime {
 
     let moveLabel = document.createElement("label");
     moveLabel.setAttribute('id', 'zitiBrowzerRuntime_bottom-bar__move');
-    moveLabel.innerText = 'Move';
+    moveLabel.innerText = 'Click Here and Drag to Move';
     div2.appendChild(moveLabel);
 
     let closeLabel = document.createElement("label");
     closeLabel.setAttribute('id', 'zitiBrowzerRuntime_bottom-bar__close');
     closeLabel.setAttribute('class', 'zitiBrowzerRuntime_bottom-bar__close');
-    closeLabel.innerText = 'Close';
+    closeLabel.innerText = 'Click Here to Close';
     div2.appendChild(closeLabel);
 
     document.body.appendChild(div);
@@ -818,8 +818,10 @@ class ZitiBrowzerRuntime {
 
     // Facilitate removal of the bottom bar
     document.addEventListener("click", function(e) {
-      if (e.target.className.indexOf("zitiBrowzerRuntime_bottom-bar__close") !== -1) {
-        document.body.remove(e.target.parentElement);    
+      if (typeof e.target.className.indexOf == 'function') {
+        if (e.target.className.indexOf("zitiBrowzerRuntime_bottom-bar__close") !== -1) {
+          document.body.remove(e.target.parentElement);    
+        }
       }
     });
 

@@ -825,7 +825,7 @@ class ZitiBrowzerRuntime {
     this.logger.trace(`ZitiBrowzerRuntime ${this._uuid} initializing`);
 
     // Skip the status bar (for now) if on a mobile form-factor
-    if (!isOnMobile()) {
+    if (!this.isOnMobile()) {
       this._createStatusBar(this);
     }
 

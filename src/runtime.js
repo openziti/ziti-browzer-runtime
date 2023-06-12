@@ -824,10 +824,10 @@ class ZitiBrowzerRuntime {
     });
     this.logger.trace(`ZitiBrowzerRuntime ${this._uuid} initializing`);
 
-    // Skip the status bar (for now) if on a mobile form-factor
-    if (!this.isOnMobile()) {
-      this._createStatusBar(this);
-    }
+    // Skip the status bar (for now)
+    // if (!this.isOnMobile()) {
+    //   this._createStatusBar(this);
+    // }
 
     // Facilitate removal of the bottom bar
     document.addEventListener("click", function(e) {
@@ -1530,7 +1530,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 var regex = new RegExp( `https://${zitiBrowzerRuntime.zitiConfig.httpAgent.self.host}`, 'gi' );
 var regexSlash = new RegExp( /^\//, 'g' );
 var regexDotSlash = new RegExp( /^\.\//, 'g' );
-var regexZBWASM   = new RegExp( /libcrypto.wasm/, 'g' );
+var regexZBWASM   = new RegExp( /libcrypto.*.wasm/, 'g' );
 
 
 /**

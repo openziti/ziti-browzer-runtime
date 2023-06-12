@@ -1530,7 +1530,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 var regex = new RegExp( `https://${zitiBrowzerRuntime.zitiConfig.httpAgent.self.host}`, 'gi' );
 var regexSlash = new RegExp( /^\//, 'g' );
 var regexDotSlash = new RegExp( /^\.\//, 'g' );
-var regexZBWASM   = new RegExp( /libcrypto.wasm/, 'g' );
+var regexZBWASM   = new RegExp( /libcrypto.*.wasm/, 'g' );
 
 
 /**

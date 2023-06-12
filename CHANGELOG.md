@@ -1,3 +1,12 @@
+## [0.34.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.34.0...v0.34.1) (2023-06-12)
+
+
+### Bug Fixes
+
+* spaces in service name ([#166](https://github.com/openziti/ziti-browzer-runtime/issues/166)) ([2741ce0](https://github.com/openziti/ziti-browzer-runtime/commit/2741ce083e69ccf42f3e145ea920b2dc2762e496))
+
+
+
 # [0.34.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.33.0...v0.34.0) (2023-06-12)
 
 

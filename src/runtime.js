@@ -824,10 +824,10 @@ class ZitiBrowzerRuntime {
     });
     this.logger.trace(`ZitiBrowzerRuntime ${this._uuid} initializing`);
 
-    // Skip the status bar (for now) if on a mobile form-factor
-    if (!this.isOnMobile()) {
-      this._createStatusBar(this);
-    }
+    // Skip the status bar (for now)
+    // if (!this.isOnMobile()) {
+    //   this._createStatusBar(this);
+    // }
 
     // Facilitate removal of the bottom bar
     document.addEventListener("click", function(e) {

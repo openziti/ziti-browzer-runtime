@@ -228,3 +228,171 @@
 .zitiBrowzerRuntimeSettings .btn-group-vertical>.btn-group:after,.btn-toolbar:after,.clearfix:after,.container-fluid:after,.container:after,.dl-horizontal dd:after,.form-horizontal .form-group:after,.modal-footer:after,.modal-header:after,.nav:after,.navbar-collapse:after,.navbar-header:after,.navbar:after,.pager:after,.panel-body:after,.row:after {
     clear: both
 }
+
+.zitiBrowzerRuntime_bottom-bar {
+    position: fixed;
+    top: 100px;
+    left: 100px;
+    background-image: linear-gradient(to right, #0965f3, #e10c5c) !important;
+    color: #ffffff;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.25);
+    box-sizing: border-box;
+    z-index: 99999;
+    border: 1px solid white;
+}
+
+  
+#zitiBrowzerRuntime_bottom-bar__move {
+    padding: 10px;
+    cursor: move;
+    z-index: 10;
+    background-color: #0965f3;
+    color: #fff;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 0.8em;
+    margin-bottom: 0px;
+    border: 1px solid white;
+    text-align: center;
+}
+
+#zitiBrowzerRuntime_bottom-bar__close {
+    padding: 10px;
+    cursor: pointer;
+    z-index: 10;
+    background-color: #0965f3;
+    color: #fff;
+    font-family: Helvetica, Arial, sans-serif;
+    font-size: 0.8em;
+    margin-bottom: 0px;
+    border: 1px solid white;
+    text-align: center;
+}
+
+.zitiBrowzerRuntime_bottom-bar__content {
+    max-width: 850px;
+    margin: 0 auto;
+    display: flex;
+    justify-content: space-between;
+}
+
+.zitiBrowzerRuntime_bottom-bar__content > * {
+    display: flex;
+    align-items: center;
+}
+
+.zitiBrowzerRuntime_bottom-bar__text {
+    padding-right: 10px;
+}
+  
+
+.uplot, .uplot *, .uplot *::before, .uplot *::after {
+    box-sizing: border-box;
+}
+.uplot {
+    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+    line-height: 1.5;
+    width: min-content;
+}
+.u-title {
+    text-align: center;
+    font-size: 12px;
+    font-weight: bold;
+}
+.u-wrap {
+    position: relative;
+    user-select: none;
+}
+.u-over, .u-under {
+    position: absolute;
+}
+.u-under {
+    overflow: hidden;
+}
+.uplot canvas {
+    display: block;
+    position: relative;
+    width: 100%;
+    height: 100%;
+}
+.u-axis {
+    position: absolute;
+}
+.u-legend {
+    font-size: 12px;
+    margin: auto;
+    text-align: center;
+}
+.u-inline {
+    display: block;
+}
+.u-inline * {
+    display: inline-block;
+}
+.u-inline tr {
+    margin-right: 16px;
+}
+.u-legend th {
+    font-weight: 600;
+}
+.u-legend th > * {
+    vertical-align: middle;
+    display: inline-block;
+}
+.u-legend .u-marker {
+    width: 1em;
+    height: 1em;
+    margin-right: 4px;
+    background-clip: padding-box !important;
+}
+.u-inline.u-live th::after {
+    content: ":";
+    vertical-align: middle;
+}
+.u-inline:not(.u-live) .u-value {
+    display: none;
+}
+.u-series > * {
+    padding: 4px;
+}
+.u-series th {
+    cursor: pointer;
+}
+.u-legend .u-off > * {
+    opacity: 0.3;
+}
+.u-select {
+    background: rgba(0,0,0,0.07);
+    position: absolute;
+    pointer-events: none;
+}
+.u-cursor-x, .u-cursor-y {
+    position: absolute;
+    left: 0;
+    top: 0;
+    pointer-events: none;
+    will-change: transform;
+    z-index: 100;
+}
+.u-hz .u-cursor-x, .u-vt .u-cursor-y {
+    height: 100%;
+    border-right: 1px dashed #607D8B;
+}
+.u-hz .u-cursor-y, .u-vt .u-cursor-x {
+    width: 100%;
+    border-bottom: 1px dashed #607D8B;
+}
+.u-cursor-pt {
+    position: absolute;
+    top: 0;
+    left: 0;
+    border-radius: 50%;
+    border: 0 solid;
+    pointer-events: none;
+    will-change: transform;
+    z-index: 100;
+    /*this has to be !important since we set inline "background" shorthand */
+    background-clip: padding-box !important;
+}
+.u-axis.u-off, .u-select.u-off, .u-cursor-x.u-off, .u-cursor-y.u-off, .u-cursor-pt.u-off {
+    display: none;
+}

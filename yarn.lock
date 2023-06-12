@@ -1183,10 +1183,10 @@
     "@types/emscripten" "^1.39.6"
     "@wasmer/wasi" "^1.0.2"
 
-"@openziti/ziti-browzer-core@^0.23.0":
-  version "0.23.0"
-  resolved "https://registry.yarnpkg.com/@openziti/ziti-browzer-core/-/ziti-browzer-core-0.23.0.tgz#8f4091fcd3d30381ca66d7cb4ae281f732ca5e73"
-  integrity sha512-1GngFrEF2llEkYRLyUXCgNQI46/cDC0KsB5T66UtWtYC+7Bb7dHDdipDzFsYl8dj+UDyh2G+GwrDTszDGU5yxg==
+"@openziti/ziti-browzer-core@^0.24.0":
+  version "0.24.0"
+  resolved "https://registry.yarnpkg.com/@openziti/ziti-browzer-core/-/ziti-browzer-core-0.24.0.tgz#73e4ab1da2f8acaf8b0592b6b167293a31823470"
+  integrity sha512-PXvBoI2Y/RgXlpyJosn6yhqArGMpGP9O4DJB+0v7WZA9jfq6MzbohxPHA0XaqWAPIZ6d7j5+cAurek4b2Uqhqw==
   dependencies:
     "@openziti/libcrypto-js" "^0.14.1"
     "@openziti/ziti-browzer-edge-client" "^0.6.0"
@@ -5647,6 +5647,11 @@ universalify@^0.1.0:
   version "0.1.2"
   resolved "https://registry.yarnpkg.com/universalify/-/universalify-0.1.2.tgz#b646f69be3942dabcecc9d6639c80dc105efaa66"
   integrity sha512-rBJeI5CXAlmy1pV+617WB9J63U6XcazHHF2f2dbJix4XzpUF0RS3Zbj0FGIOCAva5P/d/GBOYaACQ1w+0azUkg==
+
+uplot@^1.6.24:
+  version "1.6.24"
+  resolved "https://registry.yarnpkg.com/uplot/-/uplot-1.6.24.tgz#dfa213fa7da92763261920ea972ed1a5f9f6af12"
+  integrity sha512-WpH2BsrFrqxkMu+4XBvc0eCDsRBhzoq9crttYeSI0bfxpzR5YoSVzZXOKFVWcVC7sp/aDXrdDPbDZGCtck2PVg==
 
 url@^0.11.0, url@~0.11.0:
   version "0.11.0"

@@ -1,3 +1,12 @@
+# [0.34.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.33.0...v0.34.0) (2023-06-12)
+
+
+### Features
+
+* status bar chart (xgress bars) ([#165](https://github.com/openziti/ziti-browzer-runtime/issues/165)) ([3300f7b](https://github.com/openziti/ziti-browzer-runtime/commit/3300f7b37fb3872af68f47ad3c6b004daba1b5ce))
+
+
+
 # [0.33.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.32.0...v0.33.0) (2023-05-30)
 
 

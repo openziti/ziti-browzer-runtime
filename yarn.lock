@@ -14,6 +14,18 @@
   resolved "https://registry.yarnpkg.com/@auth0/auth0-spa-js/-/auth0-spa-js-2.0.4.tgz#81f6b5d9f72617ed30ee53cdf27dcd7a216bf2da"
   integrity sha512-NgD6Fkm5Xnbned1VjhEW8irm1/Y8AWtdSLexgLXNwwBVgfnYicCVBu8w75m2t+4QljXkTcI7IXVEFhVmxMuxaA==
 
+"@azure/msal-browser@^2.38.0":
+  version "2.38.0"
+  resolved "https://registry.yarnpkg.com/@azure/msal-browser/-/msal-browser-2.38.0.tgz#c3621dc4cc9bf8c5589ec3e4474a63d6985ebd6b"
+  integrity sha512-gxBh83IumHgEP9uMCm9pJLKLRwICMQTxG9TX3AytdNt3oLUI3tytm/szYD5u5zKJgSkhHvwFSM+NPnM04hYw3w==
+  dependencies:
+    "@azure/msal-common" "13.2.0"
+
+"@azure/msal-common@13.2.0":
+  version "13.2.0"
+  resolved "https://registry.yarnpkg.com/@azure/msal-common/-/msal-common-13.2.0.tgz#e3c6e35c0bf96ea59deaab08286a7b51b9d1ec91"
+  integrity sha512-rnstQ7Zgn3fSTKNQO+/YNV34/QXJs0vni7IA0/3QB1EEyrJg14xyRmTqlw9ta+pdSuT5OJwUP8kI3D/rBwUIBw==
+
 "@babel/cli@^7.17.10":
   version "7.17.10"
   resolved "https://registry.yarnpkg.com/@babel/cli/-/cli-7.17.10.tgz#5ea0bf6298bb78f3b59c7c06954f9bd1c79d5943"

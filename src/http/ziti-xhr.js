@@ -284,6 +284,14 @@ function ZitiXMLHttpRequest () {
       // console.log(`XHR: responseBodyText=${self.responseBodyText}`);
       self.responseText = self.responseBodyText;
       self.response = self.responseBodyText;
+      self.responseXML = self.responseBodyText;
+
+      // create the (potential) XML DOM object 
+      try {
+        let parser = new DOMParser();
+        self.responseXML = parser.parseFromString(self.responseBodyText, "text/xml");
+      } catch (e) { /* NOP */ }
+  
       self.responseObject = response;
       sendFlag = false;
       setState(self.DONE);

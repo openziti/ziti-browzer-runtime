@@ -1,3 +1,12 @@
+# [0.35.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.34.1...v0.35.0) (2023-07-09)
+
+
+### Features
+
+* use msal for AzureAD; ServiceWorker intercept; XML response handling in XHR ([#168](https://github.com/openziti/ziti-browzer-runtime/issues/168)) ([2220489](https://github.com/openziti/ziti-browzer-runtime/commit/22204895b200d883737e93164f14120f843fb19d))
+
+
+
 ## [0.34.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.34.0...v0.34.1) (2023-06-12)
 
 

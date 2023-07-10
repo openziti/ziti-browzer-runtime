@@ -817,32 +817,13 @@ class ZitiBrowzerRuntime {
     // purge the cookie
     document.cookie = window.zitiBrowzerRuntime.authTokenName+'=; Max-Age=-99999999;';  
 
-    // Run the following on a delay so the toast can be read by user, and so that we do not block the SW messaging
-    setTimeout(function() {
-
-      // do the OIDC logout
-      window.zitiBrowzerRuntime.authClient.logout({
-        logoutParams: {
-          returnTo: window.location.origin
-        }
-      });            
-
-    }, 3000);
-
-    setTimeout(function() {
-
-      zitiBrowzerRuntime.logger.debug(`doIdpLogout: ################ doing root-page page reload now ################`);
-      window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.self.host + zitiBrowzerRuntime.zitiConfig.httpAgent.target.path);
-    
-    }, 5000);
+    window.zitiBrowzerRuntime.authClient_doLogout();
 
   }
 
   idpAuthHealthEventHandler(idpAuthHealthEvent) {  
 
     this.logger.trace(`idpAuthHealthEventHandler() `, idpAuthHealthEvent);
-
-    return;//TEMPORARY bypass until Controller fix is released
 
     if (idpAuthHealthEvent.expired) {
 
@@ -938,6 +919,7 @@ class ZitiBrowzerRuntime {
           clientId:     `${this.zitiConfig.idp.clientId}`,
           authority:    `${this.zitiConfig.idp.host}`,
           redirectUri:  `${window.location.origin}`,
+          postLogoutRedirectUri: `${window.location.origin}`,
         },
         cache: {
             cacheLocation: "sessionStorage",
@@ -1080,7 +1062,7 @@ class ZitiBrowzerRuntime {
     /**
      *  AzureAD
      */ 
-    else if ( isEqual(this.idp, ZBR_CONSTANTS.AZURE_AD_IDP) ) {
+    else if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.AZURE_AD_IDP) ) {
 
       return await this.authClient_isAuthenticated_AzureAD();
 
@@ -1088,6 +1070,54 @@ class ZitiBrowzerRuntime {
 
     return window.zitiBrowzerRuntime.isAuthenticated;
   }
+
+  /**
+   * Determine if the IdP auth client is currently authenticated
+   */
+  authClient_doLogout() {
+
+    /**
+     *  Auth0
+     */
+    if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.AUTH0_IDP) ) {
+
+      // Run the following on a delay so the toast can be read by user, and so that we do not block the SW messaging
+      setTimeout(function() {
+
+        // do the OIDC logout
+        window.zitiBrowzerRuntime.authClient.logout({
+          logoutParams: {
+            returnTo: window.location.origin
+          }
+        });            
+
+      }, 3000);
+
+    }
+    /**
+     *  AzureAD
+     */ 
+    else if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.AZURE_AD_IDP) ) {
+
+      // Run the following on a delay so the toast can be read by user, and so that we do not block the SW messaging
+      setTimeout(function() {
+
+        window.zitiBrowzerRuntime.authClient.logoutRedirect({});
+
+      }, 3000);
+
+    }
+
+    setTimeout(function() {
+
+      zitiBrowzerRuntime.logger.debug(`doIdpLogout: ################ doing root-page page reload now ################`);
+      window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.self.host + zitiBrowzerRuntime.zitiConfig.httpAgent.target.path);
+    
+    }, 5000);
+
+    return;
+  }
+
 
   async await_azure_ad_accountId() {
     return new Promise((resolve, _reject) => {

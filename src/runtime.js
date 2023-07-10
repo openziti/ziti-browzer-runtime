@@ -1072,7 +1072,8 @@ class ZitiBrowzerRuntime {
   }
 
   /**
-   * Determine if the IdP auth client is currently authenticated
+   *  Force logout from the IdP auth client.  
+   *  This will clear local cache of tokens then redirect to the IdP signout page.
    */
   authClient_doLogout() {
 

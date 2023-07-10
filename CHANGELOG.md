@@ -1,3 +1,12 @@
+# [0.36.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.35.0...v0.36.0) (2023-07-10)
+
+
+### Features
+
+* add msal 'logoutRedirect' upon JWT expiration for AzureAD ([#169](https://github.com/openziti/ziti-browzer-runtime/issues/169)) ([c60a2d4](https://github.com/openziti/ziti-browzer-runtime/commit/c60a2d4753130edabe0225c52c97d5e367b94992))
+
+
+
 # [0.35.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.34.1...v0.35.0) (2023-07-09)
 
 

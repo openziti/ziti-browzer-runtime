@@ -1002,11 +1002,16 @@ class ZitiBrowzerRuntime {
     // If no accounts found, it means we need to do an AzureAD login
     if (accounts.length === 0) {
 
-      let msal_loginRequest = {
-        scopes: ZBR_CONSTANTS.AZURE_AD_SCOPES,
-      };
-      
-      window.zitiBrowzerRuntime.authClient.loginRedirect( msal_loginRequest );
+      // Only initiate login redirect if one is not already in flight...
+      if (isNull( sessionStorage.getItem("msal.interaction.status") )) {
+
+        let msal_loginRequest = {
+          scopes: ZBR_CONSTANTS.AZURE_AD_SCOPES,
+        };
+        
+        await window.zitiBrowzerRuntime.authClient.loginRedirect( msal_loginRequest );
+  
+      }
   
       await window.zitiBrowzerRuntime.await_azure_ad_accountId();
 

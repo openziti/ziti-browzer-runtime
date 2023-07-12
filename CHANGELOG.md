@@ -1,3 +1,12 @@
+## [0.36.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.36.0...v0.36.1) (2023-07-12)
+
+
+### Bug Fixes
+
+* prevent msal 'BrowserAuthError: interaction_in_progress' exception ([#170](https://github.com/openziti/ziti-browzer-runtime/issues/170)) ([0e91756](https://github.com/openziti/ziti-browzer-runtime/commit/0e91756520938bd2b26b2ffc2b23f497213396a8))
+
+
+
 # [0.36.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.35.0...v0.36.0) (2023-07-10)
 
 

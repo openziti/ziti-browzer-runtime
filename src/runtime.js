@@ -1324,6 +1324,8 @@ class ZitiBrowzerRuntime {
 
       this.logger.trace(`ZitiBrowzerRuntime ${this._uuid} has been initialized`);
 
+      this.zitiContext.listControllerVersion();
+
       this.zitiContext.on('idpAuthHealthEvent',       this.idpAuthHealthEventHandler);
       this.zitiContext.on('noConfigForServiceEvent',  this.noConfigForServiceEventHandler);
       this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_XGRESS, this.xgressEventHandler);

@@ -1,3 +1,12 @@
+## [0.36.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.36.1...v0.36.2) (2023-07-13)
+
+
+### Bug Fixes
+
+* do a GET before a POST at startup (use listControllerVersion) ([#171](https://github.com/openziti/ziti-browzer-runtime/issues/171)) ([7c4cd05](https://github.com/openziti/ziti-browzer-runtime/commit/7c4cd057a397d90e5dee149b9052669860a1ea93))
+
+
+
 ## [0.36.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.36.0...v0.36.1) (2023-07-12)
 
 

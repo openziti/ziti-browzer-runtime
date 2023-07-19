@@ -1,3 +1,12 @@
+# [0.37.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.36.2...v0.37.0) (2023-07-19)
+
+
+### Features
+
+* emit troubleshooting alerts ([#172](https://github.com/openziti/ziti-browzer-runtime/issues/172)) ([8efc745](https://github.com/openziti/ziti-browzer-runtime/commit/8efc745d10e355bb1f6251a78882935fc053e215))
+
+
+
 ## [0.36.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.36.1...v0.36.2) (2023-07-13)
 
 

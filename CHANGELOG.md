@@ -1,3 +1,12 @@
+## [0.37.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.37.0...v0.37.1) (2023-07-20)
+
+
+### Bug Fixes
+
+* include BrowZer Bootstrapper port when registering the SW ([#173](https://github.com/openziti/ziti-browzer-runtime/issues/173)) ([3d3f269](https://github.com/openziti/ziti-browzer-runtime/commit/3d3f2698e3d66dd51917d643c2657efa5054dc0d))
+
+
+
 # [0.37.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.36.2...v0.37.0) (2023-07-19)
 
 

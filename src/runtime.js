@@ -212,7 +212,10 @@ class ZitiBrowzerRuntime {
     this.noActiveChannelDetectedThreshold  = _options.noActiveChannelDetectedThreshold;
 
     this.wb             = new Workbox(
-      this.zitiConfig.httpAgent.self.scheme + '://' + this.zitiConfig.httpAgent.self.host + '/' 
+      this.zitiConfig.httpAgent.self.scheme + '://'
+      + this.zitiConfig.httpAgent.self.host + ':'
+      + this.zitiConfig.httpAgent.self.port
+      + '/'
       + this.zitiConfig.browzer.sw.location 
       + '?swVersion='     + encodeURIComponent(this.zitiConfig.browzer.sw.version)
       + '&controllerApi=' + encodeURIComponent(this.zitiConfig.controller.api)

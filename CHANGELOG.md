@@ -1,3 +1,12 @@
+# [0.38.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.37.1...v0.38.0) (2023-07-24)
+
+
+### Features
+
+* cert expired alert ([#174](https://github.com/openziti/ziti-browzer-runtime/issues/174)) ([39435d5](https://github.com/openziti/ziti-browzer-runtime/commit/39435d5eebf0868cd885bce2362e8104f3adc74c))
+
+
+
 ## [0.37.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.37.0...v0.37.1) (2023-07-20)
 
 

@@ -927,6 +927,16 @@ class ZitiBrowzerRuntime {
 
   }
 
+  requestFailedWithNoResponseEventHandler(requestFailedWithNoResponseEvent) {
+
+    this.logger.trace(`requestFailedWithNoResponseEventHandler() `, requestFailedWithNoResponseEvent);
+
+    let errStr = `HTTP Request to [${requestFailedWithNoResponseEvent.url}] failed - possible server-side certificate issue exists.\n\nContact your Ziti Network admin.`;
+
+    alert(errStr);
+
+  }
+
   updateXgressEventData(event) {
 
     zitiBrowzerRuntime.xgressEventData[0].push( Math.floor(Date.now() / 1000) );
@@ -1868,6 +1878,12 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         else if (event.data.type === 'INVALID_AUTH') {
 
           window.zitiBrowzerRuntime.invalidAuthEventHandler(event.data.payload.event);
+
+        }
+
+        else if (event.data.type === 'REQUEST_FAILED_WITH_NO_RESPONSE') {
+
+          window.zitiBrowzerRuntime.requestFailedWithNoResponseEventHandler(event.data.payload.event);
 
         }
 

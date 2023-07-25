@@ -1554,7 +1554,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
     console.log('now inside async IIFE to initialize the runtime and register the SW');
 
-    const loadedViaHTTPAgent = document.getElementById('from-ziti-http-agent');
+    const loadedViaHTTPAgent = document.getElementById('from-ziti-browzer-bootstrapper');
 
     const loadedViaSW = document.getElementById('from-ziti-browzer-sw');
     let loadedViaSWConfigNeeded = false;

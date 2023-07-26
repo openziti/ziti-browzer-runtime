@@ -2209,37 +2209,9 @@ const zitiFetch = async ( url, opts ) => {
 
     if (isUndefined(serviceName)) { // If we have no serviceConfig associated with the hostname:port
 
-      let routeOverCORSProxy = zitiBrowzerRuntime.zitiContext.shouldRouteOverCORSProxy( url );
-
-      if (routeOverCORSProxy) {     // If hostname:port is something we need to CORS Proxy
-
-        zitiBrowzerRuntime.logger.warn('zitiFetch(): doing CORS Proxying of [%s]', url);
-
-        let corsTargetHostname = newUrl.hostname;
-        let corsTargetPort = newUrl.port;
-        if (corsTargetPort === '') {
-          if (newUrl.protocol === 'https:') {
-            corsTargetPort = '443';
-          } else {
-            corsTargetPort = '80';
-          }
-        }
-      
-        let corsTargetPathname = newUrl.pathname;
-        newUrl.hostname = window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host;
-        newUrl.port = 443;
-        newUrl.pathname = '/ziti-cors-proxy/' + corsTargetHostname + ':' + corsTargetPort + corsTargetPathname;
-        zitiBrowzerRuntime.logger.warn( 'zitiFetch: transformed URL: ', newUrl.toString());   
-
-        return window._ziti_realFetch(newUrl, opts); // Send special request to HTTP Agent
-
-      } else {
-
-        zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
-        return window._ziti_realFetch(url, opts);
+      zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
+      return window._ziti_realFetch(url, opts);
   
-      }
-
     }  
   }
 

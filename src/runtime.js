@@ -212,9 +212,9 @@ class ZitiBrowzerRuntime {
     this.noActiveChannelDetectedThreshold  = _options.noActiveChannelDetectedThreshold;
 
     this.wb             = new Workbox(
-      this.zitiConfig.httpAgent.self.scheme + '://'
-      + this.zitiConfig.httpAgent.self.host + ':'
-      + this.zitiConfig.httpAgent.self.port
+      this.zitiConfig.browzer.bootstrapper.self.scheme + '://'
+      + this.zitiConfig.browzer.bootstrapper.self.host + ':'
+      + this.zitiConfig.browzer.bootstrapper.self.port
       + '/'
       + this.zitiConfig.browzer.sw.location 
       + '?swVersion='     + encodeURIComponent(this.zitiConfig.browzer.sw.version)
@@ -511,7 +511,7 @@ class ZitiBrowzerRuntime {
 
     let css = document.createElement("link");
     css.setAttribute('rel', 'stylesheet');
-    css.setAttribute('href', `${window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.scheme}://${window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.host}/ziti-browzer-css.css`);
+    css.setAttribute('href', `${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.scheme}://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}/ziti-browzer-css.css`);
     div.appendChild(css);
 
     let div2 = document.createElement("div");
@@ -519,7 +519,7 @@ class ZitiBrowzerRuntime {
 
     let img = document.createElement("img");
     img.setAttribute('style', 'width: 5%;');
-    img.setAttribute('src', `${window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.scheme}://${window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.host}/ziti-browzer-logo.svg`);
+    img.setAttribute('src', `${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.scheme}://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}/ziti-browzer-logo.svg`);
     div2.appendChild(img);
 
     div.appendChild(div2);
@@ -541,7 +541,7 @@ class ZitiBrowzerRuntime {
     const opts = {
       width:  800,
       height: 250,
-      title: `Loading Status for Ziti Service [${zitiBrowzerRuntime.zitiConfig.httpAgent.target.service}]  --  BrowZer xgress (bytes)`,
+      title: `Loading Status for Ziti Service [${zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service}]  --  BrowZer xgress (bytes)`,
       scales: {
         "y": {
           auto: true,
@@ -668,11 +668,11 @@ class ZitiBrowzerRuntime {
 
     let css = document.createElement("link");
     css.setAttribute('rel', 'stylesheet');
-    css.setAttribute('href', `${window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.scheme}://${window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.host}/ziti-browzer-css.css`);
+    css.setAttribute('href', `${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.scheme}://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}/ziti-browzer-css.css`);
     div5.appendChild(css);
 
     let img = document.createElement("img");
-    img.setAttribute('src', `${window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.scheme}://${window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.host}/ziti-browzer-logo.svg`);
+    img.setAttribute('src', `${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.scheme}://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}/ziti-browzer-logo.svg`);
     img.setAttribute('style', 'width: 14%;');
     div5.appendChild(img);
 
@@ -760,7 +760,7 @@ class ZitiBrowzerRuntime {
           window.zitiBrowzerRuntime.toastWarning(`Page will now reload...`);
           setTimeout(function() {
             zitiBrowzerRuntime.logger.debug(`################ doing page reload now ################`);
-            window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.self.host + zitiBrowzerRuntime.zitiConfig.httpAgent.target.path);
+            window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host + zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path);
           }, 2000);
         }
 
@@ -911,7 +911,7 @@ class ZitiBrowzerRuntime {
 
     this.logger.trace(`sessionCreationErrorEventHandler() `, sessionCreationErrorEvent);
 
-    let errStr = `Ziti Service [${window.zitiBrowzerRuntime.zitiConfig.httpAgent.target.service}] cannot be reached -- [${sessionCreationErrorEvent.error}].\n\nContact your Ziti Network admin.`;
+    let errStr = `Ziti Service [${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service}] cannot be reached -- [${sessionCreationErrorEvent.error}].\n\nContact your Ziti Network admin.`;
 
     alert(errStr);
 
@@ -1206,7 +1206,7 @@ class ZitiBrowzerRuntime {
     setTimeout(function() {
 
       zitiBrowzerRuntime.logger.debug(`doIdpLogout: ################ doing root-page page reload now ################`);
-      window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.self.host + zitiBrowzerRuntime.zitiConfig.httpAgent.target.path);
+      window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host + zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path);
     
     }, 5000);
 
@@ -1406,7 +1406,7 @@ class ZitiBrowzerRuntime {
 
       await this.zitiContext.initialize({
         loadWASM: !options.loadedViaHTTPAgent,   // instantiate the internal WebAssembly ONLY if we were not injected by the HTTP Agent
-        target:   this.zitiConfig.httpAgent.target
+        target:   this.zitiConfig.browzer.bootstrapper.target
       });
 
       this.initialized = true;
@@ -1609,8 +1609,8 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       // some web apps
       if (!window.location.href.includes('#!')) {
         setTimeout(function() {
-          window.zitiBrowzerRuntime.logger.trace(`ZitiBrowzerRuntime page-terminationEvent setting window.location to: ${window.zitiBrowzerRuntime.zitiConfig.httpAgent.target.path}`);
-          window.location = window.zitiBrowzerRuntime.zitiConfig.httpAgent.target.path;
+          window.zitiBrowzerRuntime.logger.trace(`ZitiBrowzerRuntime page-terminationEvent setting window.location to: ${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path}`);
+          window.location = window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path;
         }, 5);
       }
       window.zitiBrowzerRuntime.logger.trace(`ZitiBrowzerRuntime page-terminationEvent '${terminationEvent}' has been received: `, e);
@@ -1784,7 +1784,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
           setTimeout(function() {
             zitiBrowzerRuntime.logger.debug(`################ doing root-page page reload now ################`);
-            window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.self.host + zitiBrowzerRuntime.zitiConfig.httpAgent.target.path);
+            window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host + zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path);
           }, 100);
         }
 
@@ -1796,7 +1796,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
           setTimeout(function() {
             zitiBrowzerRuntime.logger.debug(`################ doing root-page page reload now ################`);
-            window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.httpAgent.self.host + zitiBrowzerRuntime.zitiConfig.httpAgent.target.path);
+            window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host + zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path);
           }, 2500);
         }
 
@@ -2037,7 +2037,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 }
 
 
-var regex = new RegExp( `https://${zitiBrowzerRuntime.zitiConfig.httpAgent.self.host}`, 'gi' );
+var regex = new RegExp( `https://${zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}`, 'gi' );
 var regexSlash = new RegExp( /^\//, 'g' );
 var regexDotSlash = new RegExp( /^\.\//, 'g' );
 var regexZBWASM   = new RegExp( /libcrypto.*.wasm/, 'g' );
@@ -2074,7 +2074,7 @@ const zitiFetch = async ( url, opts ) => {
   //   }
   
   //   let corsTargetPathname = newUrl.pathname;
-  //   newUrl.hostname = window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.host;
+  //   newUrl.hostname = window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host;
   //   newUrl.port = 443;
   //   newUrl.pathname = '/ziti-cors-proxy/' + corsTargetHostname + ':' + corsTargetPort + corsTargetPathname;
   //   zitiBrowzerRuntime.logger.warn( 'zitiFetch: transformed URL: ', newUrl.toString());   
@@ -2110,8 +2110,8 @@ const zitiFetch = async ( url, opts ) => {
   else if (url.match( regex )) { // yes, the request is targeting the Ziti HTTP Agent
 
     var newUrl = new URL( url );
-    newUrl.hostname = window.zitiBrowzerRuntime.zitiConfig.httpAgent.target.service;
-    newUrl.port = window.zitiBrowzerRuntime.zitiConfig.httpAgent.target.port;
+    newUrl.hostname = window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service;
+    newUrl.port = window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.port;
     window.zitiBrowzerRuntime.logger.trace( 'zitiFetch: transformed URL: ', newUrl.toString());
 
     serviceName = await window.zitiBrowzerRuntime.zitiContext.shouldRouteOverZiti( newUrl );
@@ -2133,11 +2133,11 @@ const zitiFetch = async ( url, opts ) => {
 
     let newUrl;
     let baseURIUrl = new URL( document.baseURI );
-    if (baseURIUrl.hostname === zitiBrowzerRuntime.zitiConfig.httpAgent.self.host) {
+    if (baseURIUrl.hostname === zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host) {
       newUrl = new URL( 'https://' + 
-        zitiBrowzerRuntime.zitiConfig.httpAgent.target.service + 
+        zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service + 
         ':' + 
-        (zitiBrowzerRuntime.zitiConfig.httpAgent.target.port ? zitiBrowzerRuntime.zitiConfig.httpAgent.target.port : 443) + 
+        (zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.port ? zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.port : 443) + 
         url 
       );
     } else {
@@ -2174,11 +2174,11 @@ const zitiFetch = async ( url, opts ) => {
   
     let newUrl;
     let baseURIUrl = new URL( href );
-    if (baseURIUrl.hostname === zitiBrowzerRuntime.zitiConfig.httpAgent.self.host) {
+    if (baseURIUrl.hostname === zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host) {
   
       newUrl = new URL( href );
-      newUrl.hostname = zitiBrowzerRuntime.zitiConfig.httpAgent.target.service;
-      newUrl.port = zitiBrowzerRuntime.zitiConfig.httpAgent.target.port;
+      newUrl.hostname = zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service;
+      newUrl.port = zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.port;
 
     } else {
       let baseURI = document.baseURI.replace(/\.\/$/, '');
@@ -2226,7 +2226,7 @@ const zitiFetch = async ( url, opts ) => {
         }
       
         let corsTargetPathname = newUrl.pathname;
-        newUrl.hostname = window.zitiBrowzerRuntime.zitiConfig.httpAgent.self.host;
+        newUrl.hostname = window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host;
         newUrl.port = 443;
         newUrl.pathname = '/ziti-cors-proxy/' + corsTargetHostname + ':' + corsTargetPort + corsTargetPathname;
         zitiBrowzerRuntime.logger.warn( 'zitiFetch: transformed URL: ', newUrl.toString());   
@@ -2255,7 +2255,7 @@ const zitiFetch = async ( url, opts ) => {
   opts = opts || {};
 
   opts.serviceName = serviceName;
-  opts.serviceScheme = window.zitiBrowzerRuntime.zitiConfig.httpAgent.target.scheme;
+  opts.serviceScheme = window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.scheme;
   opts.serviceConnectAppData = await zitiBrowzerRuntime.zitiContext.getConnectAppDataByServiceName(serviceName);
 
   /**

@@ -1,3 +1,12 @@
+# [0.40.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.39.0...v0.40.0) (2023-07-26)
+
+
+### Features
+
+* bootstrapper config rename ([#176](https://github.com/openziti/ziti-browzer-runtime/issues/176)) ([4d7b8e1](https://github.com/openziti/ziti-browzer-runtime/commit/4d7b8e1f2dbf6a163d5789c9af8f6ce51ffb99c2))
+
+
+
 # [0.39.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.38.0...v0.39.0) (2023-07-25)
 
 

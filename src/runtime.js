@@ -927,6 +927,16 @@ class ZitiBrowzerRuntime {
 
   }
 
+  channelConnectFailEventHandler(channelConnectFailEvent) {
+
+    this.logger.trace(`channelConnectFailEventHandler() `, channelConnectFailEvent);
+
+    let errStr = `Service [${channelConnectFailEvent.serviceName}] connect attempt failed on Ziti Network. Is the web server up?\n\nContact your Ziti Network admin.`;
+
+    alert(errStr);
+
+  }
+
   requestFailedWithNoResponseEventHandler(requestFailedWithNoResponseEvent) {
 
     this.logger.trace(`requestFailedWithNoResponseEventHandler() `, requestFailedWithNoResponseEvent);
@@ -1420,6 +1430,7 @@ class ZitiBrowzerRuntime {
       this.zitiContext.on('noServiceEvent',             this.noServiceEventHandler);
       this.zitiContext.on('sessionCreationErrorEvent',  this.sessionCreationErrorEventHandler);
       this.zitiContext.on('invalidAuthEvent',           this.invalidAuthEventHandler);
+      this.zitiContext.on('channelConnectFailEvent',    this.channelConnectFailEventHandler);
       this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_XGRESS, this.xgressEventHandler);
 
     }
@@ -1878,6 +1889,12 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         else if (event.data.type === 'INVALID_AUTH') {
 
           window.zitiBrowzerRuntime.invalidAuthEventHandler(event.data.payload.event);
+
+        }
+
+        else if (event.data.type === 'CHANNEL_CONNECT_FAIL') {
+
+          window.zitiBrowzerRuntime.channelConnectFailEventHandler(event.data.payload.event);
 
         }
 

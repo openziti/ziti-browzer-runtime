@@ -1,3 +1,12 @@
+## [0.41.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.41.0...v0.41.1) (2023-08-02)
+
+
+### Bug Fixes
+
+* pause for TLS cipher suite negotiation completion ([#178](https://github.com/openziti/ziti-browzer-runtime/issues/178)) ([c9676c9](https://github.com/openziti/ziti-browzer-runtime/commit/c9676c90b87e561562ed4aeceec9df64c1a049e1))
+
+
+
 # [0.41.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.40.0...v0.41.0) (2023-07-26)
 
 

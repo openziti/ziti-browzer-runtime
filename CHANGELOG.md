@@ -1,3 +1,12 @@
+# [0.43.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.42.0...v0.43.0) (2023-08-04)
+
+
+### Features
+
+* BrowZer error page ([#180](https://github.com/openziti/ziti-browzer-runtime/issues/180)) ([9565689](https://github.com/openziti/ziti-browzer-runtime/commit/95656895c083a818dd6ac587b0f115814dbe37fc))
+
+
+
 # [0.42.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.41.1...v0.42.0) (2023-08-02)
 
 

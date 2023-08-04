@@ -42,6 +42,7 @@ import { Auth0Client } from '@auth0/auth0-spa-js';
 import Bowser from 'bowser'; 
 import uPlot from 'uplot';
 import * as msal from '@azure/msal-browser';
+import { stringify } from './urlon';
 
 
 /**
@@ -186,8 +187,12 @@ class ZitiBrowzerRuntime {
 
       let errStr = `The browser you are using:\n\n${this.ua.browser.name} v${this.ua.browser.version}\n\nis currently unsupported by\nOpenZiti BrowZer Runtime v${_options.version}.`;
 
-      alert(errStr);
-      throw new Error(errStr);
+      this.browzer_error({
+        status:   409,
+        code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_UNSUPPORTED_BROWSER,
+        title:    `The browser you are using is: ${this.ua.browser.name} v${this.ua.browser.version}.`,
+        message:  `This browser is currently unsupported by BrowZer Runtime v${_options.version}.`
+      });
 
     }
      
@@ -841,13 +846,26 @@ class ZitiBrowzerRuntime {
     }
   }
 
+  browzer_error( browzer_error_data_json ) {
+
+    setTimeout(function() {
+      window.location.href = `
+        ${zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.scheme}://${zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}:${zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.port}/browzer_error?browzer_error_data=${stringify(JSON.stringify(browzer_error_data_json))}
+      `;
+    }, 10);
+
+  }
+
   noConfigForServiceEventHandler(noConfigForServiceEvent) {
 
     this.logger.trace(`noConfigForServiceEventHandler() `, noConfigForServiceEvent);
 
-    let errStr = `Ziti Service [${noConfigForServiceEvent.serviceName}] has no associated configs.\n\nContact your Ziti Network admin.`;
-
-    alert(errStr);
+    window.zitiBrowzerRuntime.browzer_error({
+      status:   409,
+      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_SERVICE_HAS_NO_CONFIG,
+      title:    `Ziti Service [${noConfigForServiceEvent.serviceName}] has no associated configs.`,
+      message:  `Possible network configuration issue exists.`
+    });
 
   }
 
@@ -898,12 +916,14 @@ class ZitiBrowzerRuntime {
       return showOccurrences ? found : found[0];
     };  
   
-
     let cm = closestMatch(noServiceEvent.serviceName, noServiceEvent.serviceList, true);
 
-    let errStr = `Ziti Service [${noServiceEvent.serviceName}] not found in list of Services your Identity can access -- closest match [${cm}].\n\nContact your Ziti Network admin.`;
-
-    alert(errStr);
+    window.zitiBrowzerRuntime.browzer_error({
+      status:   409,
+      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_SERVICE_NOT_IN_LIST,
+      title:    `Ziti Service [${noServiceEvent.serviceName}] not found in list of Services your Identity can access.`,
+      message:  `Closest match [${cm}] -- Possible network configuration issue exists.`
+    });
 
   }
 
@@ -911,9 +931,12 @@ class ZitiBrowzerRuntime {
 
     this.logger.trace(`sessionCreationErrorEventHandler() `, sessionCreationErrorEvent);
 
-    let errStr = `Ziti Service [${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service}] cannot be reached -- [${sessionCreationErrorEvent.error}].\n\nContact your Ziti Network admin.`;
-
-    alert(errStr);
+    window.zitiBrowzerRuntime.browzer_error({
+      status:   409,
+      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_SERVICE_UNREACHABLE,
+      title:    `Ziti Service '${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service}' cannot be reached -- [${sessionCreationErrorEvent.error}]`,
+      message:  `The request conflicts with the current state of the network.`
+    });
 
   }
 
@@ -921,9 +944,12 @@ class ZitiBrowzerRuntime {
 
     this.logger.trace(`invalidAuthEventHandler() `, invalidAuthEvent);
 
-    let errStr = `User [${invalidAuthEvent.email}] cannot be authenticated onto Ziti Network.\n\nContact your Ziti Network admin.`;
-
-    alert(errStr);
+    window.zitiBrowzerRuntime.browzer_error({
+        status:   511,
+        code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_INVALID_AUTH,
+        title:    `User '${invalidAuthEvent.email}' cannot be authenticated onto Ziti Network`,
+        message:  `The client needs to authenticate to gain network access.`
+    });
 
   }
 
@@ -931,9 +957,12 @@ class ZitiBrowzerRuntime {
 
     this.logger.trace(`channelConnectFailEventHandler() `, channelConnectFailEvent);
 
-    let errStr = `Service [${channelConnectFailEvent.serviceName}] connect attempt failed on Ziti Network. Is the web server up?\n\nContact your Ziti Network admin.`;
-
-    alert(errStr);
+    window.zitiBrowzerRuntime.browzer_error({
+      status:   409,
+      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_SERVICE_UNREACHABLE,
+      title:    `Ziti Service '${channelConnectFailEvent.serviceName}' connect attempt failed on Ziti Network.`,
+      message:  `The web server might be down.`
+    });
 
   }
 
@@ -941,9 +970,12 @@ class ZitiBrowzerRuntime {
 
     this.logger.trace(`requestFailedWithNoResponseEventHandler() `, requestFailedWithNoResponseEvent);
 
-    let errStr = `HTTP Request to [${requestFailedWithNoResponseEvent.url}] failed - possible server-side certificate issue exists.\n\nContact your Ziti Network admin.`;
-
-    alert(errStr);
+    window.zitiBrowzerRuntime.browzer_error({
+      status:   503,
+      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_CONTROLLER_REQ_FAIL,
+      title:    `HTTP Request to [${requestFailedWithNoResponseEvent.url}] failed.`,
+      message:  `Possible server-side certificate issue exists.`
+    });
 
   }
 

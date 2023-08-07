@@ -2102,38 +2102,12 @@ var regexZBWASM   = new RegExp( /libcrypto.*.wasm/, 'g' );
  */
 const zitiFetch = async ( url, opts ) => {
 
-  // let routeOverCORSProxy = window.zitiBrowzerRuntime.core.context.shouldRouteOverCORSProxy( url );
-
-  // if (routeOverCORSProxy) {     // If hostname:port is something we need to CORS Proxy
-
-  //   url = url.replace('/oauth2/oauth/token', '/oauth2/token');
-
-  //   zitiBrowzerRuntime.logger.warn('zitiFetch(): doing CORS Proxying of [%s]', url);
-
-  //   let newUrl = new URL( url );
-
-  //   let corsTargetHostname = newUrl.hostname;
-  //   let corsTargetPort = newUrl.port;
-  //   if (corsTargetPort === '') {
-  //     if (newUrl.protocol === 'https:') {
-  //       corsTargetPort = '443';
-  //     } else {
-  //       corsTargetPort = '80';
-  //     }
-  //   }
-  
-  //   let corsTargetPathname = newUrl.pathname;
-  //   newUrl.hostname = window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host;
-  //   newUrl.port = 443;
-  //   newUrl.pathname = '/ziti-cors-proxy/' + corsTargetHostname + ':' + corsTargetPort + corsTargetPathname;
-  //   zitiBrowzerRuntime.logger.warn( 'zitiFetch: transformed URL: ', newUrl.toString());   
-
-  //   return window._ziti_realFetch(newUrl, opts); // Send special request to HTTP Agent
-
-  // }
-
   if (!window.zitiBrowzerRuntime.isAuthenticated) {
     return window._ziti_realFetch(url, opts);
+  }
+
+  if (url instanceof Request) {
+    url = url.url;
   }
 
   if (url.match( regexZBWASM )) { // the request seeks z-b-r/wasm

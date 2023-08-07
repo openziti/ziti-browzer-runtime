@@ -1,3 +1,12 @@
+## [0.43.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.43.0...v0.43.1) (2023-08-07)
+
+
+### Bug Fixes
+
+* TeamCity support ([#181](https://github.com/openziti/ziti-browzer-runtime/issues/181)) ([1f94508](https://github.com/openziti/ziti-browzer-runtime/commit/1f9450807a0d927434e624bca19b5d4da1b719a0))
+
+
+
 # [0.43.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.42.0...v0.43.0) (2023-08-04)
 
 

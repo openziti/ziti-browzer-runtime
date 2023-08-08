@@ -979,6 +979,19 @@ class ZitiBrowzerRuntime {
 
   }
 
+  noWSSRoutersEventHandler(noWSSRoutersEvent) {
+
+    this.logger.trace(`noWSSRoutersEventHandler() `, noWSSRoutersEvent);
+
+    window.zitiBrowzerRuntime.browzer_error({
+      status:   503,
+      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_NO_WSS_ROUTERS,
+      title:    `Cannot connect to Ziti Network Edge -- No WSS-Enabled Routers found.`,
+      message:  `Current network is incompatible with BrowZer.`
+    });
+
+  }
+
   updateXgressEventData(event) {
 
     zitiBrowzerRuntime.xgressEventData[0].push( Math.floor(Date.now() / 1000) );
@@ -1457,13 +1470,14 @@ class ZitiBrowzerRuntime {
 
       this.zitiContext.listControllerVersion();
 
-      this.zitiContext.on('idpAuthHealthEvent',         this.idpAuthHealthEventHandler);
-      this.zitiContext.on('noConfigForServiceEvent',    this.noConfigForServiceEventHandler);
-      this.zitiContext.on('noServiceEvent',             this.noServiceEventHandler);
-      this.zitiContext.on('sessionCreationErrorEvent',  this.sessionCreationErrorEventHandler);
-      this.zitiContext.on('invalidAuthEvent',           this.invalidAuthEventHandler);
-      this.zitiContext.on('channelConnectFailEvent',    this.channelConnectFailEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_XGRESS, this.xgressEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_IDP_AUTH_HEALTH,        this.idpAuthHealthEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_CONFIG_FOR_SERVICE,  this.noConfigForServiceEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_SERVICE,             this.noServiceEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_SESSION_CREATION_ERROR, this.sessionCreationErrorEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_INVALID_AUTH,           this.invalidAuthEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_CHANNEL_CONNECT_FAIL,   this.channelConnectFailEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_WSS_ROUTERS,         this.noWSSRoutersEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_XGRESS,                 this.xgressEventHandler);
 
     }
 
@@ -1927,6 +1941,12 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         else if (event.data.type === 'CHANNEL_CONNECT_FAIL') {
 
           window.zitiBrowzerRuntime.channelConnectFailEventHandler(event.data.payload.event);
+
+        }
+
+        else if (event.data.type === 'NO_WSS_ROUTERS') {
+
+          window.zitiBrowzerRuntime.noWSSRoutersEventHandler(event.data.payload.event);
 
         }
 

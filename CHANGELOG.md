@@ -1,3 +1,12 @@
+## [0.44.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.44.0...v0.44.1) (2023-08-08)
+
+
+### Bug Fixes
+
+* remove utf-8-validate dep ([#183](https://github.com/openziti/ziti-browzer-runtime/issues/183)) ([6660865](https://github.com/openziti/ziti-browzer-runtime/commit/6660865952ae21c41bf10682db07ebf1bf6a01f3))
+
+
+
 # [0.44.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.43.1...v0.44.0) (2023-08-08)
 
 

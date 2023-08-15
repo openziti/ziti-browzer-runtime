@@ -970,12 +970,16 @@ class ZitiBrowzerRuntime {
 
     this.logger.trace(`requestFailedWithNoResponseEventHandler() `, requestFailedWithNoResponseEvent);
 
-    window.zitiBrowzerRuntime.browzer_error({
-      status:   503,
-      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_CONTROLLER_REQ_FAIL,
-      title:    `HTTP Request to [${requestFailedWithNoResponseEvent.url}] failed.`,
-      message:  `Possible server-side certificate issue exists.`
-    });
+    if (requestFailedWithNoResponseEvent.url.toLowerCase().includes( zitiBrowzerRuntime.controllerApi.toLowerCase() )) {   // seeking Ziti Controller
+
+      window.zitiBrowzerRuntime.browzer_error({
+        status:   503,
+        code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_CONTROLLER_REQ_FAIL,
+        title:    `HTTP Request to [${requestFailedWithNoResponseEvent.url}] failed.`,
+        message:  `Possible server-side certificate issue exists.`
+      });
+
+    }
 
   }
 

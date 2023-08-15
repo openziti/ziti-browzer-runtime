@@ -1,3 +1,12 @@
+## [0.44.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.44.1...v0.44.2) (2023-08-15)
+
+
+### Bug Fixes
+
+* adjust requestFailedWithNoResponseEvent handling ([#184](https://github.com/openziti/ziti-browzer-runtime/issues/184)) ([a7ab7fc](https://github.com/openziti/ziti-browzer-runtime/commit/a7ab7fc988b478cf59dde0dda97f74e043504cc2))
+
+
+
 ## [0.44.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.44.0...v0.44.1) (2023-08-08)
 
 

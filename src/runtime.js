@@ -238,7 +238,6 @@ class ZitiBrowzerRuntime {
       let cookie_value = value.substring(0, value.indexOf(";"));
       if (isEqual(cookie_value, '')) {
         cookie_value = value;
-        window.zitiBrowzerRuntime.logger.warn(`${name} = ${cookie_value}`);
       }
 
       if (!isEqual(name, self.authTokenName)) {

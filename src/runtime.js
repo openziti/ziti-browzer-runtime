@@ -232,10 +232,13 @@ class ZitiBrowzerRuntime {
     let self = this;
 
     CookieInterceptor.write.use( function ( cookie ) {
-      
+      cookie = cookie.replace('%25','%');
       let name = cookie.substring(0, cookie.indexOf("="));
       let value = cookie.substring(cookie.indexOf("=") + 1);
       let cookie_value = value.substring(0, value.indexOf(";"));
+      if (isEqual(cookie_value, '')) {
+        cookie_value = value;
+      }
 
       if (!isEqual(name, self.authTokenName)) {
         window.zitiBrowzerRuntime.wb.messageSW({

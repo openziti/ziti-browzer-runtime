@@ -1,3 +1,12 @@
+## [0.44.3](https://github.com/openziti/ziti-browzer-runtime/compare/v0.44.2...v0.44.3) (2023-08-21)
+
+
+### Bug Fixes
+
+* adjust Zabbix cookie handling ([#185](https://github.com/openziti/ziti-browzer-runtime/issues/185)) ([9e1a860](https://github.com/openziti/ziti-browzer-runtime/commit/9e1a860a58877ab8ee9f7844c104c093f842a24f))
+
+
+
 ## [0.44.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.44.1...v0.44.2) (2023-08-15)
 
 

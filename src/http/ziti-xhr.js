@@ -142,7 +142,7 @@ function ZitiXMLHttpRequest () {
    */
   this.open = function(method, url, async, user, password) {
 
-    // console.log(`XHR: method=${method}, url=${url}`);
+    // console.log(`XHR: method=${method}, url=${url}, async=${async}`);
 
     errorFlag = false;
 
@@ -285,6 +285,8 @@ function ZitiXMLHttpRequest () {
       self.responseText = self.responseBodyText;
       self.response = self.responseBodyText;
       self.responseXML = self.responseBodyText;
+      self.responseURL = settings.url;
+      self.responseType = '';
 
       // create the (potential) XML DOM object 
       try {
@@ -298,6 +300,23 @@ function ZitiXMLHttpRequest () {
     });
 
   };
+
+  /**
+   * 
+   */
+  this.done = async function() {
+    let self = this;
+    return new Promise((resolve, _reject) => {
+      (function waitFor_Done() {
+        if (self.readyState !== self.DONE) {
+          setTimeout(waitFor_Done, 100);
+        } else {
+          return resolve();
+        }
+      })();
+    });
+  }
+
 
   /**
    * Called when an error is encountered to deal with it.

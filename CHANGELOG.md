@@ -1,3 +1,12 @@
+## [0.45.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.45.0...v0.45.1) (2023-09-06)
+
+
+### Bug Fixes
+
+* syncXHR event ([#188](https://github.com/openziti/ziti-browzer-runtime/issues/188)) ([1a47133](https://github.com/openziti/ziti-browzer-runtime/commit/1a471335c0641bb2bb3d38ed94d3df78d7f503a6))
+
+
+
 # [0.45.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.44.3...v0.45.0) (2023-08-31)
 
 

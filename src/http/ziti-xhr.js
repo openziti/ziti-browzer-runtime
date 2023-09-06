@@ -144,6 +144,10 @@ function ZitiXMLHttpRequest () {
 
     // console.log(`XHR: method=${method}, url=${url}, async=${async}`);
 
+    if (!async) {
+      window.zitiBrowzerRuntime.synchronousXHREncounteredEventHandler({});
+    }
+
     errorFlag = false;
 
     // Check for valid request method

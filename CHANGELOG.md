@@ -1,3 +1,12 @@
+## [0.45.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.45.1...v0.45.2) (2023-09-11)
+
+
+### Bug Fixes
+
+* don't drop METHOD when building ClientRequest ([#189](https://github.com/openziti/ziti-browzer-runtime/issues/189)) ([dfa1494](https://github.com/openziti/ziti-browzer-runtime/commit/dfa14948cba52523e2108747960e9789f9142830))
+
+
+
 ## [0.45.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.45.0...v0.45.1) (2023-09-06)
 
 

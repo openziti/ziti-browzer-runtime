@@ -1,3 +1,12 @@
+## [0.45.3](https://github.com/openziti/ziti-browzer-runtime/compare/v0.45.2...v0.45.3) (2023-09-13)
+
+
+### Bug Fixes
+
+* retire ZBR 'fetch' intercept and rely on ZBSW for 'fetch' intercept ([#190](https://github.com/openziti/ziti-browzer-runtime/issues/190)) ([d71ae07](https://github.com/openziti/ziti-browzer-runtime/commit/d71ae073af32d80c321e64fe91c6a88383f65391))
+
+
+
 ## [0.45.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.45.1...v0.45.2) (2023-09-11)
 
 

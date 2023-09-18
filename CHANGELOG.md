@@ -1,3 +1,12 @@
+## [0.45.5](https://github.com/openziti/ziti-browzer-runtime/compare/v0.45.4...v0.45.5) (2023-09-18)
+
+
+### Bug Fixes
+
+* correct problem with nested Request handling ([#192](https://github.com/openziti/ziti-browzer-runtime/issues/192)) ([f8b3a7c](https://github.com/openziti/ziti-browzer-runtime/commit/f8b3a7c0418c530a84046d56dcb28fc3ca290d0b))
+
+
+
 ## [0.45.4](https://github.com/openziti/ziti-browzer-runtime/compare/v0.45.3...v0.45.4) (2023-09-14)
 
 

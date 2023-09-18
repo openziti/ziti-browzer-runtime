@@ -2146,19 +2146,28 @@ var regexZBWASM   = new RegExp( /libcrypto.*.wasm/, 'g' );
  * @api public
  */
 
-const zitiFetch = async ( url, opts ) => {
+const zitiFetch = async ( urlObj, opts ) => {
 
   if (!window.zitiBrowzerRuntime.isAuthenticated) {
-    return window._ziti_realFetch(url, opts);
+    return window._ziti_realFetch(urlObj, opts);
   }
 
-  if (url instanceof Request) {
-    url = url.url;
+  let url;
+
+  if (urlObj instanceof Request) {
+    url = urlObj.url;
+
+    for (var pair of urlObj.headers.entries()) {
+      console.log(`${pair[0]} : ${pair[1]}`);
+    }
+
+  } else {
+    url = urlObj;
   }
 
   if (url.match( regexZBWASM )) { // the request seeks z-b-r/wasm
     window.zitiBrowzerRuntime.logger.trace('zitiFetch: seeking Ziti z-b-r/wasm, bypassing intercept of [%s]', url);
-    return window._ziti_realFetch(url, opts);
+    return window._ziti_realFetch(urlObj, opts);
   }
 
   await window.zitiBrowzerRuntime.awaitInitializationComplete();
@@ -2174,7 +2183,7 @@ const zitiFetch = async ( url, opts ) => {
 
   if (url.match( regexZBWASM )) { // the request seeks z-b-r/wasm
     window.zitiBrowzerRuntime.logger.trace('zitiFetch: seeking Ziti z-b-r/wasm, bypassing intercept of [%s]', url);
-    return window._ziti_realFetch(url, opts);
+    return window._ziti_realFetch(urlObj, opts);
   }
   else if (url.match( regex )) { // yes, the request is targeting the Ziti HTTP Agent
 
@@ -2189,7 +2198,7 @@ const zitiFetch = async ( url, opts ) => {
 
     if (isUndefined(serviceName)) { // If we have no serviceConfig associated with the hostname:port, do not intercept
       zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
-      return window._ziti_realFetch(url, opts);
+      return window._ziti_realFetch(urlObj, opts);
     }  
 
     url = newUrl.toString();
@@ -2219,7 +2228,7 @@ const zitiFetch = async ( url, opts ) => {
 
     if (isUndefined(serviceName)) { // If we have no serviceConfig associated with the hostname:port, do not intercept
       zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
-      return window._ziti_realFetch(url, opts);
+      return window._ziti_realFetch(urlObj, opts);
     }  
 
     url = newUrl.toString();
@@ -2259,7 +2268,7 @@ const zitiFetch = async ( url, opts ) => {
 
     if (isUndefined(serviceName)) { // If we have no serviceConfig associated with the hostname:port, do not intercept
       zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
-      return window._ziti_realFetch(url, opts);
+      return window._ziti_realFetch(urlObj, opts);
     }
 
     url = newUrl.toString();
@@ -2268,7 +2277,7 @@ const zitiFetch = async ( url, opts ) => {
   if (url.toLowerCase().includes( zitiBrowzerRuntime.controllerApi.toLowerCase() )) {   // seeking Ziti Controller
   // if (url.match( zitiBrowzerRuntime.regexControllerAPI )) {   // seeking Ziti Controller
     zitiBrowzerRuntime.logger.trace('zitiFetch: seeking Ziti Controller, bypassing intercept of [%s]', url);
-    return window._ziti_realFetch(url, opts);
+    return window._ziti_realFetch(urlObj, opts);
   }
   else {  // the request is targeting the raw internet
 
@@ -2279,7 +2288,7 @@ const zitiFetch = async ( url, opts ) => {
     if (isUndefined(serviceName)) { // If we have no serviceConfig associated with the hostname:port
 
       zitiBrowzerRuntime.logger.warn('zitiFetch(): no associated serviceConfig, bypassing intercept of [%s]', url);
-      return window._ziti_realFetch(url, opts);
+      return window._ziti_realFetch(urlObj, opts);
   
     }  
   }
@@ -2298,6 +2307,7 @@ const zitiFetch = async ( url, opts ) => {
   opts.serviceName = serviceName;
   opts.serviceScheme = window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.scheme;
   opts.serviceConnectAppData = await zitiBrowzerRuntime.zitiContext.getConnectAppDataByServiceName(serviceName);
+  opts.urlObj = urlObj;
 
   /**
    * Let ziti-browzer-core.context do the needful

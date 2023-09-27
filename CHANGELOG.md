@@ -1,3 +1,12 @@
+## [0.45.6](https://github.com/openziti/ziti-browzer-runtime/compare/v0.45.5...v0.45.6) (2023-09-27)
+
+
+### Bug Fixes
+
+* Force IdP logout if local auth state indicates user is unauthenticated ([#193](https://github.com/openziti/ziti-browzer-runtime/issues/193)) ([bd43acd](https://github.com/openziti/ziti-browzer-runtime/commit/bd43acd46b1bd1780a647639afc85c2c121afa86))
+
+
+
 ## [0.45.5](https://github.com/openziti/ziti-browzer-runtime/compare/v0.45.4...v0.45.5) (2023-09-18)
 
 

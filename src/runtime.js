@@ -106,7 +106,7 @@ class ZitiBrowzerRuntimeServiceWorkerMock {
    * 
    */
   register(scriptURL, options) {
-    console.log(`ZitiBrowzerRuntimeServiceWorkerMock.register() entered [${scriptURL}] `, options);
+    // console.log(`ZitiBrowzerRuntimeServiceWorkerMock.register() entered [${scriptURL}] `, options);
 
     if ( (scriptURL.match( regexZBSW )) ) {
 
@@ -196,7 +196,6 @@ class ZitiBrowzerRuntime {
 
     }
      
-
     this._uuid          = uuidv4();
 
     this.version        = _options.version;
@@ -205,6 +204,20 @@ class ZitiBrowzerRuntime {
     this.authTokenName  = _options.authTokenName;
 
     this.zitiConfig     = this.getZitiConfig();
+
+    // If client browser lacks JSPI enablement
+    if (isUndefined(WebAssembly.Function)) {
+
+      let errStr = `The browser you are using:\n\n${this.ua.browser.name} v${this.ua.browser.version}\n\ndoes not currently have JSPI enabled.\nOpenZiti BrowZer Runtime v${_options.version} requires JSPI.`;
+
+      this.browzer_error({
+        status:   409,
+        code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_JSPI_NOT_ENABLED,
+        title:    `The browser you are using does not have JSPI enabled.`,
+        message:  `WebAssembly JavaScript Promise Integration (JSPI) is required by BrowZer Runtime v${_options.version}\n\nTo enable it:\n\n1) Enter chrome://flags in the address bar, 2) Search for "JSPI", 3) Enable it, 4) Relaunch the browser as suggested for it to take effect.`
+      });
+
+    }
 
     this.logLevel       = this.zitiConfig.browzer.runtime.logLevel;
     this.hotKey         = this.zitiConfig.browzer.runtime.hotKey;

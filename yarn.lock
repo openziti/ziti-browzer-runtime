@@ -1187,20 +1187,20 @@
     "@nodelib/fs.scandir" "2.1.5"
     fastq "^1.6.0"
 
-"@openziti/libcrypto-js@^0.15.0":
-  version "0.15.0"
-  resolved "https://registry.yarnpkg.com/@openziti/libcrypto-js/-/libcrypto-js-0.15.0.tgz#48bdbf98af9bb90d743958f53562e2eaf894bfa7"
-  integrity sha512-/IsnCWoLYckL8/5EmWd1B/cj5egxrjLxOPTtDMwJVxvACumcWFWvVNzg6z4XvwHsNUd6m4JDtQFO3HTwAvDAuQ==
+"@openziti/libcrypto-js@^0.16.1":
+  version "0.16.1"
+  resolved "https://registry.yarnpkg.com/@openziti/libcrypto-js/-/libcrypto-js-0.16.1.tgz#8e4e63ad9e594b145448abb45a79e280150b70a0"
+  integrity sha512-xawZ2E8bc+z0s1T1rXu8/KDy4MGwesPdNbtfaftWkuJ1gbDtKyTwpT/+gm6JnZJUzqlnNfx5T0M7NJW2Y3WTKw==
   dependencies:
     "@types/emscripten" "^1.39.6"
     "@wasmer/wasi" "^1.0.2"
 
-"@openziti/ziti-browzer-core@^0.29.7":
-  version "0.29.7"
-  resolved "https://registry.yarnpkg.com/@openziti/ziti-browzer-core/-/ziti-browzer-core-0.29.7.tgz#d0ca202857b43679aa67fa570e60cfaf84997e87"
-  integrity sha512-cgyWiHTZoo3CEo5B5JtW9tCd5EIgPH4uS6l1Z0Y/iMJ0ky5hmS8X0CJMNa6obRTBAmLhBqh1CnPcJAcPyf8BeA==
+"@openziti/ziti-browzer-core@^0.30.0":
+  version "0.30.0"
+  resolved "https://registry.yarnpkg.com/@openziti/ziti-browzer-core/-/ziti-browzer-core-0.30.0.tgz#d3aa1f1d29962c21a590cd26c99f7dc9a71cfef0"
+  integrity sha512-SlbU/g/2Pirj85bE+zhhiJsATu7iHrSJXZxz/LX+mDO7qWiWaJSJeov9qKvv/Rm5Rwjwjp4wcOm6EgwuhGZ6gQ==
   dependencies:
-    "@openziti/libcrypto-js" "^0.15.0"
+    "@openziti/libcrypto-js" "^0.16.1"
     "@openziti/ziti-browzer-edge-client" "^0.6.2"
     asn1js "^2.4.0"
     assert "^2.0.0"

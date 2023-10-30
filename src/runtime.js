@@ -1383,7 +1383,7 @@ class ZitiBrowzerRuntime {
       status:   409,
       code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_JSPI_NOT_ENABLED,
       title:    `${errStr}`,
-      message:  `WebAssembly JavaScript Promise Integration (JSPI) is required to access Service ${this.zitiConfig.browzer.bootstrapper.target.service}\n\nTo enable it:\n\n1) Enter chrome://flags in the address bar, 2) Search for "JSPI", 3) Enable it, 4) Relaunch the browser as suggested for it to take effect.`
+      message:  `WebAssembly JavaScript Promise Integration (JSPI) is required to access the Ziti Service known as [${this.zitiConfig.browzer.bootstrapper.target.service}]\n\nTo enable it:\n\n1) Enter chrome://flags in the address bar, 2) Search for "JSPI", 3) Enable it, 4) Relaunch the browser as suggested for it to take effect.`
     });
 
     return false;

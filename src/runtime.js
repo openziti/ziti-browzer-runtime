@@ -205,20 +205,6 @@ class ZitiBrowzerRuntime {
 
     this.zitiConfig     = this.getZitiConfig();
 
-    // If client browser lacks JSPI enablement
-    if (isUndefined(WebAssembly.Function)) {
-
-      let errStr = `The browser you are using:\n\n${this.ua.browser.name} v${this.ua.browser.version}\n\ndoes not currently have JSPI enabled.\nOpenZiti BrowZer Runtime v${_options.version} requires JSPI.`;
-
-      this.browzer_error({
-        status:   409,
-        code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_JSPI_NOT_ENABLED,
-        title:    `The browser you are using does not have JSPI enabled.`,
-        message:  `WebAssembly JavaScript Promise Integration (JSPI) is required by BrowZer Runtime v${_options.version}\n\nTo enable it:\n\n1) Enter chrome://flags in the address bar, 2) Search for "JSPI", 3) Enable it, 4) Relaunch the browser as suggested for it to take effect.`
-      });
-
-    }
-
     this.logLevel       = this.zitiConfig.browzer.runtime.logLevel;
     this.hotKey         = this.zitiConfig.browzer.runtime.hotKey;
     this.controllerApi  = this.zitiConfig.controller.api;
@@ -1375,6 +1361,36 @@ class ZitiBrowzerRuntime {
   }
   
   /**
+   * 
+   */
+  shouldUseJSPI() {
+    
+    // If the client browser has JSPI enabled
+    if (!isUndefined(WebAssembly.Function)) {
+      // ...then by all means, load JSPI WASM, regardless of whether the target web app needs nestedTLS or not
+      return true;
+    }
+
+    // If the target web app doesn't need nestedTLS
+    if (isEqual(this.zitiConfig.browzer.bootstrapper.target.scheme, 'http')) {
+      // ...then we can use the NO-JSPI WASM
+      return false;
+    }
+
+    let errStr = `The browser you are using:\n\n${this.ua.browser.name} v${this.ua.browser.version}\n\ndoes not currently have JSPI enabled.`;
+
+    this.browzer_error({
+      status:   409,
+      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_JSPI_NOT_ENABLED,
+      title:    `${errStr}`,
+      message:  `WebAssembly JavaScript Promise Integration (JSPI) is required to access the Ziti Service known as [${this.zitiConfig.browzer.bootstrapper.target.service}]\n\nTo enable it:\n\n1) Enter chrome://flags in the address bar, 2) Search for "JSPI", 3) Enable it, 4) Relaunch the browser as suggested for it to take effect.`
+    });
+
+    return false;
+
+  }
+
+  /**
    * Initialize the ZitiBrowzerRuntime
    *
    * @param {Options} [options]
@@ -1531,8 +1547,11 @@ class ZitiBrowzerRuntime {
 
       window._zitiContext = this.zitiContext; // allow WASM to find us
 
+      this.zitiConfig.jspi = this.shouldUseJSPI(); // determine which WASM to instantiate
+
       await this.zitiContext.initialize({
-        loadWASM: !options.loadedViaHTTPAgent,   // instantiate the internal WebAssembly ONLY if we were not injected by the HTTP Agent
+        loadWASM: !options.loadedViaHTTPAgent,    // instantiate the WASM ONLY if we were not injected by the HTTP Agent
+        jspi:     this.zitiConfig.jspi,           // indicate which WASM to instantiate
         target:   this.zitiConfig.browzer.bootstrapper.target
       });
 

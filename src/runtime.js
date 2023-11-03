@@ -2307,7 +2307,7 @@ const zitiFetch = async ( urlObj, opts ) => {
     let href;
 
     if (url.includes('/')) {
-      href = `${window.location.origin}/${url}`;
+      href = `${window.location.origin}${zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path}${url}`;
     } else {
       const substrings = window.location.pathname.split('/');
       let pathname = substrings.length === 1
@@ -2399,7 +2399,7 @@ const zitiFetch = async ( urlObj, opts ) => {
     headers.append( key, val);
     zitiBrowzerRuntime.logger.trace( 'zitiResponse.headers: ', key, val);
   }
-  headers.append( 'x-ziti-browzer-runtime-version', pjson.version );
+  headers.append( 'x-openziti-browzer-runtime', pjson.version );
 
   var responseBlob = await zitiResponse.blob();
   var responseBlobStream = responseBlob.stream();               

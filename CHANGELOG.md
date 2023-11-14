@@ -1,3 +1,12 @@
+# [0.48.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.47.2...v0.48.0) (2023-11-14)
+
+
+### Features
+
+* MSFT RDS/RDP ([#198](https://github.com/openziti/ziti-browzer-runtime/issues/198)) ([5ab70a7](https://github.com/openziti/ziti-browzer-runtime/commit/5ab70a7a2c1dc6dde7f6a2d2f18c8b2dece0c719))
+
+
+
 ## [0.47.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.47.1...v0.47.2) (2023-11-03)
 
 

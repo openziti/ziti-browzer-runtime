@@ -14,6 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
+import { isEqual } from "lodash-es";
 
 function ZitiXMLHttpRequest () {
 
@@ -142,8 +143,6 @@ function ZitiXMLHttpRequest () {
    */
   this.open = function(method, url, async, user, password) {
 
-    // console.log(`XHR: method=${method}, url=${url}, async=${async}`);
-
     if (!async) {
       window.zitiBrowzerRuntime.synchronousXHREncounteredEventHandler({});
     }
@@ -231,8 +230,6 @@ function ZitiXMLHttpRequest () {
       }
     }
 
-    console.log(str);
-
     return str;
   };
 
@@ -284,13 +281,17 @@ function ZitiXMLHttpRequest () {
     let self = this;
 
     response.blob().then(async function(blob) {
-      self.responseBodyText = await blob.text();
-      // console.log(`XHR: responseBodyText=${self.responseBodyText}`);
-      self.responseText = self.responseBodyText;
-      self.response = self.responseBodyText;
-      self.responseXML = self.responseBodyText;
-      self.responseURL = settings.url;
-      self.responseType = '';
+      if (isEqual(blob.type, 'application/pkix-cert')) {
+        self.response = await blob.arrayBuffer();
+      }
+      else {
+        self.responseBodyText = await blob.text();
+        self.responseText = self.responseBodyText;
+        self.response = self.responseBodyText;
+        self.responseXML = self.responseBodyText;
+        self.responseURL = settings.url;
+        self.responseType = '';  
+      }
 
       // create the (potential) XML DOM object 
       try {

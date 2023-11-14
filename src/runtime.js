@@ -1661,7 +1661,7 @@ class ZitiBrowzerRuntime {
 /**
  * Instantiate the Ziti browZer Runtime.
  * 
- * Use 'zitiConfig' values passed to us from the Ziti HTTP Agent.
+ * Use 'zitiConfig' values passed to us from the Ziti BrowZer Bootstrapper.
  * 
  */ 
 if (isUndefined(window.zitiBrowzerRuntime)) {
@@ -1700,8 +1700,6 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       });
     }
 
-    console.log('now inside async IIFE to initialize the runtime and register the SW');
-
     const loadedViaHTTPAgent = document.getElementById('from-ziti-browzer-bootstrapper');
 
     const loadedViaSW = document.getElementById('from-ziti-browzer-sw');
@@ -1717,8 +1715,6 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
      * 
      */
     let initResults = await zitiBrowzerRuntime.initialize({loadedViaHTTPAgent: (loadedViaHTTPAgent ? true : false)});
-
-    console.log('returned from call to zitiBrowzerRuntime.initialize -- initResults:', initResults);
 
     if (initResults.authenticated && !initResults.loadedViaHTTPAgent) {
 
@@ -1909,6 +1905,10 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
           zitiBrowzerRuntime.updateXgressEventData(event.data.payload.event);
       
         }
+
+        // else if (event.data.type === 'GET_BASEURI') {
+        //   event.ports[0].postMessage( document.baseURI );
+        // }
 
         else if (event.data.type === 'CACHE_UPDATED') {
           const {updatedURL} = event.data.payload;
@@ -2192,6 +2192,9 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
     }
 
+    // Gather list of Services right up front, since some WebSocket intercept logic needs it
+    await zitiBrowzerRuntime.zitiContext.fetchServices();
+
   })();
 
 }
@@ -2231,6 +2234,11 @@ const zitiFetch = async ( urlObj, opts ) => {
     url = urlObj;
   }
 
+  window.zitiBrowzerRuntime.logger.trace( 'zitiFetch: entered for URL: ', url);
+
+//TEMP TEST... always attempt to go thru SW
+  return window._ziti_realFetch(urlObj, opts);
+
   if (url.match( regexZBWASM )) { // the request seeks z-b-r/wasm
     window.zitiBrowzerRuntime.logger.trace('zitiFetch: seeking Ziti z-b-r/wasm, bypassing intercept of [%s]', url);
     return window._ziti_realFetch(urlObj, opts);
@@ -2240,23 +2248,33 @@ const zitiFetch = async ( urlObj, opts ) => {
 
   // window.zitiBrowzerRuntime.noActiveChannelDetectedEnabled = true;
 
-  window.zitiBrowzerRuntime.logger.trace( 'zitiFetch: entered for URL: ', url);
 
   let serviceName;
 
-  // We want to intercept fetch requests that target the Ziti HTTP Agent... that is...
+  // We want to intercept fetch requests that target the Ziti BrowZer Bootstrapper... that is...
   // ...we want to intercept any request from the web app that targets the server from which the app was loaded.
 
   if (url.match( regexZBWASM )) { // the request seeks z-b-r/wasm
     window.zitiBrowzerRuntime.logger.trace('zitiFetch: seeking Ziti z-b-r/wasm, bypassing intercept of [%s]', url);
     return window._ziti_realFetch(urlObj, opts);
   }
-  else if (url.match( regex )) { // yes, the request is targeting the Ziti HTTP Agent
+  else if (url.match( regex )) { // yes, the request is targeting the Ziti BrowZer Bootstrapper
 
     var newUrl = new URL( url );
     newUrl.hostname = window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service;
     newUrl.port = window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.port;
-    window.zitiBrowzerRuntime.logger.trace( 'zitiFetch: transformed URL: ', newUrl.toString());
+
+    var pathnameArray = newUrl.pathname.split('/');
+    var targetpathnameArray = window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path.split('/');
+
+    if (!isEqual(pathnameArray[1], targetpathnameArray[1])) {
+
+    // if (!newUrl.pathname.startsWith(window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path)) {
+      newUrl.pathname = window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path + newUrl.pathname;
+      newUrl.pathname = newUrl.pathname.replace('//','/');
+    // }
+      window.zitiBrowzerRuntime.logger.trace( 'zitiFetch: transformed URL: ', newUrl.toString());
+    }
 
     serviceName = await window.zitiBrowzerRuntime.zitiContext.shouldRouteOverZiti( newUrl );
 
@@ -2271,22 +2289,11 @@ const zitiFetch = async ( urlObj, opts ) => {
 
   } else if ( (url.match( regexSlash )) || ((url.match( regexDotSlash ))) ) { // the request starts with a slash, or dot-slash
 
-    if ( url.match( regexDotSlash ) ) {
-      url = url.slice(1); // remove the 'dot'
-    }
-
-    let newUrl;
     let baseURIUrl = new URL( document.baseURI );
+    let newUrl = new URL( `${baseURIUrl.origin}${url}` );
+
     if (baseURIUrl.hostname === zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host) {
-      newUrl = new URL( 'https://' + 
-        zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service + 
-        ':' + 
-        (zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.port ? zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.port : 443) + 
-        url 
-      );
-    } else {
-      let baseURI = document.baseURI.replace(/\.\/$/, '');
-      newUrl = new URL( baseURI + url );
+      newUrl.hostname = zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service;
     }
     zitiBrowzerRuntime.logger.debug( 'zitiFetch: transformed URL: ', newUrl.toString());
 
@@ -2304,30 +2311,38 @@ const zitiFetch = async ( urlObj, opts ) => {
 
     // We have a 'relative' URL
 
+    let baseURIUrl = new URL( document.baseURI );
+    let newUrl = new URL( `${baseURIUrl.origin}${url}` );
+    newUrl.pathname = url;
+
+    if (newUrl.hostname === zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host) {
+      newUrl.hostname = zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service;
+    }
+
     let href;
 
-    if (url.includes('/')) {
-      href = `${window.location.origin}${zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path}${url}`;
-    } else {
-      const substrings = window.location.pathname.split('/');
-      let pathname = substrings.length === 1
-            ? window.location.pathname // delimiter is not part of the string
-            : substrings.slice(0, -1).join('/');
-      href = `${window.location.origin}${pathname}/${url}`;
-    }
+    // if (url.includes('/')) {
+    //   href = `${window.location.origin}${zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path}/${url}`;
+    // } else {
+    //   const substrings = window.location.pathname.split('/');
+    //   let pathname = substrings.length === 1
+    //         ? window.location.pathname // delimiter is not part of the string
+    //         : substrings.slice(0, -1).join('/');
+    //   href = `${window.location.origin}${pathname}/${url}`;
+    // }
   
-    let newUrl;
-    let baseURIUrl = new URL( href );
-    if (baseURIUrl.hostname === zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host) {
+    // let newUrl;
+    // let baseURIUrl = new URL( href );
+    // if (baseURIUrl.hostname === zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host) {
   
-      newUrl = new URL( href );
-      newUrl.hostname = zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service;
-      newUrl.port = zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.port;
+    //   newUrl = new URL( href );
+    //   newUrl.hostname = zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service;
+    //   newUrl.port = zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.port;
 
-    } else {
-      let baseURI = document.baseURI.replace(/\.\/$/, '');
-      newUrl = new URL( baseURI + url );
-    }
+    // } else {
+    //   let baseURI = document.baseURI.replace(/\.\/$/, '');
+    //   newUrl = new URL( baseURI + url );
+    // }
     zitiBrowzerRuntime.logger.debug( 'zitiFetch: transformed URL: ', newUrl.toString());
 
     serviceName = await zitiBrowzerRuntime.zitiContext.shouldRouteOverZiti( newUrl );

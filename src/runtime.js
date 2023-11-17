@@ -328,6 +328,14 @@ class ZitiBrowzerRuntime {
     setTimeout(self._reloadNeededHeartbeat, 1000*5, self );
   }
 
+  /**
+   *  Do a periodic fetch of a (cached) file so that the SW will not deactivate when teh browser tab is minimized
+   */
+  _serviceWorkerKeepAliveHeartBeat(self) {
+    fetch(`${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.scheme}://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}/ziti-browzer-logo.svg`);
+    setTimeout(self._serviceWorkerKeepAliveHeartBeat, 1000*20, self );
+  }
+
   _zbrPing(self) {
     window.zitiBrowzerRuntime.wb.messageSW({
       type: 'ZBR_PING', 
@@ -1682,6 +1690,8 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
   window.zitiBrowzerRuntime._reloadNeededHeartbeat(window.zitiBrowzerRuntime);
 
+  window.zitiBrowzerRuntime._serviceWorkerKeepAliveHeartBeat(window.zitiBrowzerRuntime);
+
   /**
    * Use an async IIFE to initialize the runtime and register the SW.
    */
@@ -2193,7 +2203,11 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
     }
 
     // Gather list of Services right up front, since some WebSocket intercept logic needs it
-    await zitiBrowzerRuntime.zitiContext.fetchServices();
+    try {
+      await zitiBrowzerRuntime.zitiContext.fetchServices();
+    }
+    catch (e) {
+    }
 
   })();
 

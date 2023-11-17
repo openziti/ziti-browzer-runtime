@@ -1080,7 +1080,7 @@ class ZitiBrowzerRuntime {
       this.authClient = new Auth0Client({
         domain:   this.zitiConfig.idp.host,
         clientId: this.zitiConfig.idp.clientId,
-        cacheLocation: 'memory', // valid values are: 'memory' or 'localstorage',
+        cacheLocation: 'localstorage', // valid values are: 'memory' or 'localstorage',
         authorizationParams: {
           redirect_uri: `${window.location.origin}`
         }    

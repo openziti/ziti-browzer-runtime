@@ -1495,6 +1495,9 @@ class ZitiBrowzerRuntime {
 
       }
 
+      this.zitiConfig.token_type = 'Bearer';
+      this.zitiConfig.access_token = this.getCookie( this.authTokenName );
+
       if (!this.isAuthenticated) {
         initResults.authenticated = false;
       }

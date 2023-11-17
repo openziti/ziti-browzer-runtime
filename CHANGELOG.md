@@ -1,3 +1,12 @@
+## [0.48.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.48.1...v0.48.2) (2023-11-17)
+
+
+### Bug Fixes
+
+* authClient cacheLocation ([#200](https://github.com/openziti/ziti-browzer-runtime/issues/200)) ([8506960](https://github.com/openziti/ziti-browzer-runtime/commit/85069609532fae7cb61cdd756db0d46c7ddc9cd5))
+
+
+
 ## [0.48.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.48.0...v0.48.1) (2023-11-17)
 
 

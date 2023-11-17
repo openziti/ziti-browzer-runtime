@@ -1,3 +1,12 @@
+## [0.48.3](https://github.com/openziti/ziti-browzer-runtime/compare/v0.48.2...v0.48.3) (2023-11-17)
+
+
+### Bug Fixes
+
+* access_token tweak ([#201](https://github.com/openziti/ziti-browzer-runtime/issues/201)) ([cb8a3c8](https://github.com/openziti/ziti-browzer-runtime/commit/cb8a3c8a29c5eeb87b4822f6d79170e27f52c7f4))
+
+
+
 ## [0.48.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.48.1...v0.48.2) (2023-11-17)
 
 

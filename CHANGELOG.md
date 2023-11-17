@@ -1,3 +1,12 @@
+## [0.48.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.48.0...v0.48.1) (2023-11-17)
+
+
+### Bug Fixes
+
+* SW keep-alive ([#199](https://github.com/openziti/ziti-browzer-runtime/issues/199)) ([30f6261](https://github.com/openziti/ziti-browzer-runtime/commit/30f626150f49b0450c5cdfd591fc4749899695db))
+
+
+
 # [0.48.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.47.2...v0.48.0) (2023-11-14)
 
 

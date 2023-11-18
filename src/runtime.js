@@ -43,6 +43,7 @@ import Bowser from 'bowser';
 import uPlot from 'uplot';
 import * as msal from '@azure/msal-browser';
 import { stringify } from './urlon';
+import jwt_decode from 'jwt-decode';
 
 
 /**
@@ -837,6 +838,13 @@ class ZitiBrowzerRuntime {
 
     window.zitiBrowzerRuntime.authClient_doLogout();
 
+    setTimeout(function() {
+      window.zitiBrowzerRuntime.wb.messageSW({
+        type: 'UNREGISTER', 
+        payload: {
+        } 
+      });
+    }, 50);
   }
 
   idpAuthHealthEventHandler(idpAuthHealthEvent) {  
@@ -1451,6 +1459,18 @@ class ZitiBrowzerRuntime {
       this.isAuthenticated = await this.authClient_isAuthenticated();
 
       this.logger.trace(`isAuthenticated: ${this.isAuthenticated}`);
+
+      this.zitiConfig.access_token = this.getCookie( this.authTokenName );
+      if (!isEqual(this.zitiConfig.access_token, '')) {
+        let decoded_access_token = jwt_decode(this.zitiConfig.access_token);
+        let exp = decoded_access_token.exp;
+        if (Date.now() >= exp * 1000) {
+          this.logger.trace(`${this.authTokenName} has expired`);
+          this.isAuthenticated = false;
+        }
+      } else {
+        this.isAuthenticated = false;
+      }
 
       if (!this.isAuthenticated) {
 

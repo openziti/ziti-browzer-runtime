@@ -216,10 +216,10 @@ class ZitiBrowzerRuntime {
     this.noActiveChannelDetectedCounter    = 0;
     this.noActiveChannelDetectedThreshold  = _options.noActiveChannelDetectedThreshold;
 
+    window.zitiBrowzerRuntime = this;
+
     this.wb             = new Workbox(
-      this.zitiConfig.browzer.bootstrapper.self.scheme + '://'
-      + this.zitiConfig.browzer.bootstrapper.self.host + ':'
-      + this.zitiConfig.browzer.bootstrapper.self.port
+      this._obtainBootStrapperURL()
       + '/'
       + this.zitiConfig.browzer.sw.location 
       + '?swVersion='     + encodeURIComponent(this.zitiConfig.browzer.sw.version)
@@ -329,11 +329,22 @@ class ZitiBrowzerRuntime {
     setTimeout(self._reloadNeededHeartbeat, 1000*5, self );
   }
 
+  _obtainBootStrapperURL() {
+    let url;
+
+    if (window.zitiBrowzerRuntime.zitiConfig.browzer.loadbalancer.host) {
+      url = `https://${window.zitiBrowzerRuntime.zitiConfig.browzer.loadbalancer.host}:${window.zitiBrowzerRuntime.zitiConfig.browzer.loadbalancer.port}`;
+    } else {
+      url = `${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.scheme}://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}:${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.port}`;
+    }
+    return url;
+  }
+
   /**
    *  Do a periodic fetch of a (cached) file so that the SW will not deactivate when teh browser tab is minimized
    */
   _serviceWorkerKeepAliveHeartBeat(self) {
-    fetch(`${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.scheme}://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}/ziti-browzer-logo.svg`);
+    fetch(`${ self._obtainBootStrapperURL() }/ziti-browzer-logo.svg`);
     setTimeout(self._serviceWorkerKeepAliveHeartBeat, 1000*20, self );
   }
 
@@ -527,7 +538,7 @@ class ZitiBrowzerRuntime {
 
     let css = document.createElement("link");
     css.setAttribute('rel', 'stylesheet');
-    css.setAttribute('href', `${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.scheme}://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}/ziti-browzer-css.css`);
+    css.setAttribute('href', `${self._obtainBootStrapperURL()}/ziti-browzer-css.css`);
     div.appendChild(css);
 
     let div2 = document.createElement("div");
@@ -535,7 +546,7 @@ class ZitiBrowzerRuntime {
 
     let img = document.createElement("img");
     img.setAttribute('style', 'width: 5%;');
-    img.setAttribute('src', `${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.scheme}://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}/ziti-browzer-logo.svg`);
+    img.setAttribute('src', `${self._obtainBootStrapperURL()}/ziti-browzer-logo.svg`);
     div2.appendChild(img);
 
     div.appendChild(div2);
@@ -684,11 +695,11 @@ class ZitiBrowzerRuntime {
 
     let css = document.createElement("link");
     css.setAttribute('rel', 'stylesheet');
-    css.setAttribute('href', `${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.scheme}://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}/ziti-browzer-css.css`);
+    css.setAttribute('href', `${self._obtainBootStrapperURL()}/ziti-browzer-css.css`);
     div5.appendChild(css);
 
     let img = document.createElement("img");
-    img.setAttribute('src', `${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.scheme}://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}/ziti-browzer-logo.svg`);
+    img.setAttribute('src', `${self._obtainBootStrapperURL()}/ziti-browzer-logo.svg`);
     img.setAttribute('style', 'width: 14%;');
     div5.appendChild(img);
 
@@ -703,7 +714,7 @@ class ZitiBrowzerRuntime {
         <section class="col-xs-12 col-sm-8 col-sm-offset-2 col-xl-6 col-xl-offset-3 my-4">
             <div>
             <br/>
-            <form action="https://browzercurt.ziti.netfoundry.io">
+            <form action="${window.zitiBrowzerRuntime._obtainBootStrapperURL()}">
                 <fieldset>
                     <div class="row">
                         <div class="form-group col-xs-12" id="Client-side_Logging_Level__div">
@@ -776,7 +787,7 @@ class ZitiBrowzerRuntime {
           window.zitiBrowzerRuntime.toastWarning(`Page will now reload...`);
           setTimeout(function() {
             zitiBrowzerRuntime.logger.debug(`################ doing page reload now ################`);
-            window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host + zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path);
+            window.location.replace(window.zitiBrowzerRuntime._obtainBootStrapperURL() + zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path);
           }, 2000);
         }
 
@@ -868,7 +879,7 @@ class ZitiBrowzerRuntime {
 
     setTimeout(function() {
       window.location.href = `
-        ${zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.scheme}://${zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}:${zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.port}/browzer_error?browzer_error_data=${stringify(JSON.stringify(browzer_error_data_json))}
+        ${window.zitiBrowzerRuntime._obtainBootStrapperURL()}/browzer_error?browzer_error_data=${stringify(JSON.stringify(browzer_error_data_json))}
       `;
     }, 10);
 
@@ -1300,7 +1311,7 @@ class ZitiBrowzerRuntime {
     setTimeout(function() {
 
       zitiBrowzerRuntime.logger.debug(`doIdpLogout: ################ doing root-page page reload now ################`);
-      window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host + zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path);
+      window.location.replace(window.zitiBrowzerRuntime._obtainBootStrapperURL() + zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path);
     
     }, 5000);
 
@@ -1965,7 +1976,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
           setTimeout(function() {
             zitiBrowzerRuntime.logger.debug(`################ doing root-page page reload now ################`);
-            window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host + zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path);
+            window.location.replace(window.zitiBrowzerRuntime._obtainBootStrapperURL() + zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path);
           }, 100);
         }
 
@@ -1977,7 +1988,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
           setTimeout(function() {
             zitiBrowzerRuntime.logger.debug(`################ doing root-page page reload now ################`);
-            window.location.replace('https://' + zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host + zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path);
+            window.location.replace(window.zitiBrowzerRuntime._obtainBootStrapperURL() + zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path);
           }, 2500);
         }
 
@@ -2237,7 +2248,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 }
 
 
-var regex = new RegExp( `https://${zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}`, 'gi' );
+var regex = new RegExp( `${window.zitiBrowzerRuntime._obtainBootStrapperURL()}`, 'gi' );
 var regexSlash = new RegExp( /^\//, 'g' );
 var regexDotSlash = new RegExp( /^\.\//, 'g' );
 var regexZBWASM   = new RegExp( /libcrypto.*.wasm/, 'g' );

@@ -1,3 +1,12 @@
+# [0.49.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.48.5...v0.49.0) (2023-11-20)
+
+
+### Features
+
+* Load Balancer support ([#204](https://github.com/openziti/ziti-browzer-runtime/issues/204)) ([92bee05](https://github.com/openziti/ziti-browzer-runtime/commit/92bee0504c65ba95ed5358f31a7f097c14a3944b))
+
+
+
 ## [0.48.5](https://github.com/openziti/ziti-browzer-runtime/compare/v0.48.4...v0.48.5) (2023-11-19)
 
 

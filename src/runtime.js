@@ -265,6 +265,7 @@ class ZitiBrowzerRuntime {
 
     this.authClient = null;
     this.idp = null;
+    this.idp_scopes = null;
 
     this.xgressEventData = [
       [(Date.now() / 1000)],  // timestamp
@@ -1087,6 +1088,10 @@ class ZitiBrowzerRuntime {
     else if ( (this.zitiConfig.idp.host.match( regexAzureADURL )) ) {
       this.idp = ZBR_CONSTANTS.AZURE_AD_IDP
     }
+    else if ((this.zitiConfig.idp.type === "OIDC")) {
+      this.idp = ZBR_CONSTANTS.OIDC_IDP
+      this.idp_scopes = this.zitiConfig.idp.scopes
+    }
     else {
       this.idp = ZBR_CONSTANTS.AUTH0  // default
     }
@@ -1142,14 +1147,76 @@ class ZitiBrowzerRuntime {
                             window.zitiBrowzerRuntime.logger.info(`${message}`);
                             return;
                     }
-                }
+                  },
+                },
+              },
+            };
+            window.zitiBrowzerRuntime.authClient = new PublicClientApplication(
+              msalConfig
+            );
+            window.zitiBrowzerRuntime.authClient.initialize().then(() => {
+              window.zitiBrowzerRuntime.authClient
+                .handleRedirectPromise()
+                .then(window.zitiBrowzerRuntime.handleAADandOIDCRedirectResponse)
+                .catch((error) => {
+                  window.zitiBrowzerRuntime.logger.error(`${error}`);
+                });
+            });
+                
+    } else if (isEqual(this.idp, ZBR_CONSTANTS.OIDC_IDP)) {
+
+      let msalConfig = {
+
+        auth: {
+          protocolMode: msal.ProtocolMode.OIDC,
+          authorityMetadata: JSON.stringify({
+            authorization_endpoint: `${this.zitiConfig.idp.authorization_endpoint}`,
+            token_endpoint: `${this.zitiConfig.idp.token_endpoint}`,
+            userinfo_endpoint: `${this.zitiConfig.idp.userinfo_endpoint}`,
+            issuer: `${this.zitiConfig.idp.issuer}`,
+            jwks_uri: `${this.zitiConfig.idp.jwks_uri}`
+          }),
+          clientId: `${this.zitiConfig.idp.clientId}`,
+          authority: `${this.zitiConfig.idp.host}`,
+          redirectUri: `${window.location.origin}`,
+          postLogoutRedirectUri: `${window.location.origin}`,
+          knownAuthorities: [`${this.zitiConfig.idp.host}`]
+        },
+        cache: {
+          cacheLocation: "sessionStorage",
+          storeAuthStateInCookie: false,
+        },
+        system: {
+          loggerOptions: {
+            loggerCallback: (level, message, containsPii) => {
+              if (containsPii) {
+                return;
+              }
+              switch (level) {
+                case msal.LogLevel.Error:
+                  window.zitiBrowzerRuntime.logger.error(`${message}`);
+                  return;
+                case msal.LogLevel.Info:
+                  window.zitiBrowzerRuntime.logger.info(`${message}`);
+                  return;
+                case msal.LogLevel.Verbose:
+                  window.zitiBrowzerRuntime.logger.debug(`${message}`);
+                  return;
+                case msal.LogLevel.Warning:
+                  window.zitiBrowzerRuntime.logger.warn(`${message}`);
+                  return;
+                default:
+                  window.zitiBrowzerRuntime.logger.info(`${message}`);
+                  return;
+              }
             }
           }
+        }
       };
 
       window.zitiBrowzerRuntime.authClient = new msal.PublicClientApplication(msalConfig);
       window.zitiBrowzerRuntime.authClient.initialize().then(() => {
-        window.zitiBrowzerRuntime.authClient.handleRedirectPromise().then(window.zitiBrowzerRuntime.handleAADRedirectResponse).catch(error => {
+        window.zitiBrowzerRuntime.authClient.handleRedirectPromise().then(window.zitiBrowzerRuntime.handleAADandOIDCRedirectResponse).catch(error => {
           window.zitiBrowzerRuntime.logger.error(`${error}`);
         });
       });
@@ -1158,9 +1225,9 @@ class ZitiBrowzerRuntime {
 
   }
 
-  handleAADRedirectResponse(resp) {
+  handleAADandOIDCRedirectResponse(resp) {
 
-    window.zitiBrowzerRuntime.logger.trace(`handleAADRedirectResponse() resp: `, resp);
+    window.zitiBrowzerRuntime.logger.trace(`handleAADandOIDCRedirectResponse() resp: `, resp);
 
     if (resp !== null) {
 
@@ -1169,7 +1236,7 @@ class ZitiBrowzerRuntime {
     } else {
 
       const currentAccounts = window.zitiBrowzerRuntime.authClient.getAllAccounts();
-      window.zitiBrowzerRuntime.logger.trace(`handleAADRedirectResponse() currentAccounts: `, currentAccounts);
+      window.zitiBrowzerRuntime.logger.trace(`handleAADandOIDCRedirectResponse() currentAccounts: `, currentAccounts);
 
       if (!currentAccounts || currentAccounts.length < 1) {
           return;
@@ -1186,6 +1253,14 @@ class ZitiBrowzerRuntime {
    * Determine if the AAD client is currently authenticated
    */
   async authClient_isAuthenticated_AzureAD() {
+    return authClient_isAuthenticated_OIDC(ZBR_CONSTANTS.AZURE_AD_SCOPES);
+  }
+
+
+  /**
+   * Determine if the AAD client is currently authenticated
+   */
+  async authClient_isAuthenticated_OIDC(scopes) {
 
     if (!isUndefined(window.zitiBrowzerRuntime.zitiConfig.access_token)) {
       return true;
@@ -1200,7 +1275,7 @@ class ZitiBrowzerRuntime {
       if (isNull( sessionStorage.getItem("msal.interaction.status") )) {
 
         let msal_loginRequest = {
-          scopes: ZBR_CONSTANTS.AZURE_AD_SCOPES,
+          scopes: scopes,
         };
         
         await window.zitiBrowzerRuntime.authClient.loginRedirect( msal_loginRequest );
@@ -1220,7 +1295,7 @@ class ZitiBrowzerRuntime {
     }
 
     let msal_tokenRequest = {
-        scopes: ZBR_CONSTANTS.AZURE_AD_SCOPES,
+      scopes: scopes,
     }
 
     let response = await window.zitiBrowzerRuntime.authClient.acquireTokenSilent( msal_tokenRequest ).catch (error => {
@@ -1260,10 +1335,14 @@ class ZitiBrowzerRuntime {
     }
     /**
      *  AzureAD
-     */ 
-    else if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.AZURE_AD_IDP) ) {
+     */
+    else if (isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.AZURE_AD_IDP)) {
 
-      return await this.authClient_isAuthenticated_AzureAD();
+      return await this.authClient_isAuthenticated_AzureAD(ZBR_CONSTANTS.AZURE_AD_SCOPES);
+
+    } else if (isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.OIDC_IDP)) {
+
+      return await this.authClient_isAuthenticated_OIDC(window.zitiBrowzerRuntime.idp_scopes);
 
     }
 
@@ -1279,28 +1358,41 @@ class ZitiBrowzerRuntime {
     /**
      *  Auth0
      */
-    if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.AUTH0_IDP) ) {
+    if (isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.AUTH0_IDP)) {
 
       // Run the following on a delay so the toast can be read by user, and so that we do not block the SW messaging
-      setTimeout(function() {
+      setTimeout(function () {
 
         // do the OIDC logout
         window.zitiBrowzerRuntime.authClient.logout({
           logoutParams: {
             returnTo: window.location.origin
           }
-        });            
+        });
 
       }, 3000);
 
     }
     /**
      *  AzureAD
-     */ 
-    else if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.AZURE_AD_IDP) ) {
+     */
+    else if (isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.AZURE_AD_IDP)) {
 
       // Run the following on a delay so the toast can be read by user, and so that we do not block the SW messaging
-      setTimeout(function() {
+      setTimeout(function () {
+
+        window.zitiBrowzerRuntime.authClient.logoutRedirect({});
+
+      }, 3000);
+
+    }
+    /**
+     *  OIDC
+     */
+    else if (isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.OIDC_IDP)) {
+
+      // Run the following on a delay so the toast can be read by user, and so that we do not block the SW messaging
+      setTimeout(function () {
 
         window.zitiBrowzerRuntime.authClient.logoutRedirect({});
 
@@ -1358,8 +1450,13 @@ class ZitiBrowzerRuntime {
     }
     /**
      *  AzureAD
-     */ 
-    else if ( isEqual(this.idp, ZBR_CONSTANTS.AZURE_AD_IDP) ) {
+     */
+    else if (isEqual(this.idp, ZBR_CONSTANTS.AZURE_AD_IDP)) {
+      /* NOP */
+    }/**
+     *  OIDC
+     */
+    else if (isEqual(this.idp, ZBR_CONSTANTS.OIDC_IDP)) {
       /* NOP */
     }
 

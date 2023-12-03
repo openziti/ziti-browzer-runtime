@@ -1064,6 +1064,19 @@ class ZitiBrowzerRuntime {
 
   }
 
+  nestedTLSHandshakeTimeoutEventHandler(tlsHandshakeTimeoutEvent) {
+
+    this.logger.trace(`nestedTLSHandshakeTimeoutEventHandler() `, tlsHandshakeTimeoutEvent);
+
+    window.zitiBrowzerRuntime.browzer_error({
+      status:   503,
+      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_NESTED_TLS_HANDSHAKE_TIMEOUT,
+      title:    `TLS Handshake timeout connecting to Ziti Service [${tlsHandshakeTimeoutEvent.serviceName}]`,
+      message:  `Please verify that destination server [${tlsHandshakeTimeoutEvent.dst_hostname}:${tlsHandshakeTimeoutEvent.dst_port}] is listening on HTTPS`
+    });
+
+  }
+
   /**
    * 
    */
@@ -1611,6 +1624,7 @@ class ZitiBrowzerRuntime {
       this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_CHANNEL_CONNECT_FAIL,   this.channelConnectFailEventHandler);
       this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_WSS_ROUTERS,         this.noWSSRoutersEventHandler);
       this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_XGRESS,                 this.xgressEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NESTED_TLS_HANDSHAKE_TIMEOUT,  this.nestedTLSHandshakeTimeoutEventHandler);
 
     }
 
@@ -2089,6 +2103,12 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
           window.zitiBrowzerRuntime.requestFailedWithNoResponseEventHandler(event.data.payload.event);
 
+        }
+
+        else if (event.data.type === 'NESTED_TLS_HANDSHAKE_TIMEOUT_EVENT') {
+
+          window.zitiBrowzerRuntime.nestedTLSHandshakeTimeoutEventHandler(event.data.payload.event);
+      
         }
 
         else if (event.data.type === 'PING') {

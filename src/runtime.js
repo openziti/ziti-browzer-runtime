@@ -333,7 +333,7 @@ class ZitiBrowzerRuntime {
     let url;
 
     if (window.zitiBrowzerRuntime.zitiConfig.browzer.loadbalancer.host) {
-      url = `https://${window.zitiBrowzerRuntime.zitiConfig.browzer.loadbalancer.host}:${window.zitiBrowzerRuntime.zitiConfig.browzer.loadbalancer.port}`;
+      url = `https://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}:${window.zitiBrowzerRuntime.zitiConfig.browzer.loadbalancer.port}`;
     } else {
       url = `${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.scheme}://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}:${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.port}`;
     }

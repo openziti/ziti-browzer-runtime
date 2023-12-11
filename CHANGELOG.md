@@ -1,3 +1,12 @@
+# [0.52.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.51.1...v0.52.0) (2023-12-11)
+
+
+### Features
+
+* support Keycloak ([#222](https://github.com/openziti/ziti-browzer-runtime/issues/222)) ([4d09ba9](https://github.com/openziti/ziti-browzer-runtime/commit/4d09ba926ebb477ed1011c41d3f03eb7ea21437c))
+
+
+
 ## [0.51.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.51.0...v0.51.1) (2023-12-06)
 
 

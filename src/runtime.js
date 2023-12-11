@@ -29,7 +29,7 @@ import { Base64 } from 'js-base64';
 import { isUndefined, isNull, isEqual } from 'lodash-es';
 import CookieInterceptor from 'cookie-interceptor';
 import { v4 as uuidv4 } from 'uuid';
-import { withTimeout, Semaphore } from 'async-mutex';
+import jwtDecode from 'jwt-decode';
 
 import pjson from '../package.json';
 import { flatOptions } from './utils/flat-options'
@@ -43,7 +43,6 @@ import Bowser from 'bowser';
 import uPlot from 'uplot';
 import * as msal from '@azure/msal-browser';
 import { stringify } from './urlon';
-import jwt_decode from 'jwt-decode';
 
 
 /**
@@ -1094,20 +1093,57 @@ class ZitiBrowzerRuntime {
     /**
      *  Identify the IdP
      */
-    if ( (this.zitiConfig.idp.host.match( regexAuth0URL )) ) {
+    if ( this.zitiConfig.idp.type && isEqual(this.zitiConfig.idp.type, ZBR_CONSTANTS.AUTH0_IDP) ) {
+      this.idp = ZBR_CONSTANTS.AUTH0_IDP
+    }
+    else if ( this.zitiConfig.idp.type && isEqual(this.zitiConfig.idp.type, ZBR_CONSTANTS.AZURE_AD_IDP) ) {
+      this.idp = ZBR_CONSTANTS.AZURE_AD_IDP
+    }
+    else if ( this.zitiConfig.idp.type && isEqual(this.zitiConfig.idp.type, ZBR_CONSTANTS.KEYCLOAK_IDP) ) {
+      this.idp = ZBR_CONSTANTS.KEYCLOAK_IDP
+
+      if ( isUndefined(this.zitiConfig.idp.realm) ) {
+
+        window.zitiBrowzerRuntime.browzer_error({
+          status:   409,
+          code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_INVALID_IDP_CONFIG,
+          title:    `Invalid Keycloak IdP config [${JSON.stringify(this.zitiConfig.idp)}]`,
+          message:  `Realm not specified.`
+        });
+  
+      }
+    }
+    else if ( (this.zitiConfig.idp.host.match( regexAuth0URL )) ) {
       this.idp = ZBR_CONSTANTS.AUTH0_IDP
     }
     else if ( (this.zitiConfig.idp.host.match( regexAzureADURL )) ) {
       this.idp = ZBR_CONSTANTS.AZURE_AD_IDP
     }
     else {
-      this.idp = ZBR_CONSTANTS.AUTH0  // default
+
+      window.zitiBrowzerRuntime.browzer_error({
+        status:   409,
+        code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_INVALID_IDP_CONFIG,
+        title:    `Invalid IdP config [${JSON.stringify(this.zitiConfig.idp)}]`,
+        message:  `Cannot identify the specified IdP type`
+      });
+  
     }
 
     /**
      *  Instantiate the appropriate client
      */
-    if ( isEqual(this.idp, ZBR_CONSTANTS.AUTH0_IDP) ) {
+    if ( isEqual(this.idp, ZBR_CONSTANTS.KEYCLOAK_IDP) ) {
+
+      this.authClient = new Keycloak({
+        url: this.zitiConfig.idp.host,
+        realm: this.zitiConfig.idp.realm,
+        clientId: this.zitiConfig.idp.clientId
+      });
+    
+    }
+
+    else if ( isEqual(this.idp, ZBR_CONSTANTS.AUTH0_IDP) ) {
 
       this.authClient = new Auth0Client({
         domain:   this.zitiConfig.idp.host,
@@ -1263,6 +1299,27 @@ class ZitiBrowzerRuntime {
   async authClient_isAuthenticated() {
 
     /**
+     *  Keycloak
+     */
+    if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.KEYCLOAK_IDP) ) {
+
+      window.zitiBrowzerRuntime.isAuthenticated = this.authClient.authenticated;
+
+      if (window.zitiBrowzerRuntime.isAuthenticated) {
+
+        let expired = this.authClient.isTokenExpired();
+
+        if (expired) {
+          window.zitiBrowzerRuntime.isAuthenticated = false;
+        }
+
+      }
+
+      return window.zitiBrowzerRuntime.isAuthenticated;
+
+    }
+    
+    /**
      *  Auth0
      */
     if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.AUTH0_IDP) ) {
@@ -1320,6 +1377,25 @@ class ZitiBrowzerRuntime {
       }, 3000);
 
     }
+    /**
+     *  Keycloak
+     */
+    else if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.KEYCLOAK_IDP) ) {
+
+      // Run the following on a delay so the toast can be read by user, and so that we do not block the SW messaging
+      setTimeout(function() {
+
+        // do the OIDC logout
+        window.zitiBrowzerRuntime.authClient.logout({
+          redirectUri: {
+            returnTo: window.location.origin
+          }
+        });            
+
+      }, 2000);
+      
+    }
+
 
     setTimeout(function() {
 
@@ -1372,8 +1448,52 @@ class ZitiBrowzerRuntime {
     /**
      *  AzureAD
      */ 
-    else if ( isEqual(this.idp, ZBR_CONSTANTS.AZURE_AD_IDP) ) {
+    else if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.AZURE_AD_IDP) ) {
       /* NOP */
+    }
+
+    /**
+     *  Keycloak
+     */ 
+     else if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.KEYCLOAK_IDP) ) {
+      
+      if (!this.authClient.didInitialize) {
+
+        const hash = window.location.hash;
+
+        if (hash.includes("code=") && hash.includes("state=")) {
+
+          window.zitiBrowzerRuntime.isAuthenticated = await this.authClient.init({});
+  
+        }
+        else {
+
+          try {
+            window.zitiBrowzerRuntime.isAuthenticated = await this.authClient.init({});
+            await this.authClient.login({
+              prompt: 'login',
+              maxAge: 0
+            });
+          } catch (error) {
+            zitiBrowzerRuntime.logger.error(`Failed to initialize adapter`);
+          }
+
+        }
+      }
+      else {
+        this.authClient.clearToken();         // Ensure token is tossed out
+        await this.authClient_instantiate();  // Get a completely new KC instance
+        try {
+          window.zitiBrowzerRuntime.isAuthenticated = await this.authClient.init({});
+          await this.authClient.login({
+            prompt: 'login',
+            maxAge: 0
+          });
+        } catch (error) {
+          zitiBrowzerRuntime.logger.error(`Failed to initialize adapter`);
+        }
+      }
+
     }
 
   }
@@ -1397,7 +1517,15 @@ class ZitiBrowzerRuntime {
     else if ( isEqual(this.idp, ZBR_CONSTANTS.AZURE_AD_IDP) ) {
       /* NOP */
     }
-
+    /**
+     *  Keycloak
+     */ 
+    else if ( isEqual(this.idp, ZBR_CONSTANTS.KEYCLOAK_IDP) ) {
+      if (!this.authClient.didInitialize) {
+        await this.authClient.init({});
+      }
+      this.authClient.clearToken();
+    }
   }
   
   /**
@@ -1467,7 +1595,7 @@ class ZitiBrowzerRuntime {
     let initResults = {
       authenticated:  true,
       unregisterSW:   false,
-      loadedViaHTTPAgent: options.loadedViaHTTPAgent
+      loadedViaBootstrapper: options.loadedViaBootstrapper
     };
 
     /**
@@ -1478,28 +1606,31 @@ class ZitiBrowzerRuntime {
      *  need should be in a cookie, and we will obtain it from there instead of 
      *  interacting with the IdP because doing so will lead to a never ending loop.
      */
-    if (options.loadedViaHTTPAgent) {
+    if (options.loadedViaBootstrapper) {
 
       this.isAuthenticated = await this.authClient_isAuthenticated();
 
       this.logger.trace(`isAuthenticated: ${this.isAuthenticated}`);
-
-      this.zitiConfig.access_token = this.getCookie( this.authTokenName );
-      if (!isEqual(this.zitiConfig.access_token, '')) {
-        let decoded_access_token = jwt_decode(this.zitiConfig.access_token);
-        let exp = decoded_access_token.exp;
-        if (Date.now() >= exp * 1000) {
-          this.logger.trace(`${this.authTokenName} has expired`);
+  
+      if (!this.zitiConfig.access_token) {
+        this.zitiConfig.access_token = this.getCookie( this.authTokenName );
+        if (!isEqual(this.zitiConfig.access_token, '') && !isEqual(this.zitiConfig.access_token, 'undefined')) {
+          let decoded_access_token = jwtDecode(this.zitiConfig.access_token);
+          let exp = decoded_access_token.exp;
+          if (Date.now() >= exp * 1000) {
+            this.logger.trace(`${this.authTokenName} has expired`);
+            this.isAuthenticated = false;
+          } else {
+            this.isAuthenticated = true;
+          }
+        } else {
           this.isAuthenticated = false;
         }
-      } else {
-        this.isAuthenticated = false;
       }
 
       if (!this.isAuthenticated) {
 
-        const query = window.location.search;
-        if (query.includes("code=") && query.includes("state=")) {
+        if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
       
           // Process the login state
           await this.authClient.handleRedirectCallback();
@@ -1517,6 +1648,18 @@ class ZitiBrowzerRuntime {
 
           // Use replaceState to redirect the user away and remove the querystring parameters
           window.history.replaceState({}, document.title, "/");
+
+        } else if (window.location.hash.includes("code=") && window.location.hash.includes("state=")) {
+
+          if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.KEYCLOAK_IDP) ) {
+
+            window.zitiBrowzerRuntime.isAuthenticated = await this.authClient.init({});
+
+            this.zitiConfig.access_token = this.authClient.token;
+            document.cookie = this.authTokenName + "=" + this.zitiConfig.access_token + "; path=/";
+            this.isAuthenticated = await this.authClient_isAuthenticated();
+
+          }
 
         } else {
 
@@ -1562,7 +1705,22 @@ class ZitiBrowzerRuntime {
         initResults.authenticated = false;
         initResults.unregisterSW = true;
 
+      } else {
+
+        if (!isEqual(this.zitiConfig.access_token, '') && !isEqual(this.zitiConfig.access_token, 'undefined')) {
+          let decoded_access_token = jwtDecode(this.zitiConfig.access_token);
+          let exp = decoded_access_token.exp;
+          if (Date.now() >= exp * 1000) {
+            this.logger.trace(`${this.authTokenName} has expired`);
+            this.isAuthenticated = false;
+
+            initResults.authenticated = false;
+            initResults.unregisterSW = true;
+    
+          }
+        }
       }
+
 
     }
 
@@ -1605,7 +1763,7 @@ class ZitiBrowzerRuntime {
       this.zitiConfig.jspi = this.shouldUseJSPI(); // determine which WASM to instantiate
 
       await this.zitiContext.initialize({
-        loadWASM: !options.loadedViaHTTPAgent,    // instantiate the WASM ONLY if we were not injected by the HTTP Agent
+        loadWASM: !options.loadedViaBootstrapper,    // instantiate the WASM ONLY if we were not injected by the HTTP Agent
         jspi:     this.zitiConfig.jspi,           // indicate which WASM to instantiate
         target:   this.zitiConfig.browzer.bootstrapper.target
       });
@@ -1758,7 +1916,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       });
     }
 
-    const loadedViaHTTPAgent = document.getElementById('from-ziti-browzer-bootstrapper');
+    const loadedViaBootstrapper = document.getElementById('from-ziti-browzer-bootstrapper');
 
     const loadedViaSW = document.getElementById('from-ziti-browzer-sw');
     let loadedViaSWConfigNeeded = false;
@@ -1772,9 +1930,9 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
     /**
      * 
      */
-    let initResults = await zitiBrowzerRuntime.initialize({loadedViaHTTPAgent: (loadedViaHTTPAgent ? true : false)});
+    let initResults = await zitiBrowzerRuntime.initialize({loadedViaBootstrapper: (loadedViaBootstrapper ? true : false)});
 
-    if (initResults.authenticated && !initResults.loadedViaHTTPAgent) {
+    if (initResults.authenticated && !initResults.loadedViaBootstrapper) {
 
       /**
        * 
@@ -2126,7 +2284,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       /**
        * 
        */      
-      if (initResults.authenticated && initResults.loadedViaHTTPAgent) {
+      if (initResults.authenticated && initResults.loadedViaBootstrapper) {
 
         /**
          * 
@@ -2199,7 +2357,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
           }
         }
 
-        zitiBrowzerRuntime.logger.debug(`################ loadedViaHTTPAgent detected -- doing page reload in 1sec ################`);
+        zitiBrowzerRuntime.logger.debug(`################ loadedViaBootstrapper detected -- doing page reload in 1sec ################`);
         if (!zitiBrowzerRuntime.reloadPending) {
           zitiBrowzerRuntime.reloadPending = true;
           setTimeout(function() {

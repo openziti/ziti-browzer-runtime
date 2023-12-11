@@ -22,10 +22,12 @@ limitations under the License.
  */
 const ZBR_CONSTANTS = 
 {   
-    AUTH0_IDP:            'AUTH0',
+    KEYCLOAK_IDP:         'keycloak',
+
+    AUTH0_IDP:            'auth0',
     AUTH0_URL_REGEX:      /auth0\.com/,
 
-    AZURE_AD_IDP:         'AZURE_AD',
+    AZURE_AD_IDP:         'azure_ad',
     AZURE_AD_URL_REGEX:   /login\.microsoftonline\.com/,
     AZURE_AD_SCOPES:      ['User.Read', 'openid', 'email'],
 
@@ -39,6 +41,7 @@ const ZBR_CONSTANTS =
     ZBR_ERROR_CODE_SYNC_XHR_ENCOUNTERED:    1008,
     ZBR_ERROR_CODE_JSPI_NOT_ENABLED:        1009,
     ZBR_ERROR_CODE_NESTED_TLS_HANDSHAKE_TIMEOUT:   1010,
+    ZBR_ERROR_CODE_INVALID_IDP_CONFIG:      1011,
 
 };
 

@@ -1,3 +1,12 @@
+## [0.52.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.52.0...v0.52.1) (2023-12-12)
+
+
+### Bug Fixes
+
+* enhanced JSPI check ([#223](https://github.com/openziti/ziti-browzer-runtime/issues/223)) ([d009bae](https://github.com/openziti/ziti-browzer-runtime/commit/d009bae084ebe1350cfc6329ebd37ef4e15abf4b))
+
+
+
 # [0.52.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.51.1...v0.52.0) (2023-12-11)
 
 

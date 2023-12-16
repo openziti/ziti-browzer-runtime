@@ -1534,7 +1534,7 @@ class ZitiBrowzerRuntime {
   shouldUseJSPI() {
     
     // If the client browser has JSPI enabled
-    if (!isUndefined(WebAssembly.Function) && !isUndefined(WebAssembly.Function.type)) {
+    if (!isUndefined(WebAssembly.Function)) {
       // ...then by all means, load JSPI WASM, regardless of whether the target web app needs nestedTLS or not
       return true;
     }

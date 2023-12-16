@@ -1,3 +1,12 @@
+# [0.53.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.52.1...v0.53.0) (2023-12-16)
+
+
+### Features
+
+* add gzip support ([#228](https://github.com/openziti/ziti-browzer-runtime/issues/228)) ([e25b2e9](https://github.com/openziti/ziti-browzer-runtime/commit/e25b2e906dedafa25115a56ec1ac6fae83d28ec8))
+
+
+
 ## [0.52.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.52.0...v0.52.1) (2023-12-12)
 
 

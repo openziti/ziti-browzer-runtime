@@ -1,3 +1,12 @@
+# [0.54.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.53.0...v0.54.0) (2023-12-19)
+
+
+### Features
+
+* eruda ([#234](https://github.com/openziti/ziti-browzer-runtime/issues/234)) ([d55efa0](https://github.com/openziti/ziti-browzer-runtime/commit/d55efa075505ee6e92a7875a7edd7824ad0f0b46))
+
+
+
 # [0.53.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.52.1...v0.53.0) (2023-12-16)
 
 

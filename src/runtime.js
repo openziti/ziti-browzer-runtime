@@ -1566,6 +1566,26 @@ class ZitiBrowzerRuntime {
    */
   async initialize(options) {
 
+    // Initialize eruda if it's present in the DOM
+    if (typeof eruda !== 'undefined') {
+      eruda.init({
+        tool: [
+          'console',
+          'elements',
+          'resources',
+          'info',
+          'snippets'
+        ],
+        useShadowDom: true,
+        autoScale: true,
+        defaults: {
+            displaySize: 50,
+            transparency: 0.9,
+            theme: 'Monokai Pro'
+        }
+      });
+    }
+
     this.logger = this.core.createZitiLogger({
       logLevel: this.logLevel,
       suffix: 'ZBR'  // run-time

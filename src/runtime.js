@@ -217,40 +217,6 @@ class ZitiBrowzerRuntime {
 
     window.zitiBrowzerRuntime = this;
 
-    this.wb             = new Workbox(
-      this._obtainBootStrapperURL()
-      + '/'
-      + this.zitiConfig.browzer.sw.location 
-      + '?swVersion='     + encodeURIComponent(this.zitiConfig.browzer.sw.version)
-      + '&controllerApi=' + encodeURIComponent(this.zitiConfig.controller.api)
-      + '&logLevel='      + encodeURIComponent(this.zitiConfig.browzer.sw.logLevel)
-    );
-
-    CookieInterceptor.init(); // Hijack the `document.cookie` object
-
-    let self = this;
-
-    CookieInterceptor.write.use( function ( cookie ) {
-      cookie = cookie.replace('%25','%');
-      let name = cookie.substring(0, cookie.indexOf("="));
-      let value = cookie.substring(cookie.indexOf("=") + 1);
-      let cookie_value = value.substring(0, value.indexOf(";"));
-      if (isEqual(cookie_value, '')) {
-        cookie_value = value;
-      }
-
-      if (!isEqual(name, self.authTokenName)) {
-        window.zitiBrowzerRuntime.wb.messageSW({
-          type: 'SET_COOKIE', 
-          payload: {
-            name: name, 
-            value: cookie_value
-          } 
-        });
-      }
-
-      return cookie;
-    });
 
     // Toast infra
     this.PolipopCreated = false;
@@ -1571,10 +1537,8 @@ class ZitiBrowzerRuntime {
       eruda.init({
         tool: [
           'console',
-          'elements',
           'resources',
           'info',
-          'snippets'
         ],
         useShadowDom: true,
         autoScale: true,
@@ -1585,6 +1549,12 @@ class ZitiBrowzerRuntime {
         }
       });
     }
+
+    let logLevel = await window.zitiBrowzerRuntime.localStorage.get(
+      'ZITI_BROWZER_RUNTIME_LOGLEVEL',
+    );
+    this.logLevel = logLevel ? logLevel : this.logLevel;
+    this.zitiConfig.browzer.runtime.logLevel = this.logLevel;
 
     this.logger = this.core.createZitiLogger({
       logLevel: this.logLevel,
@@ -1804,6 +1774,10 @@ class ZitiBrowzerRuntime {
       this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_XGRESS,                 this.xgressEventHandler);
       this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NESTED_TLS_HANDSHAKE_TIMEOUT,  this.nestedTLSHandshakeTimeoutEventHandler);
 
+      if (options.eruda) {
+        this.zitiConfig.eruda = true;
+      }
+
     }
 
     return initResults;
@@ -1950,7 +1924,47 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
     /**
      * 
      */
-    let initResults = await zitiBrowzerRuntime.initialize({loadedViaBootstrapper: (loadedViaBootstrapper ? true : false)});
+    let initResults = await zitiBrowzerRuntime.initialize(
+      {
+        loadedViaBootstrapper: (loadedViaBootstrapper ? true : false),
+        eruda: (typeof eruda !== 'undefined') ? true : false,
+      }
+    );
+
+    zitiBrowzerRuntime.wb = new Workbox(
+      zitiBrowzerRuntime._obtainBootStrapperURL()
+      + '/'
+      + zitiBrowzerRuntime.zitiConfig.browzer.sw.location 
+      + '?swVersion='     + encodeURIComponent(zitiBrowzerRuntime.zitiConfig.browzer.sw.version)
+      + '&controllerApi=' + encodeURIComponent(zitiBrowzerRuntime.zitiConfig.controller.api)
+      + '&logLevel='      + encodeURIComponent(zitiBrowzerRuntime.zitiConfig.browzer.runtime.logLevel)
+    );
+  
+    CookieInterceptor.init(); // Hijack the `document.cookie` object
+  
+    let self = zitiBrowzerRuntime;
+  
+    CookieInterceptor.write.use( function ( cookie ) {
+      cookie = cookie.replace('%25','%');
+      let name = cookie.substring(0, cookie.indexOf("="));
+      let value = cookie.substring(cookie.indexOf("=") + 1);
+      let cookie_value = value.substring(0, value.indexOf(";"));
+      if (isEqual(cookie_value, '')) {
+        cookie_value = value;
+      }
+  
+      if (!isEqual(name, self.authTokenName)) {
+        window.zitiBrowzerRuntime.wb.messageSW({
+          type: 'SET_COOKIE', 
+          payload: {
+            name: name, 
+            value: cookie_value
+          } 
+        });
+      }
+  
+      return cookie;
+    });  
 
     if (initResults.authenticated && !initResults.loadedViaBootstrapper) {
 
@@ -2134,12 +2148,17 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
        */
       zitiBrowzerRuntime.wb.addEventListener('message', event => {
 
-        zitiBrowzerRuntime.logger.info(`SW event (message) type: ${event.data.type}`);
+        // zitiBrowzerRuntime.logger.info(`SW event (message) type: ${event.data.type}`);
         
         if (event.data.type === 'XGRESS_EVENT') {
 
           zitiBrowzerRuntime.updateXgressEventData(event.data.payload.event);
       
+        }
+        else if (event.data.type === 'LOG_MESSAGE_EVENT') {
+
+          zitiBrowzerRuntime.logger[event.data.payload.logObj.type](`ZBSW: ${event.data.payload.logObj.args[0]}`);
+
         }
 
         // else if (event.data.type === 'GET_BASEURI') {

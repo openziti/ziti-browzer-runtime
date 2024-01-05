@@ -1776,6 +1776,8 @@ class ZitiBrowzerRuntime {
 
       if (options.eruda) {
         this.zitiConfig.eruda = true;
+      } else {
+        this.zitiConfig.eruda = false;
       }
 
     }
@@ -1938,6 +1940,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       + '?swVersion='     + encodeURIComponent(zitiBrowzerRuntime.zitiConfig.browzer.sw.version)
       + '&controllerApi=' + encodeURIComponent(zitiBrowzerRuntime.zitiConfig.controller.api)
       + '&logLevel='      + encodeURIComponent(zitiBrowzerRuntime.zitiConfig.browzer.runtime.logLevel)
+      + '&eruda='         + encodeURIComponent(zitiBrowzerRuntime.zitiConfig.eruda)
     );
   
     CookieInterceptor.init(); // Hijack the `document.cookie` object

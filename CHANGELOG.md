@@ -1,3 +1,12 @@
+# [0.55.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.54.1...v0.55.0) (2024-01-05)
+
+
+### Features
+
+* introduce 'eruda' url query parm ([#237](https://github.com/openziti/ziti-browzer-runtime/issues/237)) ([0360e57](https://github.com/openziti/ziti-browzer-runtime/commit/0360e5705dc06517310b5c7c6ba2da8a2c5cdabb))
+
+
+
 ## [0.54.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.54.0...v0.54.1) (2024-01-04)
 
 

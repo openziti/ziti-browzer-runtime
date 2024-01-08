@@ -1,3 +1,12 @@
+## [0.55.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.55.1...v0.55.2) (2024-01-08)
+
+
+### Bug Fixes
+
+* semver skew ([#240](https://github.com/openziti/ziti-browzer-runtime/issues/240)) ([2224898](https://github.com/openziti/ziti-browzer-runtime/commit/22248980132106e3d6011190c6f640dc9e2b7428))
+
+
+
 ## [0.55.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.55.0...v0.55.1) (2024-01-08)
 
 

@@ -16,11 +16,6 @@ limitations under the License.
 
 import { 
   ZitiBrowzerCore,
-  ZitiHttpRequest,
-  HttpResponse,
-  ZitiFormData,
-  BrowserStdout,
-  http,
   ZITI_CONSTANTS,
 } from '@openziti/ziti-browzer-core';
 

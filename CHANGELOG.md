@@ -1,3 +1,12 @@
+## [0.55.3](https://github.com/openziti/ziti-browzer-runtime/compare/v0.55.2...v0.55.3) (2024-01-10)
+
+
+### Bug Fixes
+
+* cookie intercept regression ([#243](https://github.com/openziti/ziti-browzer-runtime/issues/243)) ([98c2fbc](https://github.com/openziti/ziti-browzer-runtime/commit/98c2fbc8f77f9f5b38b5d90929aaaa1f565e1800))
+
+
+
 ## [0.55.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.55.1...v0.55.2) (2024-01-08)
 
 

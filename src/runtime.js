@@ -212,6 +212,29 @@ class ZitiBrowzerRuntime {
 
     window.zitiBrowzerRuntime = this;
 
+    let self = zitiBrowzerRuntime;
+  
+    CookieInterceptor.write.use( function ( cookie ) {
+      cookie = cookie.replace('%25','%');
+      let name = cookie.substring(0, cookie.indexOf("="));
+      let value = cookie.substring(cookie.indexOf("=") + 1);
+      let cookie_value = value.substring(0, value.indexOf(";"));
+      if (isEqual(cookie_value, '')) {
+        cookie_value = value;
+      }
+  
+      if (!isEqual(name, self.authTokenName)) {
+        window.zitiBrowzerRuntime.wb.messageSW({
+          type: 'SET_COOKIE', 
+          payload: {
+            name: name, 
+            value: cookie_value
+          } 
+        });
+      }
+  
+      return cookie;
+    });  
 
     // Toast infra
     this.PolipopCreated = false;
@@ -752,7 +775,7 @@ class ZitiBrowzerRuntime {
         }
 
         /**
-         * TODO: send rating to HTTP Agent
+         * TODO: send rating to browZer Bootstrapper
          */
 
         // let rating = document.getElementById("ziti-browzer-rating");
@@ -786,7 +809,7 @@ class ZitiBrowzerRuntime {
   }
 
   /**
-   * Extract the zitiConfig object from the Cookie sent from HTTP Agent
+   * Extract the zitiConfig object from the Cookie sent from browZer Bootstrapper
    */
   getZitiConfig() {
 
@@ -1748,7 +1771,7 @@ class ZitiBrowzerRuntime {
       this.zitiConfig.jspi = this.shouldUseJSPI(); // determine which WASM to instantiate
 
       await this.zitiContext.initialize({
-        loadWASM: !options.loadedViaBootstrapper,    // instantiate the WASM ONLY if we were not injected by the HTTP Agent
+        loadWASM: !options.loadedViaBootstrapper,    // instantiate the WASM ONLY if we were not injected by the browZer Bootstrapper
         jspi:     this.zitiConfig.jspi,           // indicate which WASM to instantiate
         target:   this.zitiConfig.browzer.bootstrapper.target
       });
@@ -1939,31 +1962,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
     );
   
     CookieInterceptor.init(); // Hijack the `document.cookie` object
-  
-    let self = zitiBrowzerRuntime;
-  
-    CookieInterceptor.write.use( function ( cookie ) {
-      cookie = cookie.replace('%25','%');
-      let name = cookie.substring(0, cookie.indexOf("="));
-      let value = cookie.substring(cookie.indexOf("=") + 1);
-      let cookie_value = value.substring(0, value.indexOf(";"));
-      if (isEqual(cookie_value, '')) {
-        cookie_value = value;
-      }
-  
-      if (!isEqual(name, self.authTokenName)) {
-        window.zitiBrowzerRuntime.wb.messageSW({
-          type: 'SET_COOKIE', 
-          payload: {
-            name: name, 
-            value: cookie_value
-          } 
-        });
-      }
-  
-      return cookie;
-    });  
-
+    
     if (initResults.authenticated && !initResults.loadedViaBootstrapper) {
 
       /**

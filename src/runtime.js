@@ -2105,13 +2105,31 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
        * 
        * However, if we need to know when the SW 'activate' logic is complete, this is where we find out.
        * 
-       * Here is what we do on this event:
-       *  - acquire and log the service worker's version
-       *  - acquire a keypair froma the service worker
        * 
        */
       zitiBrowzerRuntime.wb.addEventListener('activated', async event => {
         zitiBrowzerRuntime.logger.info(`received SW 'activated' event`);
+
+        if (window.zitiBrowzerRuntime.isAuthenticated) {
+
+          if (zitiBrowzerRuntime.ua.browser.name === 'Safari') {
+            setTimeout(function() {
+              zitiBrowzerRuntime.logger.debug(`################ doing Safari page reload now ################`);
+              window.location.href = window.location.href;
+            }, 1000);
+          } else {
+              setTimeout(function() {
+                zitiBrowzerRuntime.logger.debug(`################ doing Chromium page reload now ################`);
+                window.location.reload();  
+              }, 1000);
+          }
+
+        } else {
+
+          zitiBrowzerRuntime.logger.debug(`skipping page reload until after successful authentication`);
+
+        }
+
       });
 
       

@@ -1,3 +1,12 @@
+# [0.56.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.55.4...v0.56.0) (2024-01-25)
+
+
+### Features
+
+* agent pool ([#246](https://github.com/openziti/ziti-browzer-runtime/issues/246)) ([564a4b5](https://github.com/openziti/ziti-browzer-runtime/commit/564a4b5ea01d507c7f28538ac2877b300055ea77))
+
+
+
 ## [0.55.4](https://github.com/openziti/ziti-browzer-runtime/compare/v0.55.3...v0.55.4) (2024-01-11)
 
 

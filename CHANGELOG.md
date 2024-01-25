@@ -1,3 +1,12 @@
+## [0.56.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.56.0...v0.56.1) (2024-01-25)
+
+
+### Bug Fixes
+
+* reload page after SW activation complete ([#247](https://github.com/openziti/ziti-browzer-runtime/issues/247)) ([74f6337](https://github.com/openziti/ziti-browzer-runtime/commit/74f6337a51bb458590110c12657f7abe839d29c1))
+
+
+
 # [0.56.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.55.4...v0.56.0) (2024-01-25)
 
 

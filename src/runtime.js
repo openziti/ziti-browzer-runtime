@@ -1930,6 +1930,19 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       });
     }
 
+    async function await_serviceWorker_activated() {
+      return new Promise((resolve, _reject) => {
+        (function waitFor_serviceWorker_activated() {
+          if (!zitiBrowzerRuntime.swActivated) {
+            window.zitiBrowzerRuntime.logger.trace(`waitFor_serviceWorker_activated: ...waiting for [zitiBrowzerRuntime.swActivated]`);
+            setTimeout(waitFor_serviceWorker_activated, 10);
+          } else {
+            return resolve();
+          }
+        })();
+      });
+    }
+
     const loadedViaBootstrapper = document.getElementById('from-ziti-browzer-bootstrapper');
 
     const loadedViaSW = document.getElementById('from-ziti-browzer-sw');
@@ -2110,26 +2123,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       zitiBrowzerRuntime.wb.addEventListener('activated', async event => {
         zitiBrowzerRuntime.logger.info(`received SW 'activated' event`);
 
-        if (window.zitiBrowzerRuntime.isAuthenticated) {
-
-          if (zitiBrowzerRuntime.ua.browser.name === 'Safari') {
-            setTimeout(function() {
-              zitiBrowzerRuntime.logger.debug(`################ doing Safari page reload now ################`);
-              window.location.href = window.location.href;
-            }, 1000);
-          } else {
-              setTimeout(function() {
-                zitiBrowzerRuntime.logger.debug(`################ doing Chromium page reload now ################`);
-                window.location.reload();  
-              }, 1000);
-          }
-
-        } else {
-
-          zitiBrowzerRuntime.logger.debug(`skipping page reload until after successful authentication`);
-
-        }
-
+        zitiBrowzerRuntime.swActivated = true;
       });
 
       
@@ -2330,10 +2324,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       });
       
       zitiBrowzerRuntime.wb.register();
-      zitiBrowzerRuntime.logger.debug(
-        `################ SW register completed ################`
-      );
-
+      zitiBrowzerRuntime.logger.debug(`################ SW register completed ################`);
 
       /**
        * 

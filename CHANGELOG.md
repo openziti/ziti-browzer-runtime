@@ -1,3 +1,12 @@
+## [0.56.3](https://github.com/openziti/ziti-browzer-runtime/compare/v0.56.2...v0.56.3) (2024-01-29)
+
+
+### Bug Fixes
+
+* strange css issue accessing ZAC ([#251](https://github.com/openziti/ziti-browzer-runtime/issues/251)) ([0218a42](https://github.com/openziti/ziti-browzer-runtime/commit/0218a42e2a3302ca3a661e41797b98f88c145fb5))
+
+
+
 ## [0.56.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.56.1...v0.56.2) (2024-01-25)
 
 

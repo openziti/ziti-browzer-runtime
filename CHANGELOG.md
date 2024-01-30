@@ -1,3 +1,12 @@
+# [0.57.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.56.3...v0.57.0) (2024-01-30)
+
+
+### Features
+
+* Support Mattermost desktop (Electron) app ([#253](https://github.com/openziti/ziti-browzer-runtime/issues/253)) ([db85462](https://github.com/openziti/ziti-browzer-runtime/commit/db854627fa6a288078dbe5008cbfcdbcceb43df1))
+
+
+
 ## [0.56.3](https://github.com/openziti/ziti-browzer-runtime/compare/v0.56.2...v0.56.3) (2024-01-29)
 
 

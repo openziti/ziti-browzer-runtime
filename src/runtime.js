@@ -176,6 +176,7 @@ class ZitiBrowzerRuntime {
       chrome: ">=97",     // Chrome, Brave
       edge:   ">=97",     // Microsoft Edge
       safari: ">=10",     // Safari
+      electron: ">=27",   // Electron
 
     });
     if (!isSupportedBrowser) {

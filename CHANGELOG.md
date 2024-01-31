@@ -1,3 +1,12 @@
+## [0.57.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.57.0...v0.57.1) (2024-01-31)
+
+
+### Bug Fixes
+
+* WebSocket intercept regression ([#256](https://github.com/openziti/ziti-browzer-runtime/issues/256)) ([312e57d](https://github.com/openziti/ziti-browzer-runtime/commit/312e57d432ad2a834d312c005671d54f819cf560))
+
+
+
 # [0.57.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.56.3...v0.57.0) (2024-01-30)
 
 

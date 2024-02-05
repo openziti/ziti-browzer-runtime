@@ -1,3 +1,12 @@
+## [0.58.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.58.0...v0.58.1) (2024-02-05)
+
+
+### Bug Fixes
+
+* introduce ZitiDummyWebSocketWrapper ([#259](https://github.com/openziti/ziti-browzer-runtime/issues/259)) ([52979fa](https://github.com/openziti/ziti-browzer-runtime/commit/52979fae67f68843d829a7beb6eb1c5a626e1d7e))
+
+
+
 # [0.58.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.57.1...v0.58.0) (2024-02-05)
 
 

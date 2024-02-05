@@ -274,6 +274,25 @@ function ZitiXMLHttpRequest () {
 
     settings.headers = headers;
 
+    await window.zitiBrowzerRuntime.awaitInitializationComplete();
+
+    let url;
+    let targetHost;
+    if (!settings.url.startsWith('/')) {
+      url = new URL(settings.url);
+      targetHost = url.hostname;
+    } else {
+      url = new URL(`https://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}${settings.url}`);
+      targetHost = window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host;
+    }
+    if (isEqual(targetHost, window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host)) {
+      let protocol = url.protocol;
+      if (!isEqual(protocol, 'https:')) {
+        url.protocol = 'https:';
+        settings.url = url.toString();
+      }
+    }
+
     response = await fetch(settings.url, settings);
 
     this.status = response.status;

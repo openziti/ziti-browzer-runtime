@@ -5,6 +5,7 @@ import json from '@rollup/plugin-json';
 // import commonjs from '@rollup/plugin-commonjs';
 import prettier from 'rollup-plugin-prettier';
 import copy from 'rollup-plugin-copy';
+import nodePolyfills from 'rollup-plugin-polyfill-node';
 
 
 const SRC_DIR   = 'src';
@@ -33,6 +34,7 @@ let plugins = [
       }
     ]
   }),
+  nodePolyfills(),
   nodeResolve(),
 ];
 

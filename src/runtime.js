@@ -31,6 +31,7 @@ import { flatOptions } from './utils/flat-options'
 import { defaultOptions } from './options'
 import { ZBR_CONSTANTS } from './constants';
 import { ZitiXMLHttpRequest } from './http/ziti-xhr';
+import { ZitiDummyWebSocketWrapper } from './http/ziti-dummy-websocket-wrapper';
 import { buildInfo } from './buildInfo'
 import { ZitiBrowzerLocalStorage } from './utils/localstorage';
 import { Auth0Client } from '@auth0/auth0-spa-js';
@@ -237,15 +238,21 @@ class ZitiBrowzerRuntime {
       return cookie;
     });  
 
-    // Toast infra
-    this.PolipopCreated = false;
-    setTimeout(this._createPolipop, 1000, this);
+    const loadedViaBootstrapper = document.getElementById('from-ziti-browzer-bootstrapper');
 
-    // HotKey infra
-    setTimeout(this._createHotKey, 5000, this);    
+    if (!loadedViaBootstrapper) {
 
-    // Click intercept infra
-    setTimeout(this._createClickIntercept, 3000, this);
+      // Toast infra
+      this.PolipopCreated = false;
+      setTimeout(this._createPolipop, 1000, this);
+
+      // HotKey infra
+      setTimeout(this._createHotKey, 5000, this);    
+
+      // Click intercept infra
+      setTimeout(this._createClickIntercept, 3000, this);
+    
+    }
 
     this.authClient = null;
     this.idp = null;
@@ -410,7 +417,7 @@ class ZitiBrowzerRuntime {
 
   _createPolipop(self) {
 
-    if (!this.PolipopCreated) {
+    if (!self.PolipopCreated) {
       try {
         if (document.body && (typeof Polipop !== 'undefined')) {
           self.polipop = new Polipop('ziti-browzer-toast', {
@@ -427,17 +434,17 @@ class ZitiBrowzerRuntime {
             life: 3000,
             icons: true,
           });
-          this.PolipopCreated = true;
-          self.logger.debug(`_createPolipop: Polipop bootstrap completed`);
+          self.PolipopCreated = true;
+          self.logger?.debug(`_createPolipop: Polipop bootstrap completed`);
         }
         else {
-          self.logger.debug(`_createPolipop: awaiting Polipop bootstrap`);
-          setTimeout(this._createPolipop, 100, this);
+          self.logger?.debug(`_createPolipop: awaiting Polipop bootstrap`);
+          setTimeout(self._createPolipop, 100, self);
         }
       }
       catch (e) {
-        self.logger.error(`_createPolipop: bootstrap error`, e);
-        setTimeout(this._createPolipop, 1000, this);
+        self.logger?.error(`_createPolipop: bootstrap error`, e);
+        setTimeout(self._createPolipop, 1000, self);
       }
     }
   }
@@ -1609,9 +1616,9 @@ class ZitiBrowzerRuntime {
 
     /**
      *  Logic devoted to acquiring an access_token from the IdP runs _ONLY_
-     *  when this ZBR has been loaded from the BrowZer Gateway (not the ZBSW).
+     *  when this ZBR has been loaded from the BrowZer Bootstrapper (not the ZBSW).
      * 
-     *  If we were loaded via the ZBSW, then the the access_token we
+     *  If we were loaded via the ZBSW, then the access_token we
      *  need should be in a cookie, and we will obtain it from there instead of 
      *  interacting with the IdP because doing so will lead to a never ending loop.
      */
@@ -1757,8 +1764,6 @@ class ZitiBrowzerRuntime {
     
       });
       this.logger.trace(`ZitiContext created`);
-
-      window.WebSocket = zitiBrowzerRuntime.zitiContext.zitiWebSocketWrapper;
 
       this.zbrSWM = new ZitiBrowzerRuntimeServiceWorkerMock();
 
@@ -1913,6 +1918,8 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
   window.zitiBrowzerRuntime._serviceWorkerKeepAliveHeartBeat(window.zitiBrowzerRuntime);
 
+  window.zitiBrowzerRuntime.loadedViaBootstrapper = document.getElementById('from-ziti-browzer-bootstrapper');
+
   /**
    * Use an async IIFE to initialize the runtime and register the SW.
    */
@@ -1983,11 +1990,6 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
        * 
        */
       await window.zitiBrowzerRuntime.zitiContext.enroll();
-
-      /**
-       * 
-       */
-      window.WebSocket = zitiBrowzerRuntime.zitiContext.zitiWebSocketWrapper;
 
     }
 
@@ -2475,6 +2477,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 var regex = new RegExp( `${window.zitiBrowzerRuntime._obtainBootStrapperURL()}`, 'gi' );
 var regexSlash = new RegExp( /^\//, 'g' );
 var regexDotSlash = new RegExp( /^\.\//, 'g' );
+var regexZBR      = new RegExp( /ziti-browzer-runtime-\w{8}\.js/, 'g' );
 var regexZBWASM   = new RegExp( /libcrypto.*.wasm/, 'g' );
 
 
@@ -2489,27 +2492,45 @@ var regexZBWASM   = new RegExp( /libcrypto.*.wasm/, 'g' );
 
 const zitiFetch = async ( urlObj, opts ) => {
 
+  let url;
+  if (urlObj instanceof Request) {
+    url = urlObj.url;
+  } else {
+    url = urlObj;
+  }
+
+  if (url.match( regexZBR ) || url.match( regexZBWASM )) { // the request seeks z-b-r/wasm
+    return window._ziti_realFetch(urlObj, opts);
+  }
+
+  if (!window.zitiBrowzerRuntime.loadedViaBootstrapper) {
+    await window.zitiBrowzerRuntime.awaitInitializationComplete();
+  }
+
   if (!window.zitiBrowzerRuntime.isAuthenticated) {
     return window._ziti_realFetch(urlObj, opts);
   }
 
-  let url;
-
-  if (urlObj instanceof Request) {
-    url = urlObj.url;
-
-    for (var pair of urlObj.headers.entries()) {
-      console.log(`${pair[0]} : ${pair[1]}`);
-    }
-
+  let targetHost;
+  if (!url.startsWith('/')) {
+    url = new URL(url);
+    targetHost = url.hostname;
   } else {
-    url = urlObj;
+    url = new URL(`https://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}${url}`);
+    targetHost = window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host;
+  }
+  if (isEqual(targetHost, window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host)) {
+    let protocol = url.protocol;
+    if (!isEqual(protocol, 'https:')) {
+      url.protocol = 'https:';
+      url = url.toString();
+    }
   }
 
   window.zitiBrowzerRuntime.logger.trace( 'zitiFetch: entered for URL: ', url);
 
 //TEMP TEST... always attempt to go thru SW
-  return window._ziti_realFetch(urlObj, opts);
+  return window._ziti_realFetch(url, opts);
 
   if (url.match( regexZBWASM )) { // the request seeks z-b-r/wasm
     window.zitiBrowzerRuntime.logger.trace('zitiFetch: seeking Ziti z-b-r/wasm, bypassing intercept of [%s]', url);
@@ -2729,4 +2750,4 @@ const zitiDocumentDomain = ( arg ) => {
 window.fetch = zitiFetch;
 window.XMLHttpRequest = ZitiXMLHttpRequest;
 window.document.zitidomain = zitiDocumentDomain;
-
+window.WebSocket = ZitiDummyWebSocketWrapper;

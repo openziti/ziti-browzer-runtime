@@ -1,3 +1,12 @@
+# [0.59.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.58.1...v0.59.0) (2024-02-10)
+
+
+### Features
+
+* OIDC refactor ([#260](https://github.com/openziti/ziti-browzer-runtime/issues/260)) ([89fda74](https://github.com/openziti/ziti-browzer-runtime/commit/89fda74d0dba30c321ef4ff6104feeba1368e53a))
+
+
+
 ## [0.58.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.58.0...v0.58.1) (2024-02-05)
 
 

@@ -1,5 +1,5 @@
 /*
-Copyright Netfoundry, Inc.
+Copyright NetFoundry, Inc.
 
 Licensed under the Apache License, Version 2.0 (the "License");
 you may not use this file except in compliance with the License.
@@ -39,6 +39,14 @@ import Bowser from 'bowser';
 import uPlot from 'uplot';
 import * as msal from '@azure/msal-browser';
 import { stringify } from './urlon';
+import * as oidc from 'oauth4webapi'
+import {
+  getPKCERedirectURI, 
+  pkceLogin, 
+  pkceLogout,
+  pkceCallback,
+  PKCEToken,
+} from './oidc/utils';
 
 
 /**
@@ -63,6 +71,63 @@ var regexZBSW = new RegExp( /ziti-browzer-sw\.js/, 'gi' );
 
 var regexAuth0URL   = new RegExp( ZBR_CONSTANTS.AUTH0_URL_REGEX, 'gi' );
 var regexAzureADURL = new RegExp( ZBR_CONSTANTS.AZURE_AD_URL_REGEX, 'gi' );
+
+function delay(time) { return new Promise(resolve => setTimeout(resolve, time)); }
+
+/**
+ * sendMessage() is used instead of wb.messageSW() for msgs where 
+ * usage of wb.messageSW is unavailable.
+ */
+function sendMessage(message) {
+  // This wraps the message posting/response in a promise, which will resolve if the response doesn't
+  // contain an error, and reject with the error if it does. 
+  return new Promise(function(resolve, reject) {
+    var messageChannel = new MessageChannel();
+    messageChannel.port1.onmessage = function(event) {
+      if (event.data.error) {
+        reject(event.data.error);
+      } else {
+        resolve(event.data);
+      }
+    };      
+    // This sends the message data as well as transferring messageChannel.port2 to the service worker.
+    navigator.serviceWorker.controller.postMessage(message,
+      [messageChannel.port2]);
+  });
+}
+
+/**
+ * 
+ */
+function isTokenExpired(access_token) {
+  let decoded_access_token = jwtDecode(access_token);
+  let exp = decoded_access_token.exp;
+  let isExpired = false;
+  if (Date.now() >= exp * 1000) {
+    isExpired = true;
+    window.zitiBrowzerRuntime.logger.trace(`IdP token has expired`);
+  }
+  return isExpired;
+}
+
+/**
+ * 
+ */
+function getOIDCConfig() {
+
+  let oidcConfig = {
+    name:                       'ZitiBrowzerRuntimeOIDCConfig',
+    issuer:                     window.zitiBrowzerRuntime.zitiConfig.idp.host,
+    client_id:                  window.zitiBrowzerRuntime.zitiConfig.idp.clientId,
+    scopes:                     ['openid', 'email'],
+    enablePKCEAuthentication:   true,
+    token_endpoint_auth_method: 'none',
+    redirect_uri:               getPKCERedirectURI().toString(),
+    code_verifier:              oidc.generateRandomCodeVerifier(),
+  };
+
+  return oidcConfig;
+}
 
 class ZitiBrowZerRuntimeServiceWorkerRegistrationMock {
 
@@ -332,7 +397,7 @@ class ZitiBrowzerRuntime {
   }
 
   /**
-   *  Do a periodic fetch of a (cached) file so that the SW will not deactivate when teh browser tab is minimized
+   *  Do a periodic fetch of a (cached) file so that the SW will not deactivate when the browser tab is minimized
    */
   _serviceWorkerKeepAliveHeartBeat(self) {
     fetch(`${ self._obtainBootStrapperURL() }/ziti-browzer-logo.svg`);
@@ -833,20 +898,19 @@ class ZitiBrowzerRuntime {
 
     window.zitiBrowzerRuntime.toastError(`Your browZer Session has expired -- Re-Authentication required -- stand by.`);
 
-    window.zitiBrowzerRuntime.logger.trace( `doIdpLogout: ${window.zitiBrowzerRuntime.authTokenName} has expired and will be torn down`);
+    window.zitiBrowzerRuntime.logger.trace( `doIdpLogout: token has expired and will be torn down`);
 
-    // purge the cookie
-    document.cookie = window.zitiBrowzerRuntime.authTokenName+'=; Max-Age=-99999999;';  
+    setTimeout(async function() {
 
-    window.zitiBrowzerRuntime.authClient_doLogout();
-
-    setTimeout(function() {
       window.zitiBrowzerRuntime.wb.messageSW({
         type: 'UNREGISTER', 
         payload: {
         } 
       });
-    }, 50);
+
+      pkceLogout( getOIDCConfig(), getPKCERedirectURI().toString() );
+
+    }, 5000);
   }
 
   idpAuthHealthEventHandler(idpAuthHealthEvent) {  
@@ -954,7 +1018,7 @@ class ZitiBrowzerRuntime {
     window.zitiBrowzerRuntime.browzer_error({
       status:   409,
       code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_SERVICE_UNREACHABLE,
-      title:    `Ziti Service '${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service}' cannot be reached -- [${sessionCreationErrorEvent.error}]`,
+      title:    `Ziti Service [${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service}] cannot be reached -- [${sessionCreationErrorEvent.error}]`,
       message:  `The request conflicts with the current state of the network.`
     });
 
@@ -967,7 +1031,7 @@ class ZitiBrowzerRuntime {
     window.zitiBrowzerRuntime.browzer_error({
         status:   511,
         code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_INVALID_AUTH,
-        title:    `User '${invalidAuthEvent.email}' cannot be authenticated onto Ziti Network`,
+        title:    `User [${invalidAuthEvent.email}] cannot be authenticated onto Ziti Network`,
         message:  `The client needs to authenticate to gain network access.`
     });
 
@@ -980,7 +1044,7 @@ class ZitiBrowzerRuntime {
     window.zitiBrowzerRuntime.browzer_error({
       status:   409,
       code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_SERVICE_UNREACHABLE,
-      title:    `Ziti Service '${channelConnectFailEvent.serviceName}' connect attempt failed on Ziti Network.`,
+      title:    `Ziti Service [${channelConnectFailEvent.serviceName}] connect attempt failed on Ziti Network.`,
       message:  `The web server might be down.`
     });
 
@@ -1079,33 +1143,15 @@ class ZitiBrowzerRuntime {
   
   /**
    * Instantiate the IdP auth client
+   * 
+   *  TODO: delete all this once we have tested the new OIDC support with AzureAD
    */
   async authClient_instantiate() {
 
     /**
      *  Identify the IdP
      */
-    if ( this.zitiConfig.idp.type && isEqual(this.zitiConfig.idp.type, ZBR_CONSTANTS.AUTH0_IDP) ) {
-      this.idp = ZBR_CONSTANTS.AUTH0_IDP
-    }
-    else if ( this.zitiConfig.idp.type && isEqual(this.zitiConfig.idp.type, ZBR_CONSTANTS.AZURE_AD_IDP) ) {
-      this.idp = ZBR_CONSTANTS.AZURE_AD_IDP
-    }
-    else if ( this.zitiConfig.idp.type && isEqual(this.zitiConfig.idp.type, ZBR_CONSTANTS.KEYCLOAK_IDP) ) {
-      this.idp = ZBR_CONSTANTS.KEYCLOAK_IDP
-
-      if ( isUndefined(this.zitiConfig.idp.realm) ) {
-
-        window.zitiBrowzerRuntime.browzer_error({
-          status:   409,
-          code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_INVALID_IDP_CONFIG,
-          title:    `Invalid Keycloak IdP config [${JSON.stringify(this.zitiConfig.idp)}]`,
-          message:  `Realm not specified.`
-        });
-  
-      }
-    }
-    else if ( (this.zitiConfig.idp.host.match( regexAuth0URL )) ) {
+    if ( (this.zitiConfig.idp.host.match( regexAuth0URL )) ) {
       this.idp = ZBR_CONSTANTS.AUTH0_IDP
     }
     else if ( (this.zitiConfig.idp.host.match( regexAzureADURL )) ) {
@@ -1285,121 +1331,6 @@ class ZitiBrowzerRuntime {
   }
 
 
-  /**
-   * Determine if the IdP auth client is currently authenticated
-   */
-  async authClient_isAuthenticated() {
-
-    /**
-     *  Keycloak
-     */
-    if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.KEYCLOAK_IDP) ) {
-
-      window.zitiBrowzerRuntime.isAuthenticated = this.authClient.authenticated;
-
-      if (window.zitiBrowzerRuntime.isAuthenticated) {
-
-        let expired = this.authClient.isTokenExpired();
-
-        if (expired) {
-          window.zitiBrowzerRuntime.isAuthenticated = false;
-        }
-
-      }
-
-      return window.zitiBrowzerRuntime.isAuthenticated;
-
-    }
-    
-    /**
-     *  Auth0
-     */
-    if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.AUTH0_IDP) ) {
-
-      window.zitiBrowzerRuntime.isAuthenticated = await this.authClient.isAuthenticated();
-      return window.zitiBrowzerRuntime.isAuthenticated;
-
-    }
-    /**
-     *  AzureAD
-     */ 
-    else if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.AZURE_AD_IDP) ) {
-
-      return await this.authClient_isAuthenticated_AzureAD();
-
-    }
-
-    return window.zitiBrowzerRuntime.isAuthenticated;
-  }
-
-  /**
-   *  Force logout from the IdP auth client.  
-   *  This will clear local cache of tokens then redirect to the IdP signout page.
-   */
-  authClient_doLogout() {
-
-    /**
-     *  Auth0
-     */
-    if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.AUTH0_IDP) ) {
-
-      // Run the following on a delay so the toast can be read by user, and so that we do not block the SW messaging
-      setTimeout(function() {
-
-        // do the OIDC logout
-        window.zitiBrowzerRuntime.authClient.logout({
-          logoutParams: {
-            returnTo: window.location.origin
-          }
-        });            
-
-      }, 3000);
-
-    }
-    /**
-     *  AzureAD
-     */ 
-    else if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.AZURE_AD_IDP) ) {
-
-      // Run the following on a delay so the toast can be read by user, and so that we do not block the SW messaging
-      setTimeout(function() {
-
-        window.zitiBrowzerRuntime.authClient.logoutRedirect({});
-
-      }, 3000);
-
-    }
-    /**
-     *  Keycloak
-     */
-    else if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.KEYCLOAK_IDP) ) {
-
-      // Run the following on a delay so the toast can be read by user, and so that we do not block the SW messaging
-      setTimeout(function() {
-
-        // do the OIDC logout
-        window.zitiBrowzerRuntime.authClient.logout({
-          redirectUri: {
-            returnTo: window.location.origin
-          }
-        });            
-
-      }, 2000);
-      
-    }
-
-
-    setTimeout(function() {
-
-      zitiBrowzerRuntime.logger.debug(`doIdpLogout: ################ doing root-page page reload now ################`);
-      window.location.replace(window.zitiBrowzerRuntime._obtainBootStrapperURL() + zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path);
-    
-    }, 5000);
-
-    return;
-  }
-
-
   async await_azure_ad_accountId() {
     return new Promise((resolve, _reject) => {
       (async function waitFor_azure_ad_accountId() {
@@ -1413,112 +1344,6 @@ class ZitiBrowzerRuntime {
     });
   }
 
-
-  /**
-   * Obtain the token from the IdP auth client
-   */
-  async authClient_getToken() {
-  }
-
-  /**
-   * Login to the IdP
-   */
-  async authClient_loginWithRedirect() {
-
-    /**
-     *  Auth0
-     */
-    if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.AUTH0_IDP) ) {
-
-      await this.authClient.loginWithRedirect({
-        authorizationParams: {
-          redirect_uri: `${window.location.origin}`
-        }
-      });
-
-    }
-    /**
-     *  AzureAD
-     */ 
-    else if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.AZURE_AD_IDP) ) {
-      /* NOP */
-    }
-
-    /**
-     *  Keycloak
-     */ 
-     else if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.KEYCLOAK_IDP) ) {
-      
-      if (!this.authClient.didInitialize) {
-
-        const hash = window.location.hash;
-
-        if (hash.includes("code=") && hash.includes("state=")) {
-
-          window.zitiBrowzerRuntime.isAuthenticated = await this.authClient.init({});
-  
-        }
-        else {
-
-          try {
-            window.zitiBrowzerRuntime.isAuthenticated = await this.authClient.init({});
-            await this.authClient.login({
-              prompt: 'login',
-              maxAge: 0
-            });
-          } catch (error) {
-            zitiBrowzerRuntime.logger.error(`Failed to initialize adapter`);
-          }
-
-        }
-      }
-      else {
-        this.authClient.clearToken();         // Ensure token is tossed out
-        await this.authClient_instantiate();  // Get a completely new KC instance
-        try {
-          window.zitiBrowzerRuntime.isAuthenticated = await this.authClient.init({});
-          await this.authClient.login({
-            prompt: 'login',
-            maxAge: 0
-          });
-        } catch (error) {
-          zitiBrowzerRuntime.logger.error(`Failed to initialize adapter`);
-        }
-      }
-
-    }
-
-  }
-
-  /**
-   * Logout of the IdP
-   */
-  async authClient_logout() {
-
-    /**
-     *  Auth0
-     */
-    if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.AUTH0_IDP) ) {
-
-      this.authClient.logout({logoutParams:{returnTo: window.location.origin}});
-
-    }
-    /**
-     *  AzureAD
-     */ 
-    else if ( isEqual(this.idp, ZBR_CONSTANTS.AZURE_AD_IDP) ) {
-      /* NOP */
-    }
-    /**
-     *  Keycloak
-     */ 
-    else if ( isEqual(this.idp, ZBR_CONSTANTS.KEYCLOAK_IDP) ) {
-      if (!this.authClient.didInitialize) {
-        await this.authClient.init({});
-      }
-      this.authClient.clearToken();
-    }
-  }
   
   /**
    * 
@@ -1603,144 +1428,133 @@ class ZitiBrowzerRuntime {
     });
 
 
-    // Instantiate the IdP client
-    await this.authClient_instantiate();
-
-    await this.authClient_isAuthenticated();
-
     let initResults = {
       authenticated:  true,
       unregisterSW:   false,
       loadedViaBootstrapper: options.loadedViaBootstrapper
     };
 
-    /**
-     *  Logic devoted to acquiring an access_token from the IdP runs _ONLY_
-     *  when this ZBR has been loaded from the BrowZer Bootstrapper (not the ZBSW).
-     * 
-     *  If we were loaded via the ZBSW, then the access_token we
-     *  need should be in a cookie, and we will obtain it from there instead of 
-     *  interacting with the IdP because doing so will lead to a never ending loop.
-     */
+    this.zitiConfig.token_type = 'Bearer';
+
+    /** ===================================================================
+     *  Loded via the BrowZer Bootstrapper
+    /** ================================================================= */
     if (options.loadedViaBootstrapper) {
 
-      this.isAuthenticated = await this.authClient_isAuthenticated();
+      this.logger.trace(`initialize() Loaded via BOOTSTRAPPER`);
 
-      this.logger.trace(`isAuthenticated: ${this.isAuthenticated}`);
-  
-      if (!this.zitiConfig.access_token) {
-        this.zitiConfig.access_token = this.getCookie( this.authTokenName );
-        if (!isEqual(this.zitiConfig.access_token, '') && !isEqual(this.zitiConfig.access_token, 'undefined')) {
-          let decoded_access_token = jwtDecode(this.zitiConfig.access_token);
-          let exp = decoded_access_token.exp;
-          if (Date.now() >= exp * 1000) {
-            this.logger.trace(`${this.authTokenName} has expired`);
-            this.isAuthenticated = false;
-          } else {
-            this.isAuthenticated = true;
-          }
-        } else {
+      // Pull the token from session storage
+      this.zitiConfig.access_token  = PKCEToken.get();
+
+      // If we have a token, determine if it has expired
+      if (!isEqual(this.zitiConfig.access_token, null)) {  
+        this.logger.trace(`initialize() session token found`);
+        if (isTokenExpired(this.zitiConfig.access_token)) {
           this.isAuthenticated = false;
+        } else {
+          this.isAuthenticated = true;
         }
+      } else {
+        this.logger.trace(`initialize() session token NOT found`);
+        this.isAuthenticated = false;
       }
 
+      // If we don't have a valid token yet
       if (!this.isAuthenticated) {
 
+        // If we are coming back from an IdP redirect, obtain the token by leveraging the URL parms
         if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
-      
-          // Process the login state
-          await this.authClient.handleRedirectCallback();
 
-          const token = await this.authClient.getTokenSilently({detailedResponse: true});
+          this.logger.trace(`initialize() calling pkceCallback`);
 
-          this.zitiConfig.token_type = 'Bearer';
-          this.zitiConfig.access_token = token.id_token;
-          this.logger.trace(`zitiConfig.access_token: ${this.zitiConfig.access_token}`);
-          document.cookie = this.authTokenName + "=" + this.zitiConfig.access_token + "; path=/";
+          await pkceCallback( getOIDCConfig(), getPKCERedirectURI().toString() );
 
-          this.isAuthenticated = await this.authClient_isAuthenticated();
+          this.zitiConfig.access_token = PKCEToken.get();
 
-          this.logger.trace(`isAuthenticated: ${this.isAuthenticated}`);
+          window.location.replace(getPKCERedirectURI().toString());
 
-          // Use replaceState to redirect the user away and remove the querystring parameters
-          window.history.replaceState({}, document.title, "/");
+          await delay(5000); // shouldn't get here
 
-        } else if (window.location.hash.includes("code=") && window.location.hash.includes("state=")) {
+        } 
+        
+        /**
+         *  No token, and no IdP redirect means we need to do the full-blown IdP login
+         */
+        else {
 
-          if ( isEqual(window.zitiBrowzerRuntime.idp, ZBR_CONSTANTS.KEYCLOAK_IDP) ) {
-
-            window.zitiBrowzerRuntime.isAuthenticated = await this.authClient.init({});
-
-            this.zitiConfig.access_token = this.authClient.token;
-            document.cookie = this.authTokenName + "=" + this.zitiConfig.access_token + "; path=/";
-            this.isAuthenticated = await this.authClient_isAuthenticated();
-
-          }
-
-        } else {
+          this.logger.trace(`initialize() no token, and no IdP 'code/state' redirect detected`);
 
           // Local data indicates that the user is not authenticated, however, the IdP might still think the authentication
-          // is alive/valid, so, we will force/tell the IdP to do a logout. The _logout_initiated cookie is just here as some
-          // local state to prevent an infinite loop with IdP redirects.
+          // is alive/valid (a common Auth0 situation), so, we will force/tell the IdP to do a logout. 
+          
           let logoutInitiated = this.getCookie( this.authTokenName + '_logout_initiated' );
           if (isEqual(logoutInitiated, '')) {
             document.cookie = this.authTokenName + '_logout_initiated' + "=" + "yes" + "; path=/";
-            this.authClient_logout();
-            function delay(time) { return new Promise(resolve => setTimeout(resolve, time)); }
-            await delay(1000); // we need to pause a bit or the 'loginWithRedirect' call below will cancel the 'logout'
+            this.logger.trace(`initialize() calling pkceLogout`);
+            pkceLogout( getOIDCConfig(), getPKCERedirectURI().toString() );
+            await delay(1000); // we need to pause a bit or the 'login' call below will cancel the 'logout'
           }
           document.cookie = this.authTokenName + '_logout_initiated'+'=; Max-Age=-99999999;';
 
-          // Now that the IdP has flushed its authentication state for the user, now do a fresh login/auth
-          await this.authClient_loginWithRedirect();
+          this.logger.trace(`initialize() calling pkceLogin`);
 
+          await pkceLogin( getOIDCConfig(), getPKCERedirectURI().toString() );
+
+          await delay(5000);  // stall here while we await the redirect from the IdP,
+                              // which will cause us to reload/reinit, and process
+                              // the 'code' and 'state' returned from the IdP
         }
 
       }
-
-      this.zitiConfig.token_type = 'Bearer';
-      this.zitiConfig.access_token = this.getCookie( this.authTokenName );
-
+      
+      this.logger.trace(`initialize() isAuthenticated[${this.isAuthenticated}]`);
+  
       if (!this.isAuthenticated) {
         initResults.authenticated = false;
       }
 
-    } else {  // Loaded from ZBSW
+    }
 
-      this.zitiConfig.token_type = 'Bearer';
-      this.zitiConfig.access_token = this.getCookie( this.authTokenName );
+    /** ===================================================================
+     *  Loded via the BrowZer ZBSW
+    /** ================================================================= */
+    else {
 
-      if (isEqual(this.zitiConfig.access_token, '')) {
-      
-        // If we were loaded by the ZBSW, but the auth token cookie is NOT present, it means that it expired, and
-        // the IdP logout was initiated...which will do a redirect to the root of the app, which will land us here.
-        // Being loaded by the ZBSW, but with no auth token cookie, means we need to be heavy-handed and unregister
-        // the ZBSW, which will cause a full page reboot, starting from the top again, and causing the IdP auth dialog
-        // to reengage.
+      this.logger.trace(`initialize() Loaded via ZBSW`);
 
-        initResults.authenticated = false;
-        initResults.unregisterSW = true;
+      // Pull the token from session storage
+      this.zitiConfig.access_token  = PKCEToken.get();
+
+      if (isEqual(this.zitiConfig.access_token, null)) {  
+
+        this.logger.trace(`initialize() session token NOT found`);
+
+        // If we were loaded by the ZBSW, but the auth token is NOT present in session storage, 
+        // then let's try to get it from the ZBSW.
+
+        const swVersionObject = await sendMessage({type: 'GET_VERSION'});
+
+        this.logger.trace(`initialize() session token ACQUIRED from ZBSW`);
+
+        PKCEToken.set(swVersionObject.zitiConfig.access_token);
 
       } else {
 
-        if (!isEqual(this.zitiConfig.access_token, '') && !isEqual(this.zitiConfig.access_token, 'undefined')) {
-          let decoded_access_token = jwtDecode(this.zitiConfig.access_token);
-          let exp = decoded_access_token.exp;
-          if (Date.now() >= exp * 1000) {
-            this.logger.trace(`${this.authTokenName} has expired`);
-            this.isAuthenticated = false;
+        this.logger.trace(`initialize() session token found`);
 
+        // If we have a token, determine if it has expired
+        if (!isEqual(this.zitiConfig.access_token, null)) {  
+          if (isTokenExpired(this.zitiConfig.access_token)) {
+            this.isAuthenticated = false;
             initResults.authenticated = false;
             initResults.unregisterSW = true;
-    
           }
         }
       }
 
-
     }
 
-    this.logger.trace(`initResults: `, initResults);
+    this.logger.trace(`initialize() initResults: `, initResults);
 
     this.isAuthenticated = initResults.authenticated;
 
@@ -1763,7 +1577,7 @@ class ZitiBrowzerRuntime {
         apiSessionHeartbeatTimeMax: (2),
     
       });
-      this.logger.trace(`ZitiContext created`);
+      this.logger.trace(`initialize() ZitiContext created`);
 
       this.zbrSWM = new ZitiBrowzerRuntimeServiceWorkerMock();
 
@@ -1916,7 +1730,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
   window.zitiBrowzerRuntime._reloadNeededHeartbeat(window.zitiBrowzerRuntime);
 
-  window.zitiBrowzerRuntime._serviceWorkerKeepAliveHeartBeat(window.zitiBrowzerRuntime);
+  // window.zitiBrowzerRuntime._serviceWorkerKeepAliveHeartBeat(window.zitiBrowzerRuntime);
 
   window.zitiBrowzerRuntime.loadedViaBootstrapper = document.getElementById('from-ziti-browzer-bootstrapper');
 
@@ -2027,28 +1841,6 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
      * 
      */
     if ('serviceWorker' in navigator) {
-
-      /**
-       * sendMessage() is used instead of wb.messageSW() for a couple msgs where 
-       * usage of wb.messageSW was failing.
-       */
-      function sendMessage(message) {
-        // This wraps the message posting/response in a promise, which will resolve if the response doesn't
-        // contain an error, and reject with the error if it does. 
-        return new Promise(function(resolve, reject) {
-          var messageChannel = new MessageChannel();
-          messageChannel.port1.onmessage = function(event) {
-            if (event.data.error) {
-              reject(event.data.error);
-            } else {
-              resolve(event.data);
-            }
-          };      
-          // This sends the message data as well as transferring messageChannel.port2 to the service worker.
-          navigator.serviceWorker.controller.postMessage(message,
-            [messageChannel.port2]);
-        });
-      }
 
       /**
        * The very first time our service worker installs, it will NOT have intercepted any fetch events for
@@ -2353,6 +2145,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
             payload: {
             } 
           });
+          await delay(5000);  // stall here while we await the reboot of the page
         }
             
         /**

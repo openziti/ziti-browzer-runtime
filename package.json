@@ -95,7 +95,7 @@
     "@auth0/auth0-spa-js": "^2.0.4",
     "@azure/msal-browser": "^2.38.0",
     "@babel/runtime": "^7.17.9",
-    "@openziti/ziti-browzer-core": "^0.37.1",
+    "@openziti/ziti-browzer-core": "^0.37.2",
     "bowser": "^2.11.0",
     "cookie-interceptor": "^1.0.0",
     "core-js": "^3.22.8",
@@ -104,6 +104,7 @@
     "jwt-decode": "^3.1.2",
     "localforage": "^1.10.0",
     "lodash-es": "^4.17.21",
+    "oauth4webapi": "^2.10.3",
     "uplot": "^1.6.24",
     "uuid": "^8.3.2",
     "workbox-window": "^6.5.3"

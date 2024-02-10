@@ -1200,10 +1200,10 @@
     "@types/emscripten" "^1.39.6"
     "@wasmer/wasi" "^1.0.2"
 
-"@openziti/ziti-browzer-core@^0.37.1":
-  version "0.37.1"
-  resolved "https://registry.yarnpkg.com/@openziti/ziti-browzer-core/-/ziti-browzer-core-0.37.1.tgz#d4754c4e29871c694c5bb0b6b6e1da5b6b3c53b1"
-  integrity sha512-qIVIsnK6JRBvnFe4lMASrmSaVrf7/FeCQJO/h8GKYK++IyUoyRwNB/ZQSqYZJOYlSdWOPffS+IhKUJoSgLGSFw==
+"@openziti/ziti-browzer-core@^0.37.2":
+  version "0.37.2"
+  resolved "https://registry.yarnpkg.com/@openziti/ziti-browzer-core/-/ziti-browzer-core-0.37.2.tgz#93fa2433b7168c5884ac3a4f2819a0a00be6fc3a"
+  integrity sha512-CxJqhYJabPxkP1rdV0YDN4Q3qqVdJYl5k/c5MEAN63RbvfAG9vLqGhfBE0Ez86RfdOj4ttXL11yORfh7DNlR0Q==
   dependencies:
     "@openziti/libcrypto-js" "^0.19.0"
     "@openziti/ziti-browzer-edge-client" "^0.6.2"
@@ -4345,6 +4345,11 @@ nyc@^15.1.0:
     spawn-wrap "^2.0.0"
     test-exclude "^6.0.0"
     yargs "^15.0.2"
+
+oauth4webapi@^2.10.3:
+  version "2.10.3"
+  resolved "https://registry.yarnpkg.com/oauth4webapi/-/oauth4webapi-2.10.3.tgz#8e6d5a8a984a297dd80276a6c52634359319d034"
+  integrity sha512-9FkXEXfzVKzH63GUOZz1zMr3wBaICSzk6DLXx+CGdrQ10ItNk2ePWzYYc1fdmKq1ayGFb2aX97sRCoZ2s0mkDw==
 
 object-assign@^4.1.0, object-assign@^4.1.1:
   version "4.1.1"

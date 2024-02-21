@@ -2317,13 +2317,11 @@ const zitiFetch = async ( urlObj, opts ) => {
     if (!isEqual(protocol, 'https:')) {
       url.protocol = 'https:';
       url = url.toString();
+      return window._ziti_realFetch(url, opts);
     }
   }
 
-  window.zitiBrowzerRuntime.logger.trace( 'zitiFetch: entered for URL: ', url);
-
-//TEMP TEST... always attempt to go thru SW
-  return window._ziti_realFetch(url, opts);
+  return window._ziti_realFetch(urlObj, opts);
 
   if (url.match( regexZBWASM )) { // the request seeks z-b-r/wasm
     window.zitiBrowzerRuntime.logger.trace('zitiFetch: seeking Ziti z-b-r/wasm, bypassing intercept of [%s]', url);

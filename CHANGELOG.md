@@ -1,3 +1,12 @@
+## [0.59.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.59.0...v0.59.1) (2024-02-21)
+
+
+### Bug Fixes
+
+* Wazuh support ([#261](https://github.com/openziti/ziti-browzer-runtime/issues/261)) ([4544ba2](https://github.com/openziti/ziti-browzer-runtime/commit/4544ba20d0d9e5ea79a5f7b380105921cf5b98ed))
+
+
+
 # [0.59.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.58.1...v0.59.0) (2024-02-10)
 
 

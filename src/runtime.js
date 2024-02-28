@@ -2306,7 +2306,7 @@ const zitiFetch = async ( urlObj, opts ) => {
 
   let targetHost;
   if (!url.startsWith('/')) {
-    url = new URL(url);
+    url = new URL(url, `https://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}`);
     targetHost = url.hostname;
   } else {
     url = new URL(`https://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}${url}`);

@@ -1,3 +1,12 @@
+## [0.59.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.59.1...v0.59.2) (2024-02-28)
+
+
+### Bug Fixes
+
+* relative path tweak ([#263](https://github.com/openziti/ziti-browzer-runtime/issues/263)) ([bb4c85f](https://github.com/openziti/ziti-browzer-runtime/commit/bb4c85f73ab17b9bd7f62c1905aa4799795f9ac7))
+
+
+
 ## [0.59.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.59.0...v0.59.1) (2024-02-21)
 
 

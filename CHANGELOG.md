@@ -1,3 +1,12 @@
+## [0.59.3](https://github.com/openziti/ziti-browzer-runtime/compare/v0.59.2...v0.59.3) (2024-02-29)
+
+
+### Bug Fixes
+
+* zabbix tweak ([#264](https://github.com/openziti/ziti-browzer-runtime/issues/264)) ([1a2144b](https://github.com/openziti/ziti-browzer-runtime/commit/1a2144ba9595b83e21a72a64d1b32b086fc221a2))
+
+
+
 ## [0.59.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.59.1...v0.59.2) (2024-02-28)
 
 

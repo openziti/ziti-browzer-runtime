@@ -279,7 +279,7 @@ function ZitiXMLHttpRequest () {
     let url;
     let targetHost;
     if (!settings.url.startsWith('/')) {
-      url = new URL(settings.url);
+      url = new URL(settings.url, `https://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}`);
       targetHost = url.hostname;
     } else {
       url = new URL(`https://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}${settings.url}`);

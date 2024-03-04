@@ -35,6 +35,11 @@ class ZitiDummyWebSocketWrapper extends EventEmitter {
 
       this.address = address;
 
+      // Hack for ScadaLTS web app
+      if (this.address.includes(':undefined')) {
+        this.address = this.address.replace(':undefined', '');
+      }
+
       setTimeout(async function(self) {
 
         await window.zitiBrowzerRuntime.awaitInitializationComplete();

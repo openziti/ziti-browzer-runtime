@@ -1,3 +1,12 @@
+# [0.60.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.59.3...v0.60.0) (2024-03-04)
+
+
+### Features
+
+* add inflate-deflate support ([#265](https://github.com/openziti/ziti-browzer-runtime/issues/265)) ([9faa2fb](https://github.com/openziti/ziti-browzer-runtime/commit/9faa2fb76638915f108c2daf1b28fcf1534b91b7))
+
+
+
 ## [0.59.3](https://github.com/openziti/ziti-browzer-runtime/compare/v0.59.2...v0.59.3) (2024-02-29)
 
 

@@ -162,6 +162,11 @@ function ZitiXMLHttpRequest () {
       "password": password || null
     };
 
+    // Hack for ScadaLTS web app
+    if (settings.url.includes(':undefined')) {
+      settings.url = settings.url.replace(':undefined', '');
+    }
+
     setState(this.OPENED);
   };
 
@@ -278,6 +283,14 @@ function ZitiXMLHttpRequest () {
 
     let url;
     let targetHost;
+    // if (settings.url.startsWith('http')) {
+    //   try {
+    //     url = new URL(settings.url);
+    //     targetHost = url.hostname;
+    //   } catch (e) {
+    //     debugger
+    //   }
+    // }
     if (!settings.url.startsWith('/')) {
       url = new URL(settings.url, `https://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}`);
       targetHost = url.hostname;

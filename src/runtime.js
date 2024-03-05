@@ -953,6 +953,19 @@ class ZitiBrowzerRuntime {
 
   }
 
+  noConfigProtocolForServiceEventHandler(noConfigProtocolForServiceEvent) {
+
+    this.logger.trace(`noConfigProtocolForServiceEventHandler() `, noConfigProtocolForServiceEvent);
+
+    window.zitiBrowzerRuntime.browzer_error({
+      status:   409,
+      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_SERVICE_HAS_NO_CONFIG_PROTOCOL,
+      title:    `Ziti Service [${noConfigProtocolForServiceEvent.serviceName}] lacks 'TCP' intercept|forward protocol in its config.`,
+      message:  `Possible network configuration issue exists.`
+    });
+
+  }
+
   noServiceEventHandler(noServiceEvent) {
 
     this.logger.trace(`noServiceEventHandler() `, noServiceEvent);
@@ -1611,6 +1624,7 @@ class ZitiBrowzerRuntime {
       this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_WSS_ROUTERS,         this.noWSSRoutersEventHandler);
       this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_XGRESS,                 this.xgressEventHandler);
       this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NESTED_TLS_HANDSHAKE_TIMEOUT,  this.nestedTLSHandshakeTimeoutEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_CONFIG_PROTOCOL_FOR_SERVICE,  this.noConfigProtocolForServiceEventHandler);
 
       if (options.eruda) {
         this.zitiConfig.eruda = true;
@@ -2067,6 +2081,12 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         else if (event.data.type === 'NO_CONFIG_FOR_SERVICE') {
 
           window.zitiBrowzerRuntime.noConfigForServiceEventHandler(event.data.payload.event);
+
+        }
+
+        else if (event.data.type === 'NO_CONFIG_PROTOCOL_FOR_SERVICE') {
+
+          window.zitiBrowzerRuntime.noConfigProtocolForServiceEventHandler(event.data.payload.event);
 
         }
 

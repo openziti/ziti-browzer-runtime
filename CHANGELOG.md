@@ -1,3 +1,12 @@
+# [0.61.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.60.0...v0.61.0) (2024-03-05)
+
+
+### Features
+
+* improve intercept.v1 config protocol parsing ([#266](https://github.com/openziti/ziti-browzer-runtime/issues/266)) ([af4f687](https://github.com/openziti/ziti-browzer-runtime/commit/af4f687e05f9baa182e69f3171e11955096b9638))
+
+
+
 # [0.60.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.59.3...v0.60.0) (2024-03-04)
 
 

@@ -29,6 +29,7 @@ import {
     validateAuthResponse
 } from 'oauth4webapi';
 import { isEqual } from 'lodash-es';
+import jwtDecode from 'jwt-decode';
 
 
 export const discoverAuthServer = (issuerURL) => discoveryRequest(issuerURL).then(res => processDiscoveryResponse(issuerURL, res));
@@ -267,8 +268,16 @@ export const pkceLogout = async (oidcConfig, redirectURI) => {
         let asurl = new URL(authorizationServer.authorization_endpoint);
 
         if (asurl.hostname.includes('auth0.com')) {
+
+            let decoded_access_token = jwtDecode(access_token);
+            let exp = decoded_access_token.exp;
+            let isExpired = false;
+            if (Date.now() >= exp * 1000) {
+                isExpired = true;
+            }
+              
             let url;
-            if (!isEqual(access_token, null)) {  
+            if (!isEqual(access_token, null) && !isExpired) {  
                 url = `${asurl.protocol}//${asurl.hostname}/v2/logout?id_token_hint=${access_token}client_id=${oidcConfig.client_id}&returnTo=${redirectURI}`;
             } else {
                 url = `${asurl.protocol}//${asurl.hostname}/v2/logout?client_id=${oidcConfig.client_id}&returnTo=${redirectURI}`;

@@ -1,3 +1,12 @@
+## [0.61.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.61.0...v0.61.1) (2024-03-07)
+
+
+### Bug Fixes
+
+* improve Auth0 IdP logout ([#267](https://github.com/openziti/ziti-browzer-runtime/issues/267)) ([34aba30](https://github.com/openziti/ziti-browzer-runtime/commit/34aba30cf7bcc2f9f0a624671446177e05dfc2b0))
+
+
+
 # [0.61.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.60.0...v0.61.0) (2024-03-05)
 
 

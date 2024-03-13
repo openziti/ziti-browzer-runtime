@@ -94,6 +94,9 @@ function ZitiXMLHttpRequest () {
   // default ready state change handler in case one is not set or is set late
   this.onreadystatechange = null;
 
+  // default abort handler in case one is not set or is set late
+  this.onabort = null;
+
   // Result & response
   this.responseBodyText = "";
   this.responseXML = "";
@@ -309,6 +312,7 @@ function ZitiXMLHttpRequest () {
     response = await fetch(settings.url, settings);
 
     this.status = response.status;
+    this.statusText = (response.status == 200) ? 'OK' : '';
 
     let self = this;
 
@@ -421,12 +425,21 @@ function ZitiXMLHttpRequest () {
    * Dispatch any events, including both "on" methods and events attached using addEventListener.
    */
   this.dispatchEvent = function(event) {
-    if (typeof self["on" + event] === "function") {
+    if (typeof self["on" + event.type] === "function") {
+      self["on" + event.type]();
+    }
+    else if (typeof self["on" + event] === "function") {
       self["on" + event]();
     }
-    if (event in listeners) {
+    if (event.type in listeners) {
+      for (var i = 0, len = listeners[event.type].length; i < len; i++) {
+        listeners[event.type][i].call(event, event);
+      }
+    }
+    else if (event in listeners) {
       for (var i = 0, len = listeners[event].length; i < len; i++) {
-        listeners[event][i].call(self);
+        self.target = self;
+        listeners[event][i].call(self, self);
       }
     }
   };
@@ -445,8 +458,20 @@ function ZitiXMLHttpRequest () {
       }
 
       if (self.readyState === self.DONE && !errorFlag) {
-        self.dispatchEvent("load");
-        // @TODO figure out InspectorInstrumentation::didLoadXHR(cookie)
+
+        let progressEvent = {
+          currentTarget: self,
+          target: self,
+          loaded: true,
+          status: self.status,
+          success: (self.status == 200) ? true : false,
+          responseType: self.responseType,
+          responseText: self.responseText,
+          type: "load"
+        }
+
+        self.dispatchEvent(progressEvent);      
+        // self.dispatchEvent("load");
         self.dispatchEvent("loadend");
       }
     }

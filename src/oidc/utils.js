@@ -269,10 +269,14 @@ export const pkceLogout = async (oidcConfig, redirectURI) => {
 
         if (asurl.hostname.includes('auth0.com')) {
 
-            let decoded_access_token = jwtDecode(access_token);
-            let exp = decoded_access_token.exp;
             let isExpired = false;
-            if (Date.now() >= exp * 1000) {
+            if (access_token) {
+                let decoded_access_token = jwtDecode(access_token);
+                let exp = decoded_access_token.exp;
+                if (Date.now() >= exp * 1000) {
+                    isExpired = true;
+                }
+            } else {
                 isExpired = true;
             }
               

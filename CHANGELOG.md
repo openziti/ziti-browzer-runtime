@@ -1,3 +1,12 @@
+# [0.62.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.61.1...v0.62.0) (2024-03-13)
+
+
+### Features
+
+* XHR ProgressEvent enhancements; PKCE logout adjustment ([#268](https://github.com/openziti/ziti-browzer-runtime/issues/268)) ([d27370e](https://github.com/openziti/ziti-browzer-runtime/commit/d27370ead3b99a3ed3029f775476bf21ce6236e9))
+
+
+
 ## [0.61.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.61.0...v0.61.1) (2024-03-07)
 
 

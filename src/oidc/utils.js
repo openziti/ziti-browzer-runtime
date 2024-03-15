@@ -213,8 +213,11 @@ export const pkceCallback = async (oidcConfig, redirectURI) => {
         response
     );
     if (isOAuth2Error(result)) {
-      console.error('Error Response', result)
-      throw new Error() // Handle OAuth 2.0 response body error
+      console.error('Error Response', result);
+      throw {
+        issuer: oidcConfig.issuer,
+        client_id: oidcConfig.client_id,
+      }
     }
       
     let { id_token } = result;

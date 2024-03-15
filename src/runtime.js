@@ -243,6 +243,7 @@ class ZitiBrowzerRuntime {
       edge:   ">=97",     // Microsoft Edge
       safari: ">=10",     // Safari
       electron: ">=27",   // Electron
+      googlebot: ">=2.1"  // squelch Googlebot spam
 
     });
     if (!isSupportedBrowser) {
@@ -1110,6 +1111,19 @@ class ZitiBrowzerRuntime {
 
   }
 
+  pkceCallbackErrorEventHandler(pkceCallbackErrorEvent) {
+
+    this.logger.trace(`pkceCallbackErrorEventHandler() `, pkceCallbackErrorEvent);
+
+    window.zitiBrowzerRuntime.browzer_error({
+      status:   409,
+      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_PKCE_CALLBACK_ERROR,
+      title:    `PKCE Error: clientId[${pkceCallbackErrorEvent.client_id}] at OIDC issuer[${pkceCallbackErrorEvent.issuer}] must be a 'Single Page Application'.`,
+      message:  `Possible IdP configuration issue exists.`
+    });
+    
+  }
+
 
   updateXgressEventData(event) {
 
@@ -1480,7 +1494,10 @@ class ZitiBrowzerRuntime {
 
           this.logger.trace(`initialize() calling pkceCallback`);
 
-          await pkceCallback( getOIDCConfig(), getPKCERedirectURI().toString() );
+          await pkceCallback( getOIDCConfig(), getPKCERedirectURI().toString() ).catch(error => {
+            window.zitiBrowzerRuntime.logger.error(`${error}`);
+            window.zitiBrowzerRuntime.pkceCallbackErrorEventHandler(error);
+          });
 
           this.zitiConfig.access_token = PKCEToken.get();
 

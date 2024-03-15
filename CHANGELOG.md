@@ -1,3 +1,12 @@
+# [0.63.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.62.0...v0.63.0) (2024-03-15)
+
+
+### Features
+
+* PKCE callback error handling ([#270](https://github.com/openziti/ziti-browzer-runtime/issues/270)) ([67cbf11](https://github.com/openziti/ziti-browzer-runtime/commit/67cbf1135772395058648c08592024ff714f79f9))
+
+
+
 # [0.62.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.61.1...v0.62.0) (2024-03-13)
 
 

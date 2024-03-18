@@ -1,3 +1,12 @@
+## [0.63.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.63.0...v0.63.1) (2024-03-18)
+
+
+### Bug Fixes
+
+* Scada web app loses WebSocket connection ([#273](https://github.com/openziti/ziti-browzer-runtime/issues/273)) ([c5cdace](https://github.com/openziti/ziti-browzer-runtime/commit/c5cdacea8dd43abf5ac2fc0b1f1fd711335d5c95))
+
+
+
 # [0.63.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.62.0...v0.63.0) (2024-03-15)
 
 

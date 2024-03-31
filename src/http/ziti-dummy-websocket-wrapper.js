@@ -72,7 +72,11 @@ class ZitiDummyWebSocketWrapper extends EventEmitter {
           if (self.onopen) {
             self.onopen(event);
           }
-          self.emit(event);
+          if (self._events.open) {
+            self._events.open(event);
+          } else {
+            self.emit(event);
+          }
         });
         
         self.innerWebSocket.addEventListener('close', (event) => {
@@ -93,7 +97,11 @@ class ZitiDummyWebSocketWrapper extends EventEmitter {
           if (self.onmessage) {
             self.onmessage(event);
           }
-          self.emit(event);
+          if (self._events.message) {
+            self._events.message(event);
+          } else {
+            self.emit(event);
+          }
         });
 
       }, 1, this);
@@ -140,7 +148,48 @@ class ZitiDummyWebSocketWrapper extends EventEmitter {
       this.innerWebSocket.send(data);
     }
 
+    addEventListener(type, listener, options) {
+      this.addListener(type, listener);
+    }
+
 }
+
+['open', 'error', 'close', 'message'].forEach((method) => {
+  Object.defineProperty(ZitiDummyWebSocketWrapper.prototype, `on${method}`, {
+    /**
+     * Return the listener of the event.
+     *
+     * @return {(Function|undefined)} The event listener or `undefined`
+     * @public
+     */
+    get() {
+      const listeners = this.listeners(method);
+      for (let i = 0; i < listeners.length; i++) {
+        if (listeners[i]._listener) return listeners[i]._listener;
+      }
+
+      return undefined;
+    },
+    /**
+     * Add a listener for the event.
+     *
+     * @param {Function} listener The listener to add
+     * @public
+     */
+    set(listener) {
+      const listeners = this.listeners(method);
+      for (let i = 0; i < listeners.length; i++) {
+        //
+        // Remove only the listeners added via `EventTarget.addEventListener`.
+        //
+        if (listeners[i]._listener) this.removeListener(method, listeners[i]);
+      }
+      this.addEventListener(method, listener);
+    }
+  });
+});
+
+
 
 
 export {

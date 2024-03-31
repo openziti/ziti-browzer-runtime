@@ -15,6 +15,7 @@ limitations under the License.
 */
 
 import { isEqual } from "lodash-es";
+import { ZitiProgressEventWrapper } from './ziti-event-wrapper';
 
 function ZitiXMLHttpRequest () {
 
@@ -459,18 +460,17 @@ function ZitiXMLHttpRequest () {
 
       if (self.readyState === self.DONE && !errorFlag) {
 
-        let progressEvent = {
-          currentTarget: self,
-          target: self,
-          loaded: true,
-          status: self.status,
-          success: (self.status == 200) ? true : false,
-          responseType: self.responseType,
-          responseText: self.responseText,
-          type: "load"
-        }
+        let pe = new ZitiProgressEventWrapper("load", {
+          loaded: true
+        });
+        pe.currentTarget = self;
+        pe.target = self;
+        pe.status = self.status;
+        pe.success = (self.status == 200) ? true : false;
+        pe.responseType = self.responseType;
+        pe.responseText= self.responseText;
 
-        self.dispatchEvent(progressEvent);      
+        self.dispatchEvent(pe);      
         // self.dispatchEvent("load");
         self.dispatchEvent("loadend");
       }

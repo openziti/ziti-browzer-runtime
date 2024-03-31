@@ -32,6 +32,7 @@ import { defaultOptions } from './options'
 import { ZBR_CONSTANTS } from './constants';
 import { ZitiXMLHttpRequest } from './http/ziti-xhr';
 import { ZitiDummyWebSocketWrapper } from './http/ziti-dummy-websocket-wrapper';
+import { ZitiProgressEventWrapper } from './http/ziti-event-wrapper';
 import { buildInfo } from './buildInfo'
 import { ZitiBrowzerLocalStorage } from './utils/localstorage';
 import { Auth0Client } from '@auth0/auth0-spa-js';
@@ -2358,6 +2359,11 @@ const zitiFetch = async ( urlObj, opts ) => {
     }
   }
 
+  if (opts && opts.method && isEqual(opts.method, 'GET')) {
+    if (!isUndefined(opts.body)) {
+      opts.body = undefined;
+    }
+  }
   return window._ziti_realFetch(urlObj, opts);
 
   if (url.match( regexZBWASM )) { // the request seeks z-b-r/wasm
@@ -2579,3 +2585,4 @@ window.fetch = zitiFetch;
 window.XMLHttpRequest = ZitiXMLHttpRequest;
 window.document.zitidomain = zitiDocumentDomain;
 window.WebSocket = ZitiDummyWebSocketWrapper;
+window.ProgressEvent = ZitiProgressEventWrapper;

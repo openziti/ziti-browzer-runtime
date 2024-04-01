@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { isEqual } from "lodash-es";
+import { isEqual, isUndefined } from "lodash-es";
 import { ZitiProgressEventWrapper } from './ziti-event-wrapper';
 
 function ZitiXMLHttpRequest () {
@@ -147,8 +147,10 @@ function ZitiXMLHttpRequest () {
    */
   this.open = function(method, url, async, user, password) {
 
-    if (!async) {
-      window.zitiBrowzerRuntime.synchronousXHREncounteredEventHandler({});
+    if (!isUndefined(async)) { // default is true
+      if (!async) {
+        window.zitiBrowzerRuntime.synchronousXHREncounteredEventHandler({});
+      }
     }
 
     errorFlag = false;

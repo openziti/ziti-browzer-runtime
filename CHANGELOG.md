@@ -1,3 +1,12 @@
+## [0.64.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.64.0...v0.64.1) (2024-04-01)
+
+
+### Bug Fixes
+
+* Properly handle unspecified XHR 'sync' parm ([#278](https://github.com/openziti/ziti-browzer-runtime/issues/278)) ([249ca86](https://github.com/openziti/ziti-browzer-runtime/commit/249ca860307083615b3b48d321e7561396d44211))
+
+
+
 # [0.64.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.63.2...v0.64.0) (2024-03-31)
 
 

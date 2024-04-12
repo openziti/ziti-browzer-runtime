@@ -191,7 +191,7 @@ export const pkceCallback = async (oidcConfig, redirectURI) => {
       throw new Error()
     }
 
-    const response = await authorizationCodeGrantRequest(
+    let response = await authorizationCodeGrantRequest(
         authorizationServer,
         oidcConfig,
         params,
@@ -206,6 +206,29 @@ export const pkceCallback = async (oidcConfig, redirectURI) => {
       }
       throw new Error()
     }
+
+    //
+    // vvv--- AzureAD hack to keep processAuthorizationCodeOpenIDResponse() validator happy
+    //
+    let json;
+    let responseClone = response.clone();
+    try {
+        json = await responseClone.json();
+    } catch (cause) {
+        throw new PKCELoginError('failed to parse "response" body as JSON', { cause });
+    }
+    if (json.expires_in !== undefined && (typeof json.expires_in !== 'number' || json.expires_in <= 0)) {
+        // If the expires_in field looks bogus, then swap in a proper value, and spin up a new Response object accordingly
+        json.expires_in = 1; 
+        const opts = { status: response.status, statusText: response.statusText };
+        const blob = new Blob([JSON.stringify(json, null, 2)], {
+            type: "application/json",
+        });          
+        response = new Response(blob, opts);
+    }
+    //
+    // ^^^--- AzureAD hack to keep processAuthorizationCodeOpenIDResponse() validator happy
+    //
   
     const result = await processAuthorizationCodeOpenIDResponse(
         authorizationServer, 

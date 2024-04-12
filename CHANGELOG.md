@@ -1,3 +1,12 @@
+## [0.64.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.64.1...v0.64.2) (2024-04-12)
+
+
+### Bug Fixes
+
+* add an AzureAD oauth response 'expires_in' workaround ([#279](https://github.com/openziti/ziti-browzer-runtime/issues/279)) ([1aa7327](https://github.com/openziti/ziti-browzer-runtime/commit/1aa73272ac8c5d6f4c363964290cc2071ed28b28))
+
+
+
 ## [0.64.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.64.0...v0.64.1) (2024-04-01)
 
 

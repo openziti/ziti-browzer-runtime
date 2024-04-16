@@ -1047,7 +1047,7 @@ class ZitiBrowzerRuntime {
         status:   511,
         code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_INVALID_AUTH,
         title:    `User [${invalidAuthEvent.email}] cannot be authenticated onto Ziti Network`,
-        message:  `The client needs to authenticate to gain network access.`
+        message:  `Check that this 'externalId' exists and has case-sensitive match`
     });
 
   }
@@ -1518,14 +1518,14 @@ class ZitiBrowzerRuntime {
           // Local data indicates that the user is not authenticated, however, the IdP might still think the authentication
           // is alive/valid (a common Auth0 situation), so, we will force/tell the IdP to do a logout. 
           
-          let logoutInitiated = this.getCookie( this.authTokenName + '_logout_initiated' );
-          if (isEqual(logoutInitiated, '')) {
-            document.cookie = this.authTokenName + '_logout_initiated' + "=" + "yes" + "; path=/";
-            this.logger.trace(`initialize() calling pkceLogout`);
-            pkceLogout( getOIDCConfig(), getPKCERedirectURI().toString() );
-            await delay(1000); // we need to pause a bit or the 'login' call below will cancel the 'logout'
-          }
-          document.cookie = this.authTokenName + '_logout_initiated'+'=; Max-Age=-99999999;';
+          // let logoutInitiated = this.getCookie( this.authTokenName + '_logout_initiated' );
+          // if (isEqual(logoutInitiated, '')) {
+            // document.cookie = this.authTokenName + '_logout_initiated' + "=" + "yes" + "; path=/";
+            // this.logger.trace(`initialize() calling pkceLogout`);
+            // pkceLogout( getOIDCConfig(), getPKCERedirectURI().toString() );
+            // await delay(1000); // we need to pause a bit or the 'login' call below will cancel the 'logout'
+          // }
+          // document.cookie = this.authTokenName + '_logout_initiated'+'=; Max-Age=-99999999;';
 
           this.logger.trace(`initialize() calling pkceLogin`);
 

@@ -1,3 +1,12 @@
+## [0.64.3](https://github.com/openziti/ziti-browzer-runtime/compare/v0.64.2...v0.64.3) (2024-04-16)
+
+
+### Bug Fixes
+
+* bypass pkceLogout - AzureAD UI mitigation ([#280](https://github.com/openziti/ziti-browzer-runtime/issues/280)) ([6d1a045](https://github.com/openziti/ziti-browzer-runtime/commit/6d1a04523473d2ffe9bf8b69367f9918db1af69d))
+
+
+
 ## [0.64.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.64.1...v0.64.2) (2024-04-12)
 
 

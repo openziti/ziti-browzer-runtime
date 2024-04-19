@@ -1,3 +1,12 @@
+# [0.65.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.64.3...v0.65.0) (2024-04-19)
+
+
+### Features
+
+* Origin Trial support ([#282](https://github.com/openziti/ziti-browzer-runtime/issues/282)) ([afd5089](https://github.com/openziti/ziti-browzer-runtime/commit/afd5089d7042c92b5f0afb719a724810a7123880))
+
+
+
 ## [0.64.3](https://github.com/openziti/ziti-browzer-runtime/compare/v0.64.2...v0.64.3) (2024-04-16)
 
 

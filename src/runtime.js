@@ -48,12 +48,29 @@ import {
   pkceCallback,
   PKCEToken,
 } from './oidc/utils';
+import { jspi } from "wasm-feature-detect";
 
 
 /**
  * 
  */
 (function(){var e="ZBR Logging Begins...";if(navigator&&navigator.userAgent){var o=navigator.userAgent.match(/opera|chrome|safari|firefox|msie|trident(?=\/)/i);if(o&&o[0].search(/trident|msie/i)<0)return window.console.log("%cZiti BrowZer Runtime is now Bootstrapping","color:white;font-size:x-large;font-weight:bold;background-image: linear-gradient(to right, #0965f3, #e10c5c) !important;"),void window.console.log("%c"+e,"font-size:large;")}window.console.log("Ziti BrowZer Runtime is now Bootstrapping\n"+e)})();
+
+/**
+ *  origin trial token decode
+ */
+function base64decode(str) {
+  return new Uint8Array([...atob(str)].map(a => a.charCodeAt(0)));
+}
+function decodeOriginTrialToken(token) {
+  const buf = base64decode(token);
+  const view = new DataView(buf.buffer)
+  const version = view.getUint8()
+  const signature = buf.slice(1, 65)
+  const length = view.getUint32(65, false)
+  const payload = JSON.parse((new TextDecoder()).decode(buf.slice(69, 69 + length)))
+  return {payload, version, length, signature}
+}
 
 /**
  * 
@@ -942,6 +959,26 @@ class ZitiBrowzerRuntime {
 
   }
 
+  originTrialTokenInvalidEventHandler(originTrialTokenUndefinedEvent) {
+    window.zitiBrowzerRuntime.browzer_error({
+      status:   409,
+      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_ORIGIN_TRIAL_TOKEN_INVALID,
+      title:    `OriginTrial token invalid or unspecified`,
+      message:  `Possible network configuration issue exists.`
+    });
+  }
+
+  originTrialSubDomainMismatchEventHandler(originTrialSubDomainMismatchEvent) {
+
+    window.zitiBrowzerRuntime.browzer_error({
+      status:   409,
+      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_ORIGIN_TRIAL_SUBDOMAIN_MISMATCH,
+      title:    `OriginTrial subdomain mismatch for feature [${originTrialSubDomainMismatchEvent.feature}]`,
+      message:  `Expected origin [${originTrialSubDomainMismatchEvent.expectedOrigin}] but is accessed from [${originTrialSubDomainMismatchEvent.actualOrigin}]`
+    });
+
+  }
+
   noConfigForServiceEventHandler(noConfigForServiceEvent) {
 
     this.logger.trace(`noConfigForServiceEventHandler() `, noConfigForServiceEvent);
@@ -1376,10 +1413,10 @@ class ZitiBrowzerRuntime {
   /**
    * 
    */
-  shouldUseJSPI() {
+  async shouldUseJSPI() {
     
     // If the client browser has JSPI enabled
-    if (!isUndefined(WebAssembly.Function)) {
+    if (await jspi()) {
       // ...then by all means, load JSPI WASM, regardless of whether the target web app needs nestedTLS or not
       return true;
     }
@@ -1619,7 +1656,7 @@ class ZitiBrowzerRuntime {
 
       window._zitiContext = this.zitiContext; // allow WASM to find us
 
-      this.zitiConfig.jspi = this.shouldUseJSPI(); // determine which WASM to instantiate
+      this.zitiConfig.jspi = await this.shouldUseJSPI(); // determine which WASM to instantiate
 
       await this.zitiContext.initialize({
         loadWASM: !options.loadedViaBootstrapper,    // instantiate the WASM ONLY if we were not injected by the browZer Bootstrapper
@@ -1760,9 +1797,31 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
   window.zitiBrowzerRuntime = zitiBrowzerRuntime;
 
-  window.zitiBrowzerRuntime._reloadNeededHeartbeat(window.zitiBrowzerRuntime);
+  // Ensure we have originTrial subdomain alignment
+  let originTrialToken = document.querySelector('meta[id="ziti-browzer-origin-trial"]').content;
+  if (isUndefined(originTrialToken)) {
+    window.zitiBrowzerRuntime.originTrialTokenInvalidEventHandler({});
+  }
+  let decodedOriginTrialToken;
+  try {
+    decodedOriginTrialToken = decodeOriginTrialToken(originTrialToken)
+  } catch (e) {
+    window.zitiBrowzerRuntime.originTrialTokenInvalidEventHandler({});
+  }
+  console.log('decodedOriginTrialToken: ', decodedOriginTrialToken)
+  let currentOriginURL = new URL( window.location.origin );
+  let actualOrigin = currentOriginURL.hostname.split(/\./).slice(-2).join('.');
+  let originTrialURL = new URL( decodedOriginTrialToken.payload.origin );
+  let expectedOrigin = originTrialURL.hostname.split(/\./).slice(-2).join('.');
+  if (!isEqual(actualOrigin, expectedOrigin)) {
+    window.zitiBrowzerRuntime.originTrialSubDomainMismatchEventHandler({
+      feature:        decodedOriginTrialToken.payload.feature,
+      expectedOrigin: `*.${expectedOrigin}`,
+      actualOrigin:   `*.${actualOrigin}`,
+    });
+  }
 
-  // window.zitiBrowzerRuntime._serviceWorkerKeepAliveHeartBeat(window.zitiBrowzerRuntime);
+  window.zitiBrowzerRuntime._reloadNeededHeartbeat(window.zitiBrowzerRuntime);
 
   window.zitiBrowzerRuntime.loadedViaBootstrapper = document.getElementById('from-ziti-browzer-bootstrapper');
 

@@ -324,3 +324,22 @@ export const pkceLogout = async (oidcConfig, redirectURI) => {
 
 };
 
+
+/**
+ * pkceLogoutIsNeeded
+ * 
+ * @param {*} oidcConfig 
+ */
+ export const pkceLogoutIsNeeded = async (oidcConfig) => {
+
+    const {authorizationServer} = await validateAndGetOIDCForPKCE(oidcConfig);
+
+    let asurl = new URL(authorizationServer.authorization_endpoint);
+
+    if (asurl.hostname.includes('auth0.com')) {
+        return true;
+    } else {
+        return false;
+    }
+
+};

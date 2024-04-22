@@ -45,6 +45,7 @@ import {
   getPKCERedirectURI, 
   pkceLogin, 
   pkceLogout,
+  pkceLogoutIsNeeded,
   pkceCallback,
   PKCEToken,
 } from './oidc/utils';
@@ -1067,11 +1068,17 @@ class ZitiBrowzerRuntime {
 
     this.logger.trace(`sessionCreationErrorEventHandler() `, sessionCreationErrorEvent);
 
+    window.zitiBrowzerRuntime.wb.messageSW({
+      type: 'UNREGISTER', 
+      payload: {
+      } 
+    });
+
     window.zitiBrowzerRuntime.browzer_error({
       status:   409,
       code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_SERVICE_UNREACHABLE,
       title:    `Ziti Service [${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service}] cannot be reached -- [${sessionCreationErrorEvent.error}]`,
-      message:  `The request conflicts with the current state of the network.`
+      message:  `Access was revoked from your Identity, or the Service might be down.`
     });
 
   }
@@ -1093,11 +1100,17 @@ class ZitiBrowzerRuntime {
 
     this.logger.trace(`channelConnectFailEventHandler() `, channelConnectFailEvent);
 
+    window.zitiBrowzerRuntime.wb.messageSW({
+      type: 'UNREGISTER', 
+      payload: {
+      } 
+    });
+
     window.zitiBrowzerRuntime.browzer_error({
       status:   409,
       code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_SERVICE_UNREACHABLE,
       title:    `Ziti Service [${channelConnectFailEvent.serviceName}] connect attempt failed on Ziti Network.`,
-      message:  `The web server might be down.`
+      message:  `Access was revoked from your Identity, or the Service might be down.`
     });
 
   }
@@ -1555,14 +1568,16 @@ class ZitiBrowzerRuntime {
           // Local data indicates that the user is not authenticated, however, the IdP might still think the authentication
           // is alive/valid (a common Auth0 situation), so, we will force/tell the IdP to do a logout. 
           
-          // let logoutInitiated = this.getCookie( this.authTokenName + '_logout_initiated' );
-          // if (isEqual(logoutInitiated, '')) {
-            // document.cookie = this.authTokenName + '_logout_initiated' + "=" + "yes" + "; path=/";
-            // this.logger.trace(`initialize() calling pkceLogout`);
-            // pkceLogout( getOIDCConfig(), getPKCERedirectURI().toString() );
-            // await delay(1000); // we need to pause a bit or the 'login' call below will cancel the 'logout'
-          // }
-          // document.cookie = this.authTokenName + '_logout_initiated'+'=; Max-Age=-99999999;';
+          if (pkceLogoutIsNeeded(getOIDCConfig())) {
+            let logoutInitiated = this.getCookie( this.authTokenName + '_logout_initiated' );
+            if (isEqual(logoutInitiated, '')) {
+              document.cookie = this.authTokenName + '_logout_initiated' + "=" + "yes" + "; path=/";
+              this.logger.trace(`initialize() calling pkceLogout`);
+              pkceLogout( getOIDCConfig(), getPKCERedirectURI().toString() );
+              await delay(1000); // we need to pause a bit or the 'login' call below will cancel the 'logout'
+            }
+            document.cookie = this.authTokenName + '_logout_initiated'+'=; Max-Age=-99999999;';
+          }
 
           this.logger.trace(`initialize() calling pkceLogin`);
 

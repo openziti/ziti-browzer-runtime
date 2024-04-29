@@ -795,8 +795,11 @@ class ZitiBrowzerRuntime {
     let span2 = document.createElement("span");
     span2.textContent = `OpenZiti BrowZer (v${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.version}) Settings`;
 
-    let updateAvailable = isEqual(window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.version, window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.latestReleaseVersion) ? '' 
-      : `A New BrowZer Release <span style="color:#ec1f2d;font-size: 18px;font-weight:600">(v${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.latestReleaseVersion})</span> is Available`;
+    let updateAvailable = '';
+    if (!isUndefined(window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.latestReleaseVersion)) {
+      updateAvailable = isEqual(window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.version, window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.latestReleaseVersion) ? '' 
+        : `A New BrowZer Release <span style="color:#ec1f2d;font-size: 18px;font-weight:600">(v${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.latestReleaseVersion})</span> is Available`;
+    }
 
     span1.appendChild(span2);
     div5.appendChild(span1);

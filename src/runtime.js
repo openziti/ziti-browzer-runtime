@@ -624,7 +624,7 @@ class ZitiBrowzerRuntime {
 
     let css = document.createElement("link");
     css.setAttribute('rel', 'stylesheet');
-    css.setAttribute('href', `${self._obtainBootStrapperURL()}/ziti-browzer-css.css`);
+    css.setAttribute('href', `${self._obtainBootStrapperURL()}/${zitiBrowzerRuntime.zitiConfig.browzer.runtime.css}`);
     div.appendChild(css);
 
     let div2 = document.createElement("div");
@@ -781,7 +781,7 @@ class ZitiBrowzerRuntime {
 
     let css = document.createElement("link");
     css.setAttribute('rel', 'stylesheet');
-    css.setAttribute('href', `${self._obtainBootStrapperURL()}/ziti-browzer-css.css`);
+    css.setAttribute('href', `${self._obtainBootStrapperURL()}/${zitiBrowzerRuntime.zitiConfig.browzer.runtime.css}`);
     div5.appendChild(css);
 
     let img = document.createElement("img");

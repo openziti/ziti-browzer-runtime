@@ -424,6 +424,16 @@ class ZitiBrowzerRuntime {
     setTimeout(self._serviceWorkerKeepAliveHeartBeat, 1000*20, self );
   }
 
+  /**
+   *  Do a periodic fetch of the 'latest' browZer release number (the one sitting out in GHCR)
+   */
+  async _getLatestBrowZerReleaseVersion(self) {
+    let resp = await window._ziti_realFetch(`${ self._obtainBootStrapperURL() }/ziti-browzer-latest-release-version`);
+    const json = await resp.json();
+    window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.latestReleaseVersion = json.latestBrowZerReleaseVersion;
+    setTimeout(self._getLatestBrowZerReleaseVersion, (1000 * 60 * 5) /* every 5 minutes */, self );
+  }
+  
   _zbrPing(self) {
     window.zitiBrowzerRuntime.wb.messageSW({
       type: 'ZBR_PING', 
@@ -776,64 +786,81 @@ class ZitiBrowzerRuntime {
 
     let img = document.createElement("img");
     img.setAttribute('src', `${self._obtainBootStrapperURL()}/ziti-browzer-logo.svg`);
-    img.setAttribute('style', 'width: 14%;');
-    div5.appendChild(img);
+    img.setAttribute('style', 'width: 15%;');
 
     let span1 = document.createElement("span");
-    span1.textContent = 'OpenZiti BrowZer Advanced Settings';
-    span1.setAttribute('style', 'margin-bottom: 30px; color: #2a6eda; font-weight: 600; font-size: 20px; line-height: 36px; display: table; margin: 0px auto; margin-top: -50px;');
+    span1.setAttribute('style', 'margin-bottom: 30px; color: #2a6eda; font-weight: 600; font-size: 20px; line-height: 36px; display: table; margin: 0px auto; margin-top: 10px;');
+    span1.appendChild(img);
+
+    let span2 = document.createElement("span");
+    span2.textContent = `OpenZiti BrowZer (v${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.version}) Settings`;
+
+    let updateAvailable = isEqual(window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.version, window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.latestReleaseVersion) ? '' 
+      : `A New BrowZer Release <span style="color:#ec1f2d;font-size: 18px;font-weight:600">(v${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.latestReleaseVersion})</span> is Available`;
+
+    span1.appendChild(span2);
     div5.appendChild(span1);
 
     let htmlString = `
 <div class="container" style="width:580px;">
     <div class="row">
-        <section class="col-xs-12 col-sm-8 col-sm-offset-2 col-xl-6 col-xl-offset-3 my-4">
+        <section class="col-xs-12 col-sm-8 col-sm-offset-2 col-xl-6 col-xl-offset-3 my-4" style="margin-left: auto;">
             <div>
             <br/>
             <form action="${window.zitiBrowzerRuntime._obtainBootStrapperURL()}">
                 <fieldset>
-                    <div class="row">
+                    <div class="row" style="position: relative">
                         <div class="form-group col-xs-12" id="Client-side_Logging_Level__div">
-                        <label for="Client-side_Logging_Level">Client-side Logging Level *</label>
-                        <select name="ziti-browzer-loglevel" id="ziti-browzer-loglevel" required="required" autofocus="autofocus" class="form-control">
-                          ${window.zitiBrowzerRuntime._generateLogLevelOptions()}
-                        </select>
+                          <label for="Client-side_Logging_Level">Client-side Loglevel</label>
+                          <div>
+                            <select name="ziti-browzer-loglevel" id="ziti-browzer-loglevel" required="required" autofocus="autofocus" class="form-control">
+                              ${window.zitiBrowzerRuntime._generateLogLevelOptions()}
+                            </select>
+                            <button type="submit" id="ziti-browzer-hidden-button" class="hiddenButton" style="display:none"></button>
+                            <button type="button" id="ziti-browzer-save-button"   class="btn btn-primary" style="position: absolute;top: 25px;left: 170px; height: 32px;">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+                                <path d="M10 3.75a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM17.25 4.5a.75.75 0 0 0 0-1.5h-5.5a.75.75 0 0 0 0 1.5h5.5ZM5 3.75a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5a.75.75 0 0 1 .75.75ZM4.25 17a.75.75 0 0 0 0-1.5h-1.5a.75.75 0 0 0 0 1.5h1.5ZM17.25 17a.75.75 0 0 0 0-1.5h-5.5a.75.75 0 0 0 0 1.5h5.5ZM9 10a.75.75 0 0 1-.75.75h-5.5a.75.75 0 0 1 0-1.5h5.5A.75.75 0 0 1 9 10ZM17.25 10.75a.75.75 0 0 0 0-1.5h-1.5a.75.75 0 0 0 0 1.5h1.5ZM14 10a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM10 16.25a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z" />
+                              </svg>
+                              Save and Activate Loglevel
+                            </button>
+                          </div>
                         </div>
                     </div>
-                    <br/>
-                    <br/>
-                    <hr>
+                    
+                    <hr/>
+                    
                     <div class="row">
-                        <div class="form-group col-xs-12" id="How_would_you_rate_OpenZiti_BrowZer___div">
-                        <label for="How_would_you_rate_OpenZiti_BrowZer_">On a scale from 0-10, how likely are you to recommend OpenZiti BrowZer to a friend or colleague?</label>
-                        <select name="ziti-browzer-nps" id="ziti-browzer-nps" class="form-control">
-                            <option value="">Choose</option>
-                            <option value="10">10 - Extremely likely</option>
-                            <option value="9">9</option>
-                            <option value="8">8</option>
-                            <option value="7">7</option>
-                            <option value="6">6</option>
-                            <option value="5">5</option>
-                            <option value="4">4</option>
-                            <option value="3">3</option>
-                            <option value="2">2</option>
-                            <option value="1">1</option>
-                            <option value="0">0 - Not at all likely</option>
-                        </select>
+                      <div class="form-group col-xs-12" id="changelog___div">
+                        <div>
+                          <div class="changelogButtonContainer" data-canny-changelog="true" style="position: relative;">
+                            <button type="button" class="btn btn-primary">
+                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+                                <path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H3.989a.75.75 0 0 0-.75.75v4.242a.75.75 0 0 0 1.5 0v-2.43l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm1.23-3.723a.75.75 0 0 0 .219-.53V2.929a.75.75 0 0 0-1.5 0V5.36l-.31-.31A7 7 0 0 0 3.239 8.188a.75.75 0 1 0 1.448.389A5.5 5.5 0 0 1 13.89 6.11l.311.31h-2.432a.75.75 0 0 0 0 1.5h4.243a.75.75 0 0 0 .53-.219Z" clip-rule="evenodd" />
+                              </svg>
+                              View Changelog
+                            </button>
+                          </div>
+                          <label style="position: absolute;top: 10px;left: 260px; height: 32px;">
+                            ${updateAvailable}
+                          </label>
                         </div>
+                      </div>
                     </div>
+
+                    <br/>
+
                     <div class="row">
-                        <div class="form-group col-xs-12" id="What_do_you_think_needs_improvement___div">
-                        <label for="What_do_you_think_needs_improvement_">What do you think needs improvement?</label>
-                        <textarea name="ziti-browzer-improvement" id="ziti-browzer-improvement" class="form-control"></textarea>
-                        </div>
-                    </div>
-                    <br>
-                    <div class="row" style="padding-bottom: 15px;>
-                        <div class="col-xs-12">
-                          <button type="submit" id="ziti-browzer-hidden-button" class="hiddenButton" style="display:none"></button>
-                          <button type="button" id="ziti-browzer-save-button"   class="btn btn-primary">Save</button>
-                        </div>
+                      <div class="form-group col-xs-12" id="feedback___div">
+                        <div data-canny="true" style="position: relative;">
+                          <button type="button" class="btn btn-primary" id="ziti-browzer-feedback-button">
+                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
+                              <path d="M3.505 2.365A41.369 41.369 0 0 1 9 2c1.863 0 3.697.124 5.495.365 1.247.167 2.18 1.108 2.435 2.268a4.45 4.45 0 0 0-.577-.069 43.141 43.141 0 0 0-4.706 0C9.229 4.696 7.5 6.727 7.5 8.998v2.24c0 1.413.67 2.735 1.76 3.562l-2.98 2.98A.75.75 0 0 1 5 17.25v-3.443c-.501-.048-1-.106-1.495-.172C2.033 13.438 1 12.162 1 10.72V5.28c0-1.441 1.033-2.717 2.505-2.914Z" />
+                              <path d="M14 6c-.762 0-1.52.02-2.271.062C10.157 6.148 9 7.472 9 8.998v2.24c0 1.519 1.147 2.839 2.71 2.935.214.013.428.024.642.034.2.009.385.09.518.224l2.35 2.35a.75.75 0 0 0 1.28-.531v-2.07c1.453-.195 2.5-1.463 2.5-2.915V8.998c0-1.526-1.157-2.85-2.729-2.936A41.645 41.645 0 0 0 14 6Z" />
+                            </svg>
+                            Give Feedback
+                          </button>
+                        </div>  
+                      </div>
                     </div>
                 </fieldset>
             </form>
@@ -844,6 +871,18 @@ class ZitiBrowzerRuntime {
 `;
 
     div5.insertAdjacentHTML('beforeend', htmlString);
+
+    let feedbackButton = document.getElementById("ziti-browzer-feedback-button");
+    feedbackButton.onclick = function() {
+      // Render Feedback widget
+      Canny('render', {
+        boardToken: 'c505a4cb-95c5-1682-47b4-99f9d75607fd',
+        basePath: null,
+        ssoToken: null,
+        theme: 'light',
+      });        
+    };
+
 
     let saveButton = document.getElementById("ziti-browzer-save-button");
 
@@ -890,6 +929,32 @@ class ZitiBrowzerRuntime {
       beforeOpen: function(modal){
           console.log('Message before opening the modal');
           console.log(modal); //modal window object
+
+          // Render Changelog widget
+          Canny('initChangelog', {
+            appID: '662b9d8df9e077a4f734779d',
+            position: 'bottom',
+            align: 'left',
+            theme: 'light',
+            omitNonEssentialCookies: true,
+          });
+          
+          // Animate the badge if there are changelog items the user hasn't yet seen.
+          setTimeout(async function() {
+
+            var cbEl = document.getElementsByClassName('Canny_Badge');
+            if (cbEl[0]) {
+              cbEl[0].classList.add("fas");
+              cbEl[0].classList.add("fa-bell");
+            } else {
+              var clbcEl = document.getElementsByClassName('changelogButtonContainer');
+              if (clbcEl[0]) {
+                clbcEl[0].classList.remove("changelogButtonContainer");
+              }
+            }
+  
+          }, 1000);      
+
       },
       afterClose: function(modal){
           console.log('Message after modal has closed');
@@ -2353,6 +2418,8 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       }
 
       setTimeout(window.zitiBrowzerRuntime._zbrPing, 1000, window.zitiBrowzerRuntime );
+
+      setTimeout(window.zitiBrowzerRuntime._getLatestBrowZerReleaseVersion, 1000, window.zitiBrowzerRuntime );
 
       /**
        * 

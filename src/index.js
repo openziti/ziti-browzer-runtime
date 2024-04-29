@@ -15,3 +15,4 @@ limitations under the License.
 */
 
 import './runtime'
+import '../static/ziti-browzer-css.css'

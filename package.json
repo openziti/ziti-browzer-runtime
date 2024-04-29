@@ -105,6 +105,7 @@
     "localforage": "^1.10.0",
     "lodash-es": "^4.17.21",
     "oauth4webapi": "^2.10.3",
+    "rollup-plugin-css-only": "^4.5.2",
     "uplot": "^1.6.24",
     "uuid": "^8.3.2",
     "wasm-feature-detect": "^1.6.1",

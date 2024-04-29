@@ -6,6 +6,7 @@ import json from '@rollup/plugin-json';
 import prettier from 'rollup-plugin-prettier';
 import copy from 'rollup-plugin-copy';
 import nodePolyfills from 'rollup-plugin-polyfill-node';
+import css from 'rollup-plugin-css-only';
 
 
 const SRC_DIR   = 'src';
@@ -36,6 +37,8 @@ let plugins = [
   }),
   nodePolyfills(),
   nodeResolve(),
+  css({
+  })  
 ];
 
 export default [
@@ -51,6 +54,7 @@ export default [
       dir:            'dist',
       entryFileNames: 'ziti-browzer-runtime-[hash].js',
       exports:        'named',
+      assetFileNames: 'ziti-browzer-css-[hash].css'
     }],
     treeshake: true,
     plugins: plugins,

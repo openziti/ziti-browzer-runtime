@@ -1,3 +1,12 @@
+## [0.66.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.66.0...v0.66.1) (2024-04-29)
+
+
+### Bug Fixes
+
+* adjust render of 'latest release available' ([#290](https://github.com/openziti/ziti-browzer-runtime/issues/290)) ([6bacb51](https://github.com/openziti/ziti-browzer-runtime/commit/6bacb517b58bf38e35c7a5b1ed2ec8461fac2893))
+
+
+
 # [0.66.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.65.1...v0.66.0) (2024-04-29)
 
 

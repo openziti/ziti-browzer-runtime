@@ -1,3 +1,4 @@
+@import url("https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.8.1/css/all.min.css");
 
 .zitiBrowzerRuntimeSettings article,aside,details,figcaption,figure,footer,header,hgroup,main,menu,nav,section,summary {
     display: block
@@ -59,19 +60,6 @@
     box-sizing: border-box
 }
 
-/* html {
-    font-size: 10px;
-    -webkit-tap-highlight-color: rgba(0,0,0,0)
-} */
-
-/* body {
-    font-family: "Helvetica Neue",Helvetica,Arial,sans-serif;
-    font-size: 14px;
-    line-height: 1.42857143;
-    color: #333;
-    background-color: #fff
-} */
-
 .zitiBrowzerRuntimeSettings button,input,select,textarea {
     font-family: inherit;
     font-size: inherit;
@@ -86,7 +74,7 @@
     margin-top: 20px;
     margin-bottom: 20px;
     border: 0;
-    border-top: 1px solid #eee
+    border-top: 4px solid #9e9e9e45;
 }
 
 .zitiBrowzerRuntimeSettings .container {
@@ -151,7 +139,7 @@
 
 .zitiBrowzerRuntimeSettings .form-control {
     display: block;
-    width: 80%;
+    width: 25%;
     height: 34px;
     padding: 6px 12px;
     font-size: 14px;
@@ -180,9 +168,8 @@
 }
 
 .zitiBrowzerRuntimeSettings .btn {
-    display: inline-block;
     margin-bottom: 0;
-    font-weight: 400;
+    font-weight: 600;
     text-align: center;
     white-space: nowrap;
     vertical-align: middle;
@@ -203,8 +190,8 @@
 
 .zitiBrowzerRuntimeSettings .btn-primary {
     color: #fff;
-    background-color: #337ab7;
-    border-color: #2e6da4
+    background-color: #1bb3fd;
+    border-color: #1bb3fd
 }
 
 .zitiBrowzerRuntimeSettings .modal {
@@ -232,7 +219,6 @@
     border: 1px solid white;
 }
 
-  
 #zitiBrowzerRuntime_bottom-bar__move {
     padding: 10px;
     cursor: move;
@@ -274,8 +260,6 @@
 .zitiBrowzerRuntime_bottom-bar__text {
     padding-right: 10px;
 }
-  
-
 .uplot, .uplot *, .uplot *::before, .uplot *::after {
     box-sizing: border-box;
 }
@@ -386,4 +370,75 @@
 }
 .u-axis.u-off, .u-select.u-off, .u-cursor-x.u-off, .u-cursor-y.u-off, .u-cursor-pt.u-off {
     display: none;
+}
+
+.hystmodal__window {
+    width: 800px;
+    position: absolute;
+    top: 1px;
+}
+
+.Canny_BadgeContainer, .Canny_Badge {
+    border-radius: 50%;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.changelogButtonContainer {
+    width: 60px;
+    animation-name: col;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+}
+
+.Canny_BadgeContainer {
+    margin-left: 170px;
+    height: 59px; 
+    width: 59px;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+    box-shadow: 2px 2px 5px #ccc, -2px -2px 5px #ccc;
+}
+
+.Canny_Badge {
+    color: white;
+    font-size: 20px;
+    animation-name: bell-ring;
+    animation-duration: 2s;
+    animation-iteration-count: infinite;
+}
+
+@keyframes col {
+    0% {
+        transform: scale(1) translate(0,0);
+    }
+    10% {
+        transform: scale(1.1) translate(0,0);
+    }
+    75% {
+        transform: scale(1) translate(0,0);
+    }
+    100% {
+        transform: scale(1) translate(0,0);
+    }
+}
+
+@keyframes bell-ring {
+    0% {
+        transform: translate(-50%, -50%);
+    }
+    5%, 15% {
+        transform: translate(-50%, -50%) rotate(25deg);
+    }
+    10%, 20% {
+        transform: translate(-50%, -50%) rotate(-25deg);
+    }
+    25%  {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
+    100% {
+        transform: translate(-50%, -50%) rotate(0deg);
+    }
 }

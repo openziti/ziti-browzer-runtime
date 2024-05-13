@@ -267,13 +267,11 @@ class ZitiBrowzerRuntime {
     });
     if (!isSupportedBrowser) {
 
-      let errStr = `The browser you are using:\n\n${this.ua.browser.name} v${this.ua.browser.version}\n\nis currently unsupported by\nOpenZiti BrowZer Runtime v${_options.version}.`;
-
       this.browzer_error({
         status:   409,
         code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_UNSUPPORTED_BROWSER,
         title:    `The browser you are using is: ${this.ua.browser.name} v${this.ua.browser.version}.`,
-        message:  `This browser is currently unsupported by BrowZer Runtime v${_options.version}.`
+        message:  `Your browser is unsupported by BrowZer.`
       });
 
     }
@@ -1019,6 +1017,10 @@ class ZitiBrowzerRuntime {
   }
 
   browzer_error( browzer_error_data_json ) {
+
+    browzer_error_data_json.myvar = {
+      type: 'zbr',
+    }
 
     setTimeout(function() {
       window.location.href = `

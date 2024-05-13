@@ -1,3 +1,12 @@
+## [0.67.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.67.0...v0.67.1) (2024-05-13)
+
+
+### Bug Fixes
+
+* correct a cookie handling issue (Wazuh) ([#294](https://github.com/openziti/ziti-browzer-runtime/issues/294)) ([9b0ef06](https://github.com/openziti/ziti-browzer-runtime/commit/9b0ef066ebca674419afb8cf941da894b4f05fb2))
+
+
+
 # [0.67.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.66.1...v0.67.0) (2024-04-29)
 
 

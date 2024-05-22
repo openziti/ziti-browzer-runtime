@@ -1,3 +1,12 @@
+# [0.68.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.67.1...v0.68.0) (2024-05-22)
+
+
+### Features
+
+* add browZer tool button ([#297](https://github.com/openziti/ziti-browzer-runtime/issues/297)) ([0e96bc5](https://github.com/openziti/ziti-browzer-runtime/commit/0e96bc50ea09b36cee5c2a946d29988d52d3e5e5))
+
+
+
 ## [0.67.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.67.0...v0.67.1) (2024-05-13)
 
 

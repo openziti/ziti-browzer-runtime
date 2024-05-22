@@ -2,7 +2,7 @@
 import babel from "rollup-plugin-babel";
 import { nodeResolve } from "@rollup/plugin-node-resolve";
 import json from '@rollup/plugin-json';
-// import commonjs from '@rollup/plugin-commonjs';
+import commonjs from '@rollup/plugin-commonjs';
 import prettier from 'rollup-plugin-prettier';
 import copy from 'rollup-plugin-copy';
 import nodePolyfills from 'rollup-plugin-polyfill-node';
@@ -21,7 +21,10 @@ let plugins = [
     exclude: "node_modules/**"
   }),
   json(),
-  // commonjs(),
+  commonjs({
+    include: /node_modules/,
+    requireReturnsDefault: 'auto'
+  }),
   // terser(),
   prettier({
     tabWidth: 2,

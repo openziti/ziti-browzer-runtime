@@ -6053,10 +6053,10 @@ universalify@^0.1.0:
   resolved "https://registry.yarnpkg.com/universalify/-/universalify-0.1.2.tgz#b646f69be3942dabcecc9d6639c80dc105efaa66"
   integrity sha512-rBJeI5CXAlmy1pV+617WB9J63U6XcazHHF2f2dbJix4XzpUF0RS3Zbj0FGIOCAva5P/d/GBOYaACQ1w+0azUkg==
 
-uplot@^1.6.24:
-  version "1.6.24"
-  resolved "https://registry.yarnpkg.com/uplot/-/uplot-1.6.24.tgz#dfa213fa7da92763261920ea972ed1a5f9f6af12"
-  integrity sha512-WpH2BsrFrqxkMu+4XBvc0eCDsRBhzoq9crttYeSI0bfxpzR5YoSVzZXOKFVWcVC7sp/aDXrdDPbDZGCtck2PVg==
+uplot@^1.6.30:
+  version "1.6.30"
+  resolved "https://registry.yarnpkg.com/uplot/-/uplot-1.6.30.tgz#1622a96b7cb2e50622c74330823c321847cbc147"
+  integrity sha512-48oVVRALM/128ttW19F2a2xobc2WfGdJ0VJFX00099CfqbCTuML7L2OrTKxNzeFP34eo1+yJbqFSoFAp2u28/Q==
 
 url@^0.11.0, url@~0.11.0:
   version "0.11.0"

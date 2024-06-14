@@ -99,7 +99,7 @@
     "@openziti/ziti-browzer-core": "^0.40.3",
     "bowser": "^2.11.0",
     "cookie-interceptor": "^1.0.0",
-    "core-js": "^3.22.8",
+    "core-js": "^3.37.1",
     "events": "^3.3.0",
     "js-base64": "^3.7.2",
     "jwt-decode": "^3.1.2",

@@ -1,3 +1,12 @@
+## [0.68.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.68.1...v0.68.2) (2024-07-01)
+
+
+### Bug Fixes
+
+* better browZer button position mgmt during window resizes ([#313](https://github.com/openziti/ziti-browzer-runtime/issues/313)) ([c2fe6c9](https://github.com/openziti/ziti-browzer-runtime/commit/c2fe6c9fcef09f2abb2809b8a4a9e316ad70f194))
+
+
+
 ## [0.68.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.68.0...v0.68.1) (2024-06-28)
 
 

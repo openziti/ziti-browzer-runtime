@@ -32,6 +32,8 @@ export default class EntryBtn extends Emitter {
   setPos(pos) {
     if (this._isOutOfRange(pos)) {
       pos = this._getDefPos()
+      const cfg = this.config
+      cfg.remove('poscustom')
     }
 
     this._$el.css({
@@ -80,8 +82,10 @@ export default class EntryBtn extends Emitter {
     let pos = cfg.get('pos')
     const defPos = this._getDefPos()
 
-    if (!cfg.get('rememberPos') || orientationChanged) {
-      pos = defPos
+    if (!cfg.get('poscustom')) {
+      if (!cfg.get('rememberPos') || orientationChanged) {
+        pos = defPos
+      }
     }
 
     this.setPos(pos)
@@ -144,6 +148,7 @@ export default class EntryBtn extends Emitter {
         x: pxToNum($el.css('left')),
         y: pxToNum($el.css('top')),
       })
+      cfg.set('poscustom', true)
     }
 
     $el.rmClass('eruda-active')
@@ -154,7 +159,7 @@ export default class EntryBtn extends Emitter {
     $el.on(drag('start'), this._onDragStart)
 
     orientation.on('change', () => this._resetPos(true))
-    window.addEventListener('resize', () => this._resetPos())
+    window.addEventListener('resize', () => this._resetPos(true))
   }
   initCfg(settings) {
     const cfg = (this.config = Settings.createCfg('entry-button', {

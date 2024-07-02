@@ -112,7 +112,7 @@
     "luna-tab": "^0.3.0",
     "oauth4webapi": "^2.10.3",
     "rollup-plugin-css-only": "^4.5.2",
-    "uplot": "^1.6.24",
+    "uplot": "^1.6.30",
     "uuid": "^8.3.2",
     "wasm-feature-detect": "^1.6.1",
     "workbox-window": "^6.5.3"

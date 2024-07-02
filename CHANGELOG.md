@@ -1,3 +1,12 @@
+## [0.68.3](https://github.com/openziti/ziti-browzer-runtime/compare/v0.68.2...v0.68.3) (2024-07-02)
+
+
+### Bug Fixes
+
+* properly handle WebSocket msgs sent with opcode 2 (binary) ([#315](https://github.com/openziti/ziti-browzer-runtime/issues/315)) ([5ee5a50](https://github.com/openziti/ziti-browzer-runtime/commit/5ee5a508f7c8ee3f8505e610c7075f7959a325a6))
+
+
+
 ## [0.68.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.68.1...v0.68.2) (2024-07-01)
 
 

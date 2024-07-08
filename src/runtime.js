@@ -287,7 +287,6 @@ class ZitiBrowzerRuntime {
     this.zitiConfig     = this.getZitiConfig();
 
     this.logLevel       = this.zitiConfig.browzer.runtime.logLevel;
-    this.hotKey         = this.zitiConfig.browzer.runtime.hotKey;
     this.controllerApi  = this.zitiConfig.controller.api;
 
     this.regexControllerAPI = new RegExp( this._controllerApi, 'g' );
@@ -329,9 +328,6 @@ class ZitiBrowzerRuntime {
       // Toast infra
       this.PolipopCreated = false;
       setTimeout(this._createPolipop, 1000, this);
-
-      // HotKey infra
-      // setTimeout(this._createHotKey, 5000, this);    
 
       // Click intercept infra
       setTimeout(this._createClickIntercept, 3000, this);
@@ -543,25 +539,6 @@ class ZitiBrowzerRuntime {
     }
   }
 
-  _createHotKey(self) {
-    if (typeof hotkeys !== 'undefined') {
-
-      hotkeys(self.hotKey, function (event, handler){
-        switch (handler.key) {
-          case self.hotKey: 
-            self.hotKeyModal.open("#zbrHotKeyModal")
-            break;
-          default: alert(event);
-        }
-      });
-
-      self._createHotKeyModal(self);
-
-    } else {
-      setTimeout(self._createHotKey, 1000, self);
-    }
-  }
-
   async _saveLogLevel(loglevelValue) {
     await window.zitiBrowzerRuntime.localStorage.setWithExpiry(
       'ZITI_BROWZER_RUNTIME_LOGLEVEL',
@@ -742,229 +719,6 @@ class ZitiBrowzerRuntime {
     }
 
     dragElement(document.getElementById('zitiBrowzerRuntime_bottom-bar__move'));
-
-  }
-
-  _createHotKeyModal(self) {
-
-    if (isNull(document.body)) return;
-
-    let div = document.createElement("div");
-    div.setAttribute('class', 'hystmodal');
-    div.setAttribute('id', 'zbrHotKeyModal');
-    div.setAttribute('aria-hidden', 'true');
-    document.body.appendChild(div);
-
-    let div2 = document.createElement("div");
-    div2.setAttribute('class', 'hystmodal__wrap');
-    div.appendChild(div2);
-
-    let div3 = document.createElement("div");
-    div3.setAttribute('class', 'hystmodal__window');
-    div3.setAttribute('role', 'dialog');
-    div3.setAttribute('aria-hidden', 'true');
-    div2.appendChild(div3);
-
-    let btn = document.createElement("button");
-    btn.setAttribute('class', 'hystmodal__close');
-    btn.setAttribute('data-hystclose', 'data-hystclose');
-    div3.appendChild(btn);
-
-    let div4 = document.createElement("div");
-    div4.setAttribute('class', 'hystmodal__styled');
-    div3.appendChild(div4);
-
-    let div5 = document.createElement("div");
-    div5.setAttribute('class', 'zitiBrowzerRuntimeSettings');
-    div4.appendChild(div5);
-
-    let css = document.createElement("link");
-    css.setAttribute('rel', 'stylesheet');
-    css.setAttribute('href', `${self._obtainBootStrapperURL()}/${zitiBrowzerRuntime.zitiConfig.browzer.runtime.css}`);
-    div5.appendChild(css);
-
-    let img = document.createElement("img");
-    img.setAttribute('src', `${self._obtainBootStrapperURL()}/ziti-browzer-logo.svg`);
-    img.setAttribute('style', 'width: 15%;');
-
-    let span1 = document.createElement("span");
-    span1.setAttribute('style', 'margin-bottom: 30px; color: #2a6eda; font-weight: 600; font-size: 20px; line-height: 36px; display: table; margin: 0px auto; margin-top: 10px;');
-    span1.appendChild(img);
-
-    let span2 = document.createElement("span");
-    span2.textContent = `OpenZiti BrowZer (v${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.version}) Settings`;
-
-    let updateAvailable = '';
-    if (!isUndefined(window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.latestReleaseVersion)) {
-      updateAvailable = isEqual(window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.version, window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.latestReleaseVersion) ? '' 
-        : `A New BrowZer Release <span style="color:#ec1f2d;font-size: 18px;font-weight:600">(v${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.latestReleaseVersion})</span> is Available`;
-    }
-
-    span1.appendChild(span2);
-    div5.appendChild(span1);
-
-    let htmlString = `
-<div class="container" style="width:580px;">
-    <div class="row">
-        <section class="col-xs-12 col-sm-8 col-sm-offset-2 col-xl-6 col-xl-offset-3 my-4" style="margin-left: auto;">
-            <div>
-            <br/>
-            <form action="${window.zitiBrowzerRuntime._obtainBootStrapperURL()}">
-                <fieldset>
-                    <div class="row" style="position: relative">
-                        <div class="form-group col-xs-12" id="Client-side_Logging_Level__div">
-                          <label for="Client-side_Logging_Level">Client-side Loglevel</label>
-                          <div>
-                            <select name="ziti-browzer-loglevel" id="ziti-browzer-loglevel" required="required" autofocus="autofocus" class="form-control">
-                              ${window.zitiBrowzerRuntime._generateLogLevelOptions()}
-                            </select>
-                            <button type="submit" id="ziti-browzer-hidden-button" class="hiddenButton" style="display:none"></button>
-                            <button type="button" id="ziti-browzer-save-button"   class="btn btn-primary" style="position: absolute;top: 25px;left: 170px; height: 32px;">
-                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
-                                <path d="M10 3.75a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM17.25 4.5a.75.75 0 0 0 0-1.5h-5.5a.75.75 0 0 0 0 1.5h5.5ZM5 3.75a.75.75 0 0 1-.75.75h-1.5a.75.75 0 0 1 0-1.5h1.5a.75.75 0 0 1 .75.75ZM4.25 17a.75.75 0 0 0 0-1.5h-1.5a.75.75 0 0 0 0 1.5h1.5ZM17.25 17a.75.75 0 0 0 0-1.5h-5.5a.75.75 0 0 0 0 1.5h5.5ZM9 10a.75.75 0 0 1-.75.75h-5.5a.75.75 0 0 1 0-1.5h5.5A.75.75 0 0 1 9 10ZM17.25 10.75a.75.75 0 0 0 0-1.5h-1.5a.75.75 0 0 0 0 1.5h1.5ZM14 10a2 2 0 1 0-4 0 2 2 0 0 0 4 0ZM10 16.25a2 2 0 1 0-4 0 2 2 0 0 0 4 0Z" />
-                              </svg>
-                              Save and Activate Loglevel
-                            </button>
-                          </div>
-                        </div>
-                    </div>
-                    
-                    <hr/>
-                    
-                    <div class="row">
-                      <div class="form-group col-xs-12" id="changelog___div">
-                        <div>
-                          <div class="changelogButtonContainer" Xdata-canny-changelog="true" style="position: relative;">
-                            <button type="button" class="btn btn-primary">
-                              <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
-                                <path fill-rule="evenodd" d="M15.312 11.424a5.5 5.5 0 0 1-9.201 2.466l-.312-.311h2.433a.75.75 0 0 0 0-1.5H3.989a.75.75 0 0 0-.75.75v4.242a.75.75 0 0 0 1.5 0v-2.43l.31.31a7 7 0 0 0 11.712-3.138.75.75 0 0 0-1.449-.39Zm1.23-3.723a.75.75 0 0 0 .219-.53V2.929a.75.75 0 0 0-1.5 0V5.36l-.31-.31A7 7 0 0 0 3.239 8.188a.75.75 0 1 0 1.448.389A5.5 5.5 0 0 1 13.89 6.11l.311.31h-2.432a.75.75 0 0 0 0 1.5h4.243a.75.75 0 0 0 .53-.219Z" clip-rule="evenodd" />
-                              </svg>
-                              View Changelog
-                            </button>
-                          </div>
-                          <label style="position: absolute;top: 10px;left: 260px; height: 32px;">
-                            ${updateAvailable}
-                          </label>
-                        </div>
-                      </div>
-                    </div>
-
-                    <br/>
-
-                    <div class="row">
-                      <div class="form-group col-xs-12" id="feedback___div">
-                        <div data-canny="true" style="position: relative;">
-                          <button type="button" class="btn btn-primary" id="ziti-browzer-feedback-button">
-                            <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor" class="w-5 h-5">
-                              <path d="M3.505 2.365A41.369 41.369 0 0 1 9 2c1.863 0 3.697.124 5.495.365 1.247.167 2.18 1.108 2.435 2.268a4.45 4.45 0 0 0-.577-.069 43.141 43.141 0 0 0-4.706 0C9.229 4.696 7.5 6.727 7.5 8.998v2.24c0 1.413.67 2.735 1.76 3.562l-2.98 2.98A.75.75 0 0 1 5 17.25v-3.443c-.501-.048-1-.106-1.495-.172C2.033 13.438 1 12.162 1 10.72V5.28c0-1.441 1.033-2.717 2.505-2.914Z" />
-                              <path d="M14 6c-.762 0-1.52.02-2.271.062C10.157 6.148 9 7.472 9 8.998v2.24c0 1.519 1.147 2.839 2.71 2.935.214.013.428.024.642.034.2.009.385.09.518.224l2.35 2.35a.75.75 0 0 0 1.28-.531v-2.07c1.453-.195 2.5-1.463 2.5-2.915V8.998c0-1.526-1.157-2.85-2.729-2.936A41.645 41.645 0 0 0 14 6Z" />
-                            </svg>
-                            Give Feedback
-                          </button>
-                        </div>  
-                      </div>
-                    </div>
-                </fieldset>
-            </form>
-            </div>
-        </section>
-    </div>
-</div>
-`;
-
-    div5.insertAdjacentHTML('beforeend', htmlString);
-
-    let feedbackButton = document.getElementById("ziti-browzer-feedback-button");
-    feedbackButton.onclick = function() {
-      // Render Feedback widget
-      Canny('render', {
-        boardToken: 'c505a4cb-95c5-1682-47b4-99f9d75607fd',
-        basePath: null,
-        ssoToken: null,
-        theme: 'light',
-      });        
-    };
-
-
-    let saveButton = document.getElementById("ziti-browzer-save-button");
-
-    saveButton.onclick = function() {
-
-      let hiddenButton = document.getElementById("ziti-browzer-hidden-button");
-
-      hiddenButton.onclick = function(e) {
-
-        let loglevel = document.getElementById("ziti-browzer-loglevel");
-        let loglevelValue = loglevel.value;
-        if (!isEqual(loglevelValue, '')) {
-          window.zitiBrowzerRuntime._saveLogLevel(loglevelValue);
-          e.preventDefault();
-          window.zitiBrowzerRuntime.toastSuccess(`New logLevel of '${loglevelValue}' now in effect`);
-          window.zitiBrowzerRuntime.hotKeyModal.close();
-          window.zitiBrowzerRuntime.toastWarning(`Page will now reload...`);
-          setTimeout(function() {
-            zitiBrowzerRuntime.logger.debug(`################ doing page reload now ################`);
-            window.location.replace(window.zitiBrowzerRuntime._obtainBootStrapperURL() + zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path);
-          }, 2000);
-        }
-
-        /**
-         * TODO: send rating to browZer Bootstrapper
-         */
-
-        // let rating = document.getElementById("ziti-browzer-rating");
-        // let ratingValue = rating.value;
-
-      };
-  
-      hiddenButton.click();
-    };
-
-
-
-
-    self.hotKeyModal = new HystModal({
-      linkAttributeName:false,
-      catchFocus: true,
-      waitTransitions: true,
-      closeOnEsc: true,
-      beforeOpen: function(modal){
-          console.log('Message before opening the modal');
-          console.log(modal); //modal window object
-
-          // Render Changelog widget
-          Canny('initChangelog', {
-            appID: '662b9d8df9e077a4f734779d',
-            position: 'bottom',
-            align: 'left',
-            theme: 'light',
-            omitNonEssentialCookies: true,
-          });
-          
-          // Animate the badge if there are changelog items the user hasn't yet seen.
-          setTimeout(async function() {
-
-            var cbEl = document.getElementsByClassName('Canny_Badge');
-            if (cbEl[0]) {
-              cbEl[0].classList.add("fas");
-              cbEl[0].classList.add("fa-bell");
-            } else {
-              var clbcEl = document.getElementsByClassName('changelogButtonContainer');
-              if (clbcEl[0]) {
-                clbcEl[0].classList.remove("changelogButtonContainer");
-              }
-            }
-  
-          }, 1000);      
-
-      },
-      afterClose: function(modal){
-          console.log('Message after modal has closed');
-          console.log(modal); //modal window object
-      },
-    });
-  
-    self.hotKeyModal.init();
 
   }
 

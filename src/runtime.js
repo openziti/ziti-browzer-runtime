@@ -831,6 +831,19 @@ class ZitiBrowzerRuntime {
 
   }
 
+  wssERConnectionErrorEventHandler(wssERConnectionErrorEvent) {
+
+    this.logger.trace(`wssERConnectionErrorEventHandler() `, wssERConnectionErrorEvent);
+
+    window.zitiBrowzerRuntime.browzer_error({
+      status:   409,
+      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_WSS_ROUTER_CONNECTION_ERROR,
+      title:    `Error Encountered Attempting to Connect to Edge Router [${wssERConnectionErrorEvent.wsser}]`,
+      message:  `Possible Edge Router configuration|certificates issue exists.`
+    });
+
+  }
+
   noServiceEventHandler(noServiceEvent) {
 
     this.logger.trace(`noServiceEventHandler() `, noServiceEvent);
@@ -1516,6 +1529,7 @@ class ZitiBrowzerRuntime {
       this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_XGRESS,                 this.xgressEventHandler);
       this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NESTED_TLS_HANDSHAKE_TIMEOUT,  this.nestedTLSHandshakeTimeoutEventHandler);
       this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_CONFIG_PROTOCOL_FOR_SERVICE,  this.noConfigProtocolForServiceEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_WSS_ROUTER_CONNECTION_ERROR,  this.wssERConnectionErrorEventHandler);
 
       if (options.eruda) {
         this.zitiConfig.eruda = true;
@@ -2000,6 +2014,12 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         else if (event.data.type === 'NO_CONFIG_PROTOCOL_FOR_SERVICE') {
 
           window.zitiBrowzerRuntime.noConfigProtocolForServiceEventHandler(event.data.payload.event);
+
+        }
+
+        else if (event.data.type === 'WSS_ROUTER_CONNECTION_ERROR') {
+
+          window.zitiBrowzerRuntime.wssERConnectionErrorEventHandler(event.data.payload.event);
 
         }
 

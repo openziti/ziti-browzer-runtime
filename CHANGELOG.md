@@ -1,3 +1,12 @@
+# [0.69.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.68.4...v0.69.0) (2024-07-09)
+
+
+### Features
+
+* emit error page if wssER connections fail ([#317](https://github.com/openziti/ziti-browzer-runtime/issues/317)) ([b2ea71b](https://github.com/openziti/ziti-browzer-runtime/commit/b2ea71b72a2267c1146beb8c3bd0e5b09729535e))
+
+
+
 ## [0.68.4](https://github.com/openziti/ziti-browzer-runtime/compare/v0.68.3...v0.68.4) (2024-07-08)
 
 

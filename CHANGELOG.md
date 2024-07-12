@@ -1,3 +1,12 @@
+# [0.70.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.69.0...v0.70.0) (2024-07-12)
+
+
+### Features
+
+* new throughput chart in browZer tools ([#320](https://github.com/openziti/ziti-browzer-runtime/issues/320)) ([7159081](https://github.com/openziti/ziti-browzer-runtime/commit/7159081b5840966a7f8f031710b70baf08bff193))
+
+
+
 # [0.69.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.68.4...v0.69.0) (2024-07-09)
 
 

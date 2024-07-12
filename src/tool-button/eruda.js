@@ -1,18 +1,28 @@
+/*
+Copyright NetFoundry Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 import EntryBtn from './EntryBtn/EntryBtn'
 import DevTools from './DevTools/DevTools'
 import Tool from './DevTools/Tool'
-// import Console from './Console/Console'
-// import Network from './Network/Network'
-// import Elements from './Elements/Elements'
-// import Snippets from './Snippets/Snippets'
-// import Resources from './Resources/Resources'
 import Info from './Info/Info'
 import Changelog from './Changelog/Changelog'
 import Feedback from './Feedback/Feedback'
-// import Sources from './Sources/Sources'
+import Throughput from './Throughput/Throughput'
 import Settings from './Settings/Settings'
 import emitter from './lib/emitter'
-// import logger from './lib/logger'
 import * as util from './lib/util'
 import isFn from 'licia/isFn'
 import isNum from 'licia/isNum'
@@ -28,13 +38,10 @@ import extend from 'licia/extend'
 import evalCss from './lib/evalCss'
 import pjson from '../../package.json';
 
-
 import { ICON_CSS } from './style/icon_css';
 import { RESET_CSS } from './style/reset_css';
 import { STYLE_CSS } from './style/style_css';
 import { EVERYTHING_CSS } from './style/everything_css';
-
-
 
 
 const eruda = {
@@ -60,20 +67,27 @@ const eruda = {
 
     if (autoScale) this._autoScale()
   },
+  maybeShowThroughput() {
+    if (this._entryBtn.maybeShowThroughput()) {
+      this._devTools.show();
+      setTimeout((self) => {
+        self._devTools.hide();
+        if (typeof Canny !== 'undefined') {
+          Canny('closeChangelog');
+        }    
+        window.zitiBrowzerRuntime.toastSuccess(`Auto-hiding the BrowZer Throughput chart -- Click BrowZer Button to view it again`);
+      }, 10*1000, this)  
+    }
+  },
   _isInit: false,
   version: pjson.version,
   util,
   Tool,
-  // Console,
-  // Elements,
-  // Network,
-  // Sources,
-  // Resources,
   Settings,
   Info,
   Changelog,
   Feedback,
-  // Snippets,
+  Throughput,
   get(name) {
     if (!this._checkInit()) return
 
@@ -249,13 +263,7 @@ const eruda = {
   },
   _initTools(
     tool = [
-      'console',
-      'elements',
-      'network',
-      'resources',
-      'sources',
       'info',
-      'snippets',
     ]
   ) {
     tool = toArr(tool)
@@ -277,8 +285,7 @@ const eruda = {
       }
     })
 
-    // devTools.showTool(tool[0] || 'settings')
-    devTools.showTool('settings')
+    devTools.showTool('throughput')
   },
 }
 

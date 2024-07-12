@@ -16,11 +16,12 @@ const ICON_CSS =
 [class*=' icon-'] {
   display: inline-block;
   font-family: 'eruda-icon' !important;
-  font-size: 16px;
   font-style: normal;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
+
+// font-size: 16px;
 
 .icon-arrow-left:before {
   content: '\f101';

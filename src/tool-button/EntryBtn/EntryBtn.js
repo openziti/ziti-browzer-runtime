@@ -1,3 +1,19 @@
+/*
+Copyright NetFoundry Inc.
+
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at
+
+https://www.apache.org/licenses/LICENSE-2.0
+
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
+*/
+
 import emitter from '../lib/emitter'
 import Settings from '../Settings/Settings'
 import Emitter from 'licia/Emitter'
@@ -164,10 +180,12 @@ export default class EntryBtn extends Emitter {
   initCfg(settings) {
     const cfg = (this.config = Settings.createCfg('entry-button', {
       rememberPos: true,
+      renderThroughputOnStart: true,
       pos: this._getDefPos(),
     }))
 
     settings.switch(cfg, 'rememberPos', `Remember BrowZer Button Position`)
+    settings.switch(cfg, 'renderThroughputOnStart', `Render Throughput Chart on startup`)
 
     this._resetPos()
   }
@@ -179,5 +197,9 @@ export default class EntryBtn extends Emitter {
       y: window.innerHeight - minWidth,
     }
 
+  }
+  maybeShowThroughput() {
+    const cfg = this.config;
+    return cfg.get('renderThroughputOnStart');
   }
 }

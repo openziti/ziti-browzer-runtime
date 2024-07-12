@@ -37,7 +37,6 @@ import { buildInfo } from './buildInfo'
 import { ZitiBrowzerLocalStorage } from './utils/localstorage';
 import { Auth0Client } from '@auth0/auth0-spa-js';
 import Bowser from 'bowser'; 
-import uPlot from 'uplot';
 import * as msal from '@azure/msal-browser';
 import { stringify } from './urlon';
 import * as oidc from 'oauth4webapi'
@@ -586,140 +585,6 @@ class ZitiBrowzerRuntime {
     zitiBrowzerRuntime.xgressEventChart.setData( zitiBrowzerRuntime.xgressEventData);
 
     setTimeout(self._xgressEventPing, 1000, self );
-  }
-
-  _createStatusBar(self) {
-
-    if (isNull(document.body)) {
-      let b = document.createElement("body");
-      document.body = b;
-    }
-
-    let div = document.createElement("div");
-    div.setAttribute('class', 'zitiBrowzerRuntime_bottom-bar');
-
-    let css = document.createElement("link");
-    css.setAttribute('rel', 'stylesheet');
-    css.setAttribute('href', `${self._obtainBootStrapperURL()}/${zitiBrowzerRuntime.zitiConfig.browzer.runtime.css}`);
-    div.appendChild(css);
-
-    let div2 = document.createElement("div");
-    div2.setAttribute('class', 'zitiBrowzerRuntime_bottom-bar__content');
-
-    let img = document.createElement("img");
-    img.setAttribute('style', 'width: 5%;');
-    img.setAttribute('src', `${self._obtainBootStrapperURL()}/ziti-browzer-logo.svg`);
-    div2.appendChild(img);
-
-    div.appendChild(div2);
-
-    let chartEl = document.createElement("div");
-    chartEl.setAttribute('id', 'zitiBrowzerRuntime_bottom-bar__chart');
-    div2.appendChild(chartEl);
-
-    /**
-     * 
-     */
-    const { bars } = uPlot.paths;
-
-    // generate bar builder with 60% bar (40% gap) & 100px max bar width
-    const _bars60_100 = bars({
-      size: [0.6, 100],
-    });            
-
-    const opts = {
-      width:  800,
-      height: 250,
-      title: `Loading Status for Ziti Service [${zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service}]  --  BrowZer xgress (bytes)`,
-      scales: {
-        "y": {
-          auto: true,
-        }
-      },    
-      series: [
-        {
-        },
-        {
-          label:  "Send",
-          stroke: "blue",
-          width:  2,
-          paths:  _bars60_100,
-          points: {show: true},
-        },
-        {
-          label:  "Recv",
-          stroke: "green",
-          width:  2,
-          paths:  _bars60_100,
-          points: {show: true},
-        },
-      ],
-    };      
-
-    zitiBrowzerRuntime.xgressEventChart = new uPlot(opts, zitiBrowzerRuntime.xgressEventData, chartEl);
-
-    setTimeout(zitiBrowzerRuntime._xgressEventPing, 10, zitiBrowzerRuntime );
-
-    let moveLabel = document.createElement("label");
-    moveLabel.setAttribute('id', 'zitiBrowzerRuntime_bottom-bar__move');
-    moveLabel.innerText = 'Click Here and Drag to Move';
-    div2.appendChild(moveLabel);
-
-    let closeLabel = document.createElement("label");
-    closeLabel.setAttribute('id', 'zitiBrowzerRuntime_bottom-bar__close');
-    closeLabel.setAttribute('class', 'zitiBrowzerRuntime_bottom-bar__close');
-    closeLabel.innerText = 'Click Here to Close';
-    div2.appendChild(closeLabel);
-
-    document.body.appendChild(div);
-
-    function dragElement(elmnt) {
-
-      var pos1 = 0, pos2 = 0, pos3 = 0, pos4 = 0;
-
-      function dragMouseDown(e) {
-        e = e || window.event;
-        e.preventDefault();
-        // get the mouse cursor position at startup:
-        pos3 = e.clientX;
-        pos4 = e.clientY;
-        document.onmouseup = closeDragElement;
-        // call a function whenever the cursor moves:
-        document.onmousemove = elementDrag;
-      }
-
-      function elementDrag(e) {
-        e = e || window.event;
-        e.preventDefault();
-        // calculate the new cursor position:
-        pos1 = pos3 - e.clientX;
-        pos2 = pos4 - e.clientY;
-        pos3 = e.clientX;
-        pos4 = e.clientY;
-        // set the element's new position:
-        elmnt.parentElement.parentElement.style.top = (elmnt.parentElement.parentElement.offsetTop - pos2) + "px";
-        elmnt.parentElement.parentElement.style.left = (elmnt.parentElement.parentElement.offsetLeft - pos1) + "px";
-      }
-
-      function closeDragElement() {
-        // stop moving when mouse button is released:
-        document.onmouseup = null;
-        document.onmousemove = null;
-      }
-
-      
-      if (document.getElementById(elmnt.id)) {
-        // if present, the header is where you move the DIV from:
-        document.getElementById(elmnt.id).onmousedown = dragMouseDown;
-      } else {
-        // otherwise, move the DIV from anywhere inside the DIV:
-        elmnt.onmousedown = dragMouseDown;
-      }
-
-    }
-
-    dragElement(document.getElementById('zitiBrowzerRuntime_bottom-bar__move'));
-
   }
 
   /**
@@ -1304,6 +1169,7 @@ class ZitiBrowzerRuntime {
         'info',
         'changelog',
         'feedback',
+        'throughput',
       ],
       useShadowDom: false,
       autoScale: true,
@@ -1312,6 +1178,7 @@ class ZitiBrowzerRuntime {
           transparency: 1.0
       }
     });
+    eruda.maybeShowThroughput();
 
     let logLevel = await window.zitiBrowzerRuntime.localStorage.get(
       'ZITI_BROWZER_RUNTIME_LOGLEVEL',
@@ -1324,11 +1191,6 @@ class ZitiBrowzerRuntime {
       suffix: 'ZBR'  // run-time
     });
     this.logger.trace(`ZitiBrowzerRuntime ${this._uuid} initializing`);
-
-    // Skip the status bar (for now)
-    // if (!this.isOnMobile()) {
-    //   this._createStatusBar(this);
-    // }
 
     // Facilitate removal of the bottom bar
     document.addEventListener("click", function(e) {

@@ -139,7 +139,7 @@ export default class Throughput extends Tool {
       cursor: {
         y: false,
       },
-      width:  800,
+      width:  window.innerWidth - 30,
       height: 250,
       title: `Bytes exchanged with Ziti Service [${zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service}]`,
       scales: {
@@ -153,14 +153,14 @@ export default class Throughput extends Tool {
         {
           label:  "Send",
           stroke: "blue",
-          width:  2,
+          width:  4,
           paths:  _bars60_100,
           points: {show: true},
         },
         {
           label:  "Recv",
           stroke: "green",
-          width:  2,
+          width:  4,
           paths:  _bars60_100,
           points: {show: true},
         },

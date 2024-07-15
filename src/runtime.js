@@ -1180,6 +1180,18 @@ class ZitiBrowzerRuntime {
     });
     if (!options.loadedViaBootstrapper) {
       eruda.maybeShowThroughput();
+    } else {
+      const browZerDIV = document.getElementById("OpenZiti-BrowZer");
+      let splashDIV = document.createElement('div');
+      splashDIV.classList.add("OpenZiti-BrowZer-splash-screen");
+      splashDIV.setAttribute("id", "OpenZiti-BrowZer-splashScreen");
+      let loadingDIV = document.createElement('h1');
+      loadingDIV.innerHTML += `OpenZiti BrowZer is Bootstrapping your web app`;
+      splashDIV.appendChild(loadingDIV);
+      let loaderDIV = document.createElement('div');
+      loaderDIV.classList.add("OpenZiti-BrowZer-loader");
+      splashDIV.appendChild(loaderDIV);
+      browZerDIV.appendChild(splashDIV);
     }
 
     let logLevel = await window.zitiBrowzerRuntime.localStorage.get(

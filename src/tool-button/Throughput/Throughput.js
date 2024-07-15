@@ -141,7 +141,7 @@ export default class Throughput extends Tool {
       },
       width:  window.innerWidth - 30,
       height: 250,
-      title: `Bytes exchanged with Ziti Service [${zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service}]`,
+      title: `Bytes exchanged`,
       scales: {
         "y": {
           auto: true,
@@ -151,14 +151,14 @@ export default class Throughput extends Tool {
         {
         },
         {
-          label:  "Send",
+          label:  "Tx",
           stroke: "blue",
           width:  4,
           paths:  _bars60_100,
           points: {show: true},
         },
         {
-          label:  "Recv",
+          label:  "Rx",
           stroke: "green",
           width:  4,
           paths:  _bars60_100,
@@ -177,7 +177,7 @@ export default class Throughput extends Tool {
 
     let defInfo = [
       {
-        name: 'HTTP Request/Response Data Transfer',
+        name: `HTTP Xgress (Service [${zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service}])`,
         val(self) {
           return self._createStatusBarDiv()
         },

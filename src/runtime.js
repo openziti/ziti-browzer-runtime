@@ -1178,7 +1178,9 @@ class ZitiBrowzerRuntime {
           transparency: 1.0
       }
     });
-    eruda.maybeShowThroughput();
+    if (!options.loadedViaBootstrapper) {
+      eruda.maybeShowThroughput();
+    }
 
     let logLevel = await window.zitiBrowzerRuntime.localStorage.get(
       'ZITI_BROWZER_RUNTIME_LOGLEVEL',

@@ -1,3 +1,12 @@
+## [0.70.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.70.1...v0.70.2) (2024-07-15)
+
+
+### Bug Fixes
+
+* mobile adjustments for throughput chart ([#323](https://github.com/openziti/ziti-browzer-runtime/issues/323)) ([f8dbb64](https://github.com/openziti/ziti-browzer-runtime/commit/f8dbb64be2e6f0b91775fc86b409ee7e62a2404f))
+
+
+
 ## [0.70.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.70.0...v0.70.1) (2024-07-15)
 
 

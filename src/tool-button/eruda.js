@@ -68,7 +68,8 @@ const eruda = {
     if (autoScale) this._autoScale()
   },
   maybeShowThroughput() {
-    if (this._entryBtn.maybeShowThroughput()) {
+    let timeToRender = this._devTools.maybeShowThroughput();
+    if (timeToRender > 0) {
       this._devTools.show();
       setTimeout((self) => {
         self._devTools.hide();
@@ -76,7 +77,7 @@ const eruda = {
           Canny('closeChangelog');
         }    
         window.zitiBrowzerRuntime.toastSuccess(`Auto-hiding the BrowZer Throughput chart -- Click BrowZer Button to view it again`);
-      }, 10*1000, this)  
+      }, timeToRender*1000, this)  
     }
   },
   _isInit: false,

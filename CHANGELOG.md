@@ -1,3 +1,12 @@
+# [0.71.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.70.2...v0.71.0) (2024-07-16)
+
+
+### Features
+
+* new 'range' picker for throughput chart start-render time ([#324](https://github.com/openziti/ziti-browzer-runtime/issues/324)) ([d28098c](https://github.com/openziti/ziti-browzer-runtime/commit/d28098cb210001c793b56969f67500cfeff1ab73))
+
+
+
 ## [0.70.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.70.1...v0.70.2) (2024-07-15)
 
 

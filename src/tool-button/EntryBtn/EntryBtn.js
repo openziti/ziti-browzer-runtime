@@ -180,12 +180,10 @@ export default class EntryBtn extends Emitter {
   initCfg(settings) {
     const cfg = (this.config = Settings.createCfg('entry-button', {
       rememberPos: true,
-      renderThroughputOnStart: true,
       pos: this._getDefPos(),
     }))
 
     settings.switch(cfg, 'rememberPos', `Remember BrowZer Button Position`)
-    settings.switch(cfg, 'renderThroughputOnStart', `Render Throughput Chart on startup`)
 
     this._resetPos()
   }
@@ -197,9 +195,5 @@ export default class EntryBtn extends Emitter {
       y: window.innerHeight - minWidth,
     }
 
-  }
-  maybeShowThroughput() {
-    const cfg = this.config;
-    return cfg.get('renderThroughputOnStart');
   }
 }

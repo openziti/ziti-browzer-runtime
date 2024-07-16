@@ -51,6 +51,7 @@ export default class DevTools extends Emitter {
 
     this._defCfg = extend(
       {
+        renderThroughputOnStart: 10,
         transparency: 1,
         displaySize: 80,
       },
@@ -238,6 +239,11 @@ export default class DevTools extends Emitter {
 
     settings
       .separator()
+      .range(cfg, 'renderThroughputOnStart', 'Time to Render Throughput Chart On Start up', {
+        min: 0,
+        max: 15,
+        step: 1,
+      })
       .select(cfg, 'loglevel', 'Loglevel', [
         'Silent',
         'Error',
@@ -293,6 +299,9 @@ export default class DevTools extends Emitter {
     } else {
       $container.rmClass(c('safe-area'))
     }
+  }
+  maybeShowThroughput() {
+    return this.config.get('renderThroughputOnStart');
   }
   _setTransparency(opacity) {
     if (!isNum(opacity)) return

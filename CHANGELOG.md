@@ -1,3 +1,12 @@
+## [0.71.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.71.0...v0.71.1) (2024-07-17)
+
+
+### Bug Fixes
+
+* expose 'readyState' property on ZitiDummyWebSocketWrapper object ([#326](https://github.com/openziti/ziti-browzer-runtime/issues/326)) ([190ea57](https://github.com/openziti/ziti-browzer-runtime/commit/190ea57b83d21b501a1957bd2979b66fbf49a764))
+
+
+
 # [0.71.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.70.2...v0.71.0) (2024-07-16)
 
 

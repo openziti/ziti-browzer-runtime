@@ -152,6 +152,17 @@ class ZitiDummyWebSocketWrapper extends EventEmitter {
       this.addListener(type, listener);
     }
 
+    /**
+     * 
+     */
+    get readyState() {
+      if (!this.innerWebSocket) {
+        return 0; //CONNECTING
+      } else {
+        return this.innerWebSocket.READYSTATE;
+      }
+    }
+
 }
 
 ['open', 'error', 'close', 'message'].forEach((method) => {

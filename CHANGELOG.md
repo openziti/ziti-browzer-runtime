@@ -1,3 +1,12 @@
+## [0.71.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.71.1...v0.71.2) (2024-07-17)
+
+
+### Bug Fixes
+
+* expose 'state constants' on ZitiDummyWebSocketWrapper object ([#328](https://github.com/openziti/ziti-browzer-runtime/issues/328)) ([3cb9a66](https://github.com/openziti/ziti-browzer-runtime/commit/3cb9a66d9d65b5a2fce4c26533d5de96933187fa))
+
+
+
 ## [0.71.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.71.0...v0.71.1) (2024-07-17)
 
 

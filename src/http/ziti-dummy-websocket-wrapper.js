@@ -24,6 +24,11 @@ import { isEqual, isUndefined } from 'lodash-es';
  */
 class ZitiDummyWebSocketWrapper extends EventEmitter {
 
+    static CONNECTING = 0;
+    static OPEN       = 1;
+    static CLOSING    = 2;
+    static CLOSED     = 3;
+
     /**
      * Create a new `ZitiDummyWebSocketWrapper`.
      *

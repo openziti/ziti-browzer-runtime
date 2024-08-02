@@ -704,7 +704,20 @@ class ZitiBrowzerRuntime {
       status:   409,
       code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_WSS_ROUTER_CONNECTION_ERROR,
       title:    `Error Encountered Attempting to Connect to Edge Router [${wssERConnectionErrorEvent.wsser}]`,
-      message:  `Possible Edge Router configuration|certificates issue exists.`
+      message:  `Possible Edge Router configuration | certificates issue exists.`
+    });
+
+  }
+
+  controllerConnectionErrorEventHandler(controllerConnectionErrorEvent) {
+
+    this.logger.trace(`controllerConnectionErrorEventHandler() `, controllerConnectionErrorEvent);
+
+    window.zitiBrowzerRuntime.browzer_error({
+      status:   409,
+      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_CONTROLLER_CONNECTION_ERROR,
+      title:    `Cannot Reach Ziti Controller [${controllerConnectionErrorEvent.controllerApi}]`,
+      message:  `Possible configuration | certificates issue exists.`
     });
 
   }
@@ -1278,7 +1291,7 @@ class ZitiBrowzerRuntime {
           // Local data indicates that the user is not authenticated, however, the IdP might still think the authentication
           // is alive/valid (a common Auth0 situation), so, we will force/tell the IdP to do a logout. 
           
-          if (pkceLogoutIsNeeded(getOIDCConfig())) {
+          if (await pkceLogoutIsNeeded(getOIDCConfig())) {
             let logoutInitiated = this.getCookie( this.authTokenName + '_logout_initiated' );
             if (isEqual(logoutInitiated, '')) {
               document.cookie = this.authTokenName + '_logout_initiated' + "=" + "yes" + "; path=/";
@@ -1406,6 +1419,7 @@ class ZitiBrowzerRuntime {
       this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NESTED_TLS_HANDSHAKE_TIMEOUT,  this.nestedTLSHandshakeTimeoutEventHandler);
       this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_CONFIG_PROTOCOL_FOR_SERVICE,  this.noConfigProtocolForServiceEventHandler);
       this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_WSS_ROUTER_CONNECTION_ERROR,  this.wssERConnectionErrorEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_CONTROLLER_CONNECTION_ERROR,  this.controllerConnectionErrorEventHandler);
 
       if (options.eruda) {
         this.zitiConfig.eruda = true;
@@ -1896,6 +1910,12 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         else if (event.data.type === 'WSS_ROUTER_CONNECTION_ERROR') {
 
           window.zitiBrowzerRuntime.wssERConnectionErrorEventHandler(event.data.payload.event);
+
+        }
+
+        else if (event.data.type === 'CONTROLLER_CONNECTION_ERROR') {
+
+          window.zitiBrowzerRuntime.controllerConnectionErrorEventHandler(event.data.payload.event);
 
         }
 

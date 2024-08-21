@@ -1,3 +1,12 @@
+# [0.73.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.72.0...v0.73.0) (2024-08-21)
+
+
+### Features
+
+* HomeAssistant support: various WebSocket and XHR tweaks ([#337](https://github.com/openziti/ziti-browzer-runtime/issues/337)) ([d66f27b](https://github.com/openziti/ziti-browzer-runtime/commit/d66f27be7b37541a84302cd34b9065f4a161ed44))
+
+
+
 # [0.72.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.71.2...v0.72.0) (2024-08-02)
 
 

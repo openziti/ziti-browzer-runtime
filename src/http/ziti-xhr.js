@@ -14,7 +14,7 @@ See the License for the specific language governing permissions and
 limitations under the License.
 */
 
-import { isEqual, isUndefined } from "lodash-es";
+import { isEqual, isNull, isUndefined } from "lodash-es";
 import { ZitiProgressEventWrapper } from './ziti-event-wrapper';
 
 function ZitiXMLHttpRequest () {
@@ -100,6 +100,7 @@ function ZitiXMLHttpRequest () {
 
   // Result & response
   this.responseBodyText = "";
+  this.responseText = "";
   this.responseXML = "";
   this.status = null;
   this.statusText = null;
@@ -160,7 +161,7 @@ function ZitiXMLHttpRequest () {
       throw new Error("SecurityError: Request method not allowed");
     }
 
-    settings = {
+    this.settings = {
       "method": method,
       "url": url.toString(),
       "async": (typeof async !== "boolean" ? true : async),
@@ -169,8 +170,8 @@ function ZitiXMLHttpRequest () {
     };
 
     // Hack for ScadaLTS web app
-    if (settings.url.includes(':undefined')) {
-      settings.url = settings.url.replace(':undefined', '');
+    if (this.settings.url.includes(':undefined')) {
+      this.settings.url = this.settings.url.replace(':undefined', '');
     }
 
     setState(this.OPENED);
@@ -281,9 +282,9 @@ function ZitiXMLHttpRequest () {
 
     this.dispatchEvent("loadstart");
 
-    settings.body = data;
+    this.settings.body = data;
 
-    settings.headers = headers;
+    this.settings.headers = headers;
 
     await window.zitiBrowzerRuntime.awaitInitializationComplete();
 
@@ -297,22 +298,29 @@ function ZitiXMLHttpRequest () {
     //     debugger
     //   }
     // }
-    if (!settings.url.startsWith('/')) {
-      url = new URL(settings.url, `https://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}`);
+    if (!this.settings.url.startsWith('/')) {
+      url = new URL(this.settings.url, `https://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}`);
       targetHost = url.hostname;
     } else {
-      url = new URL(`https://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}${settings.url}`);
+      url = new URL(`https://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}${this.settings.url}`);
       targetHost = window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host;
     }
     if (isEqual(targetHost, window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host)) {
       let protocol = url.protocol;
       if (!isEqual(protocol, 'https:')) {
         url.protocol = 'https:';
-        settings.url = url.toString();
+        this.settings.url = url.toString();
+      }
+    } else {
+      url = new URL(`${this.settings.url}`);
+      let service = await window.zitiBrowzerRuntime.zitiContext.getServiceNameByHostNameAndPort(url.hostname, null);
+      if (!isNull(service)) {
+        url = new URL(`https://${service}${url.pathname}${url.search}`);
+        this.settings.url = url.toString();
       }
     }
 
-    response = await fetch(settings.url, settings);
+    response = await fetch(this.settings.url, this.settings);
 
     this.status = response.status;
     this.statusText = (response.status == 200) ? 'OK' : '';
@@ -328,7 +336,7 @@ function ZitiXMLHttpRequest () {
         self.responseText = self.responseBodyText;
         self.response = self.responseBodyText;
         self.responseXML = self.responseBodyText;
-        self.responseURL = settings.url;
+        self.responseURL = self.settings.url;
         self.responseType = '';  
       }
 
@@ -456,7 +464,7 @@ function ZitiXMLHttpRequest () {
     if (state == self.LOADING || self.readyState !== state) {
       self.readyState = state;
 
-      if (settings.async || self.readyState < self.OPENED || self.readyState === self.DONE) {
+      if (self.settings.async || self.readyState < self.OPENED || self.readyState === self.DONE) {
         self.dispatchEvent("readystatechange");
       }
 
@@ -478,6 +486,12 @@ function ZitiXMLHttpRequest () {
       }
     }
   };
+
+  this.upload = {
+      addEventListener: function(arg1, arg2, arg3) {},
+      removeEventListener: function(arg1, arg2, arg3) {},
+  }
+
 };
 
 

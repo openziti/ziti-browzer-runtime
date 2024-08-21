@@ -863,18 +863,14 @@ class ZitiBrowzerRuntime {
 
   synchronousXHREncounteredEventHandler(syncXHREvent) {
 
-    this.logger.trace(`synchronousXHREncounteredEventHandler() `, syncXHREvent);
-
-    /**
-     *  Bypass this for now
-     */
+    // this.logger.trace(`synchronousXHREncounteredEventHandler() `, syncXHREvent);
     
-    // window.zitiBrowzerRuntime.browzer_error({
-    //   status:   503,
-    //   code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_SYNC_XHR_ENCOUNTERED,
-    //   title:    `Ziti Service [${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service}] is using SynchronousXHR.`,
-    //   message:  `This web application is incompatible with BrowZer.`
-    // });
+    window.zitiBrowzerRuntime.browzer_error({
+      status:   503,
+      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_SYNC_XHR_ENCOUNTERED,
+      title:    `Ziti Service [${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service}] is using SynchronousXHR.`,
+      message:  `This web application is currently incompatible with BrowZer. Please reach out on https://openziti.discourse.group for support.`
+    });
 
   }
 

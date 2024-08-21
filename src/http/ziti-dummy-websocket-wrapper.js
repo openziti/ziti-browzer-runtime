@@ -28,6 +28,7 @@ class ZitiDummyWebSocketWrapper extends EventEmitter {
     static OPEN       = 1;
     static CLOSING    = 2;
     static CLOSED     = 3;
+    static DONE       = 4;
 
     /**
      * Create a new `ZitiDummyWebSocketWrapper`.
@@ -37,6 +38,16 @@ class ZitiDummyWebSocketWrapper extends EventEmitter {
     constructor(address) {
 
       super();
+
+      /** 
+       * Constants
+       */
+
+       this.CONNECTING = 0;
+       this.OPEN       = 1;
+       this.CLOSING    = 2;
+       this.CLOSED     = 3;
+       this.DONE       = 4;
 
       this.address = address;
 
@@ -155,6 +166,10 @@ class ZitiDummyWebSocketWrapper extends EventEmitter {
 
     addEventListener(type, listener, options) {
       this.addListener(type, listener);
+    }
+
+    removeEventListener(type, listener) {
+      this.removeListener(type, listener);
     }
 
     /**

@@ -69,8 +69,11 @@ const eruda = {
   },
   maybeShowThroughput() {
     let timeToRender = this._devTools.maybeShowThroughput();
-    if (timeToRender > 0) {
+    let throughputChartAutoRenderDone = sessionStorage.getItem('throughputChartAutoRenderDone');
+
+    if ((timeToRender > 0) && !throughputChartAutoRenderDone) {
       this._devTools.show();
+      sessionStorage.setItem('throughputChartAutoRenderDone', true)
       setTimeout((self) => {
         self._devTools.hide();
         if (typeof Canny !== 'undefined') {

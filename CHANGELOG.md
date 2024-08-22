@@ -1,3 +1,12 @@
+## [0.73.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.73.0...v0.73.1) (2024-08-22)
+
+
+### Bug Fixes
+
+* Auto-render of Throughput Chart is too aggressive ([#338](https://github.com/openziti/ziti-browzer-runtime/issues/338)) ([96c43c7](https://github.com/openziti/ziti-browzer-runtime/commit/96c43c7daa00cfa2d9e40bbccdd6785c3d44b02d))
+
+
+
 # [0.73.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.72.0...v0.73.0) (2024-08-21)
 
 

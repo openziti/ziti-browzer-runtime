@@ -314,7 +314,7 @@ function ZitiXMLHttpRequest () {
     } else {
       url = new URL(`${this.settings.url}`);
       let service = await window.zitiBrowzerRuntime.zitiContext.getServiceNameByHostNameAndPort(url.hostname, null);
-      if (!isNull(service)) {
+      if (!isNull(service) && !isUndefined(service)) {
         url = new URL(`https://${service}${url.pathname}${url.search}`);
         this.settings.url = url.toString();
       }

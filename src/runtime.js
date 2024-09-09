@@ -1402,7 +1402,7 @@ class ZitiBrowzerRuntime {
 
       this.logger.trace(`ZitiBrowzerRuntime ${this._uuid} has been initialized`);
 
-      this.zitiContext.listControllerVersion();
+      await this.zitiContext.listControllerVersion();
 
       this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_IDP_AUTH_HEALTH,        this.idpAuthHealthEventHandler);
       this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_CONFIG_FOR_SERVICE,  this.noConfigForServiceEventHandler);

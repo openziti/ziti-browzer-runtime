@@ -1,3 +1,12 @@
+# [0.78.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.77.0...v0.78.0) (2024-09-11)
+
+
+### Features
+
+* move JWT expiration checking to ZBR (part of HA) ([#352](https://github.com/openziti/ziti-browzer-runtime/issues/352)) ([9bc100e](https://github.com/openziti/ziti-browzer-runtime/commit/9bc100e00784d376ff9fad09391ac3333ab0b289))
+
+
+
 # [0.77.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.76.0...v0.77.0) (2024-09-09)
 
 

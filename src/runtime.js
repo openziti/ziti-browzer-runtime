@@ -438,6 +438,21 @@ class ZitiBrowzerRuntime {
     setTimeout(self._zbrPing, 1000, self );
   }
 
+  _jwtExpirationCheck(self) {
+
+    if (isTokenExpired(self.zitiConfig.access_token)) {
+
+      let idpAuthHealthEvent = {
+        expired: true
+      };
+
+      self.idpAuthHealthEventHandler(idpAuthHealthEvent);
+
+    }
+
+    setTimeout(self._jwtExpirationCheck, 1000*30, self );
+  }
+
   /**
    *  Determine if the specified DOM element contains the `download` attribute
    */
@@ -2088,6 +2103,8 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
       setTimeout(window.zitiBrowzerRuntime._zbrPing, 1000, window.zitiBrowzerRuntime );
 
       setTimeout(window.zitiBrowzerRuntime._getLatestBrowZerReleaseVersion, 1000, window.zitiBrowzerRuntime );
+
+      setTimeout(window.zitiBrowzerRuntime._jwtExpirationCheck, 1000, window.zitiBrowzerRuntime );
 
       /**
        * 

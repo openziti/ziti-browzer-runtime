@@ -35,7 +35,7 @@ class ZitiDummyWebSocketWrapper extends EventEmitter {
      *
      * @param {(String|url.URL)} address The URL to which to connect
      */
-    constructor(address) {
+    constructor(address, protocols) {
 
       super();
 
@@ -71,7 +71,7 @@ class ZitiDummyWebSocketWrapper extends EventEmitter {
 
         if (isUndefined(serviceName)) { // If we have no serviceConfig associated with the address, do not intercept
 
-          self.innerWebSocket = new window._ziti_realWebSocket(self.address);
+          self.innerWebSocket = new window._ziti_realWebSocket(self.address, protocols);
 
         } else {
 
@@ -80,7 +80,7 @@ class ZitiDummyWebSocketWrapper extends EventEmitter {
           opts.serviceName = serviceName;
           opts.configHostAndPort = await zitiBrowzerRuntime.zitiContext.getConfigHostAndPortByServiceName (serviceName);
           
-          self.innerWebSocket = new zitiBrowzerRuntime.zitiContext.zitiWebSocketWrapper(self.address, undefined, opts);
+          self.innerWebSocket = new zitiBrowzerRuntime.zitiContext.zitiWebSocketWrapper(self.address, protocols, opts);
 
         }
 

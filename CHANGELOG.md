@@ -1,3 +1,12 @@
+# [0.79.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.78.0...v0.79.0) (2024-09-13)
+
+
+### Features
+
+* honor optional 'protocols' parm on intercepted WebSocket constructor ([#355](https://github.com/openziti/ziti-browzer-runtime/issues/355)) ([79d487f](https://github.com/openziti/ziti-browzer-runtime/commit/79d487f69aeade2be940654485e4553b5feba155))
+
+
+
 # [0.78.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.77.0...v0.78.0) (2024-09-11)
 
 

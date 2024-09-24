@@ -1,3 +1,12 @@
+# [0.80.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.79.0...v0.80.0) (2024-09-24)
+
+
+### Features
+
+* bump to @openziti/libcrypto-js 0.24.0 ([#357](https://github.com/openziti/ziti-browzer-runtime/issues/357)) ([0956aa3](https://github.com/openziti/ziti-browzer-runtime/commit/0956aa3c5414c342fcdfbc463e95f6cfbf4f235f))
+
+
+
 # [0.79.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.78.0...v0.79.0) (2024-09-13)
 
 

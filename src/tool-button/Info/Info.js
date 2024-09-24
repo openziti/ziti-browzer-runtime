@@ -127,19 +127,6 @@ export default class Info extends Tool {
           '</tbody></table>',
         ].join(''),
       },
-      {
-        name: 'Backers',
-        val() {
-          return `
-          <a rel="noreferrer noopener" href="https://netfoundry.io" target="_blank"><img data-exclude="true" style="width: 20%;"src="https://nfweb.wpenginepowered.com/wp-content/uploads/2018/01/nflogowhite.png?width=${
-            window.innerWidth * 1.5
-          }&exclude=true"></a>
-          <a rel="noreferrer noopener" href="https://openziti.io" target="_blank"><img data-exclude="true" style="width: 2%;"src="https://landing.openziti.io/wp-content/uploads/2023/08/justthez.png?width=${
-            window.innerWidth * 1.5
-          }&exclude=true"></a>
-          `
-        },
-      },
     ]
     
     each(defInfo, (info) => this.add(info.name, info.val))

@@ -1,3 +1,12 @@
+# [0.81.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.80.0...v0.81.0) (2024-10-02)
+
+
+### Features
+
+* ignore 'pagehide' events that contain '/#/' in the URL (e.g. Jellyfin) ([#359](https://github.com/openziti/ziti-browzer-runtime/issues/359)) ([01f2594](https://github.com/openziti/ziti-browzer-runtime/commit/01f2594108b07f318eae03534393df38b1b49471))
+
+
+
 # [0.80.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.79.0...v0.80.0) (2024-09-24)
 
 

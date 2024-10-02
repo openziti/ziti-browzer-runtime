@@ -1670,7 +1670,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
     window.addEventListener(terminationEvent, (e) => {
 
       // some web apps
-      if (!window.location.href.includes('#!')) {
+      if (!window.location.href.includes('#!') && !window.location.href.includes('/#/')) {
         setTimeout(function() {
           window.zitiBrowzerRuntime.logger.trace(`ZitiBrowzerRuntime page-terminationEvent setting window.location to: ${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path}`);
           window.location = window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.path;

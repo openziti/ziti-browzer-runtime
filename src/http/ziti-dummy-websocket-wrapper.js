@@ -15,7 +15,7 @@ limitations under the License.
 */
 
 import EventEmitter from 'events';
-import { isEqual, isUndefined } from 'lodash-es';
+import { isEqual, isUndefined, isNull } from 'lodash-es';
 
 
 /**
@@ -208,6 +208,7 @@ class ZitiDummyWebSocketWrapper extends EventEmitter {
      * @public
      */
     set(listener) {
+      if (isNull(listener) || isUndefined(listener)) { return; }
       const listeners = this.listeners(method);
       for (let i = 0; i < listeners.length; i++) {
         //

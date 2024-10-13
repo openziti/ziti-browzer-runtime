@@ -101,7 +101,7 @@
     "cookie-interceptor": "^1.0.0",
     "core-js": "^3.22.8",
     "events": "^3.3.0",
-    "js-base64": "^3.7.2",
+    "js-base64": "^3.7.7",
     "jwt-decode": "^3.1.2",
     "licia": "^1.39.2",
     "localforage": "^1.10.0",

@@ -1,3 +1,12 @@
+# [0.83.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.82.0...v0.83.0) (2024-10-20)
+
+
+### Features
+
+* change syncXHR gate from 'err page' to 'warning toast' ([#366](https://github.com/openziti/ziti-browzer-runtime/issues/366)) ([3e1a12f](https://github.com/openziti/ziti-browzer-runtime/commit/3e1a12f7b9b55ae9e481837e315a98bd33a0c747))
+
+
+
 # [0.82.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.81.0...v0.82.0) (2024-10-08)
 
 

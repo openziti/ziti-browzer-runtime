@@ -135,9 +135,30 @@ function isTokenExpired(access_token) {
 function getOIDCConfig() {
 
   let oidcConfig = {
+    type:                       ZBR_CONSTANTS.OIDC_TYPE_IDP,
     name:                       'ZitiBrowzerRuntimeOIDCConfig',
     issuer:                     window.zitiBrowzerRuntime.zitiConfig.idp.host,
     client_id:                  window.zitiBrowzerRuntime.zitiConfig.idp.clientId,
+    scopes:                     ['openid', 'email'],
+    enablePKCEAuthentication:   true,
+    token_endpoint_auth_method: 'none',
+    redirect_uri:               getPKCERedirectURI().toString(),
+    code_verifier:              oidc.generateRandomCodeVerifier(),
+  };
+
+  return oidcConfig;
+}
+
+/**
+ * 
+ */
+function getControllerOIDCConfig() {
+
+  let oidcConfig = {
+    type:                       ZBR_CONSTANTS.OIDC_TYPE_ZITI_CONTROLLER,
+    name:                       'ZitiBrowzerRuntimeControllerOIDCConfig',
+    issuer:                     window.zitiBrowzerRuntime.zitiConfig.controller.api.replace(`edge/client/v1`,`oidc`),
+    client_id:                  'openziti',
     scopes:                     ['openid', 'email'],
     enablePKCEAuthentication:   true,
     token_endpoint_auth_method: 'none',
@@ -878,14 +899,14 @@ class ZitiBrowzerRuntime {
 
   synchronousXHREncounteredEventHandler(syncXHREvent) {
 
-    // this.logger.trace(`synchronousXHREncounteredEventHandler() `, syncXHREvent);
+    window.zitiBrowzerRuntime.toastWarning(`SynchronousXHR attempted on URL[${syncXHREvent.url}]. SynchronousXHR operations are currently unsupported by BrowZer. Some of your web app may not function properly.`);
     
-    window.zitiBrowzerRuntime.browzer_error({
-      status:   503,
-      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_SYNC_XHR_ENCOUNTERED,
-      title:    `Ziti Service [${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service}] is using SynchronousXHR.`,
-      message:  `This web application is currently incompatible with BrowZer. Please reach out on https://openziti.discourse.group for support.`
-    });
+    // window.zitiBrowzerRuntime.browzer_error({
+    //   status:   503,
+    //   code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_SYNC_XHR_ENCOUNTERED,
+    //   title:    `Ziti Service [${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.target.service}] is using SynchronousXHR.`,
+    //   message:  `This web application is currently incompatible with BrowZer. Please reach out on https://openziti.discourse.group for support.`
+    // });
 
   }
 

@@ -22,6 +22,10 @@ limitations under the License.
  */
 const ZBR_CONSTANTS = 
 {   
+
+    OIDC_TYPE_IDP:              'idp',
+    OIDC_TYPE_ZITI_CONTROLLER:  'ztiController',
+
     KEYCLOAK_IDP:         'keycloak',
 
     AUTH0_IDP:            'auth0',

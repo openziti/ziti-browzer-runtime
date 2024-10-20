@@ -30,10 +30,14 @@ import {
 } from 'oauth4webapi';
 import { isEqual } from 'lodash-es';
 import jwtDecode from 'jwt-decode';
+import { ZBR_CONSTANTS } from '../constants';
 
 
 export const discoverAuthServer = (issuerURL) => discoveryRequest(issuerURL).then(res => processDiscoveryResponse(issuerURL, res));
 
+/**
+ * 
+ */
 export const PKCECodeVerifier = {
     get: () => sessionStorage.getItem(window.btoa('code_verifier')),
     set: (codeVerifier) => sessionStorage.setItem(window.btoa('code_verifier'), codeVerifier),
@@ -55,6 +59,14 @@ export const PKCEAuthorizationServer = {
     unset: () => sessionStorage.removeItem('BrowZer_oidc_config')
 };
 
+/**
+ * 
+ */
+ export const PKCEAuthorizationServer_controller = {
+    get: () => {return JSON.parse(sessionStorage.getItem('BrowZer_controller_oidc_config'))},
+    set: (as) => sessionStorage.setItem('BrowZer_controller_oidc_config', JSON.stringify(as)),
+    unset: () => sessionStorage.removeItem('BrowZer_controller_oidc_config')
+};
 
 
 export const getPKCERedirectURI = () => {
@@ -106,11 +118,27 @@ const validateAndGetOIDCForPKCE = async (oidcConfig) => {
          *  so that we do not need to reach across the internet more than once (in
          *  case the user hits the refresh button, etc.)
          */
-        authorizationServer = PKCEAuthorizationServer.get();
-        if (!authorizationServer) {
-            authorizationServer = await discoverAuthServer(issuerURL);
-            PKCEAuthorizationServer.set(authorizationServer);
-        }
+        switch(oidcConfig.type) {
+            case ZBR_CONSTANTS.OIDC_TYPE_IDP:
+                authorizationServer = PKCEAuthorizationServer.get();
+                if (!authorizationServer) {
+                    authorizationServer = await discoverAuthServer(issuerURL);
+                    PKCEAuthorizationServer.set(authorizationServer);
+                }
+                break;
+
+            case ZBR_CONSTANTS.OIDC_TYPE_ZITI_CONTROLLER:
+                debugger;
+                authorizationServer = PKCEAuthorizationServer_controller.get();
+                if (!authorizationServer) {
+                    authorizationServer = await discoverAuthServer(issuerURL);
+                    PKCEAuthorizationServer_controller.set(authorizationServer);
+                }
+                break;
+
+            default:
+                throw new PKCELoginError(`unknown OIDC Type [${oidcConfig.type}]`);
+        }  
     } catch (e) {
         throw new PKCELoginError(e);
     }
@@ -143,6 +171,7 @@ export const pkceLogin = async (oidcConfig, redirectURI) => {
     const authorizationServerConsentScreen = new URL(authorizationServer.authorization_endpoint);
 
     authorizationServerConsentScreen.searchParams.set('client_id', oidcConfig.client_id);
+    // authorizationServerConsentScreen.searchParams.set('audience', 'https://browzermost.ziti.netfoundry.io');
     authorizationServerConsentScreen.searchParams.set('code_challenge', codeChallange);
     authorizationServerConsentScreen.searchParams.set('code_challenge_method', 'S256');
     authorizationServerConsentScreen.searchParams.set('redirect_uri', redirectURI);
@@ -244,6 +273,7 @@ export const pkceCallback = async (oidcConfig, redirectURI) => {
     }
       
     let { id_token } = result;
+    let { access_token } = result;
   
     PKCEToken.set(id_token);
 

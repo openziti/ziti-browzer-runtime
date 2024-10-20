@@ -150,7 +150,7 @@ function ZitiXMLHttpRequest () {
 
     if (!isUndefined(async)) { // default is true
       if (!async) {
-        window.zitiBrowzerRuntime.synchronousXHREncounteredEventHandler({});
+        window.zitiBrowzerRuntime.synchronousXHREncounteredEventHandler({url: url});
       }
     }
 

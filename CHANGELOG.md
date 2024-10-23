@@ -1,3 +1,12 @@
+# [0.86.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.85.0...v0.86.0) (2024-10-23)
+
+
+### Features
+
+* Render Error page when IdP 'issuer' is incorrect ([#370](https://github.com/openziti/ziti-browzer-runtime/issues/370)) ([d050933](https://github.com/openziti/ziti-browzer-runtime/commit/d0509330db69b734aed98800b87ccc4f2cc6c76c))
+
+
+
 # [0.85.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.84.0...v0.85.0) (2024-10-21)
 
 

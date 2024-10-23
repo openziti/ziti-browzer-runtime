@@ -33,7 +33,69 @@ import jwtDecode from 'jwt-decode';
 import { ZBR_CONSTANTS } from '../constants';
 
 
-export const discoverAuthServer = (issuerURL) => discoveryRequest(issuerURL).then(res => processDiscoveryResponse(issuerURL, res));
+const looseInstanceOf = (input, expected) => {
+    if (input == null) {
+        return false;
+    }
+    try {
+        return (input instanceof expected ||
+            Object.getPrototypeOf(input)[Symbol.toStringTag] === expected.prototype[Symbol.toStringTag]);
+    }
+    catch {
+        return false;
+    }
+}
+const assertReadableResponse = (response) => {
+    if (response.bodyUsed) {
+        throw new TypeError('"response" body has been used already');
+    }
+}
+const  isJsonObject = (input) => {
+    if (input === null || typeof input !== 'object' || Array.isArray(input)) {
+        return false;
+    }
+    return true;
+}
+const validateString = (input) => {
+    return typeof input === 'string' && input.length !== 0;
+}
+
+
+const processPKCEDiscoveryResponse = async (expectedIssuerIdentifier, response) => {
+
+    if (!(expectedIssuerIdentifier instanceof URL)) {
+      throw new TypeError('"expectedIssuer" must be an instance of URL');
+    }
+    if (!looseInstanceOf(response, Response)) {
+      throw new TypeError('"response" must be an instance of Response');
+    }
+    if (response.status !== 200) {
+      throw new PKCELoginError(
+        '"response" is not a conform Authorization Server Metadata response'
+      );
+    }
+    assertReadableResponse(response);
+    let json;
+    try {
+      json = await response.json();
+    } catch (cause) {
+      throw new PKCELoginError('failed to parse "response" body as JSON', { cause });
+    }
+    if (!isJsonObject(json)) {
+      throw new PKCELoginError('"response" body must be a top level object');
+    }
+    if (!validateString(json.issuer)) {
+      throw new PKCELoginError(
+        '"response" body "issuer" property must be a non-empty string'
+      );
+    }
+    if (new URL(json.issuer).href !== expectedIssuerIdentifier.href) {
+      throw new PKCELoginError(`The configured IdP issuer URL[${expectedIssuerIdentifier.href}] does not match OIDC Discovery results[${json.issuer}]`);
+    }
+    return json;
+}
+  
+export const discoverAuthServer = (issuerURL) => discoveryRequest(issuerURL).then(res => processPKCEDiscoveryResponse(issuerURL, res));
 
 /**
  * 
@@ -140,6 +202,9 @@ const validateAndGetOIDCForPKCE = async (oidcConfig) => {
                 throw new PKCELoginError(`unknown OIDC Type [${oidcConfig.type}]`);
         }  
     } catch (e) {
+
+        window.zitiBrowzerRuntime.PKCELoginErrorEncounteredEventHandler({error: e.message});
+
         throw new PKCELoginError(e);
     }
 

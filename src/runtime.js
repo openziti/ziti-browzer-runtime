@@ -897,6 +897,18 @@ class ZitiBrowzerRuntime {
 
   }
 
+  PKCELoginErrorEncounteredEventHandler(PKCELoginErrorEvent) {
+
+    window.zitiBrowzerRuntime.browzer_error({
+      status:   503,
+      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_PKCS_LOGIN_ERROR,
+      title:    `PKCE Error: ${PKCELoginErrorEvent.error}`,
+      message:  `Check your IdP 'issuer' configuration value.`
+    });
+
+  }
+
+
   synchronousXHREncounteredEventHandler(syncXHREvent) {
 
     window.zitiBrowzerRuntime.toastWarning(`SynchronousXHR attempted on URL[${syncXHREvent.url}]. SynchronousXHR operations are currently unsupported by BrowZer. Some of your web app may not function properly.`);

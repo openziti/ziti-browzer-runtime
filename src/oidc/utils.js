@@ -28,7 +28,7 @@ import {
     processDiscoveryResponse,
     validateAuthResponse
 } from 'oauth4webapi';
-import { isEqual } from 'lodash-es';
+import { isEqual, isUndefined } from 'lodash-es';
 import jwtDecode from 'jwt-decode';
 import { ZBR_CONSTANTS } from '../constants';
 
@@ -110,10 +110,15 @@ export const PKCEState = {
     set: (state) => sessionStorage.setItem(window.btoa('pkce_state'), state),
     unset: () => sessionStorage.removeItem(window.btoa('pkce_state'))
 };
-export const PKCEToken = {
-    get: () => sessionStorage.getItem('BrowZer_token'),
-    set: (state) => sessionStorage.setItem('BrowZer_token', state),
-    unset: () => sessionStorage.removeItem('BrowZer_token')
+export const PKCE_id_Token = {
+    get: () => sessionStorage.getItem('BrowZer_id_token'),
+    set: (state) => sessionStorage.setItem('BrowZer_id_token', state),
+    unset: () => sessionStorage.removeItem('BrowZer_id_token')
+};
+export const PKCE_access_Token = {
+    get: () => sessionStorage.getItem('BrowZer_access_token'),
+    set: (state) => sessionStorage.setItem('BrowZer_access_token', state),
+    unset: () => sessionStorage.removeItem('BrowZer_access_token')
 };
 export const PKCEAuthorizationServer = {
     get: () => {return JSON.parse(sessionStorage.getItem('BrowZer_oidc_config'))},
@@ -236,7 +241,32 @@ export const pkceLogin = async (oidcConfig, redirectURI) => {
     const authorizationServerConsentScreen = new URL(authorizationServer.authorization_endpoint);
 
     authorizationServerConsentScreen.searchParams.set('client_id', oidcConfig.client_id);
-    // authorizationServerConsentScreen.searchParams.set('audience', 'https://browzermost.ziti.netfoundry.io');
+    
+    /**
+     * If Auth0 is the IdP, then we need to add an audience parm (perhaps other things as well) in order to get a valid access_token
+     */
+    let asurl = new URL(authorizationServer.authorization_endpoint);
+    if (asurl.hostname.includes('auth0.com')) {
+        /**
+         * If we are configured with authorization_endpoint_parms, then use it
+         */
+        if (!isUndefined(oidcConfig.authorization_endpoint_parms)) {
+            const params = new URLSearchParams(oidcConfig.authorization_endpoint_parms);
+            let parmArray = Array.from(params.entries());
+            parmArray.forEach((parm) => {
+                if (isEqual(parm[0].toLowerCase(), 'audience')) { // ignore any non-audience URL parms that were passed in (Auth0 dislikes them)
+                    authorizationServerConsentScreen.searchParams.set(parm[0], parm[1]);
+                }
+            });
+        } 
+        /**
+         * If we were NOT configured with authorization_endpoint_parms, we will default to using an audience value equal
+         * to the browZer app's URL (i.e. we assume that an 'API' was created in Auth0 that matches that URL)
+         */
+        else {
+            authorizationServerConsentScreen.searchParams.set('audience', `https://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}`);
+        }
+    }
     authorizationServerConsentScreen.searchParams.set('code_challenge', codeChallange);
     authorizationServerConsentScreen.searchParams.set('code_challenge_method', 'S256');
     authorizationServerConsentScreen.searchParams.set('redirect_uri', redirectURI);
@@ -338,9 +368,10 @@ export const pkceCallback = async (oidcConfig, redirectURI) => {
     }
       
     let { id_token } = result;
-    let { access_token } = result;
-  
-    PKCEToken.set(id_token);
+    PKCE_id_Token.set(id_token);
+
+    let { access_token } = result;  
+    PKCE_access_Token.set(access_token);
 
 };
 
@@ -355,15 +386,16 @@ export const pkceLogout = async (oidcConfig, redirectURI) => {
     const {authorizationServer} = await validateAndGetOIDCForPKCE(oidcConfig);
 
     // Pull the token from session storage
-    let access_token = PKCEToken.get();
+    let id_token = PKCE_id_Token.get();
     
     if (authorizationServer.end_session_endpoint) {
 
         const authorizationServerLogoutURL = new URL(authorizationServer.end_session_endpoint);
 
-        if (!isEqual(access_token, null)) {  
-            authorizationServerLogoutURL.searchParams.set('id_token_hint', access_token);
-            PKCEToken.unset();
+        if (!isEqual(id_token, null)) {  
+            authorizationServerLogoutURL.searchParams.set('id_token_hint', id_token);
+            PKCE_id_Token.unset();
+            PKCE_access_Token.unset();
         }
         authorizationServerLogoutURL.searchParams.set('client_id', oidcConfig.client_id);
         authorizationServerLogoutURL.searchParams.set('post_logout_redirect_uri', redirectURI);
@@ -391,9 +423,9 @@ export const pkceLogout = async (oidcConfig, redirectURI) => {
         if (asurl.hostname.includes('auth0.com')) {
 
             let isExpired = false;
-            if (access_token) {
-                let decoded_access_token = jwtDecode(access_token);
-                let exp = decoded_access_token.exp;
+            if (id_token) {
+                let decoded_id_token = jwtDecode(id_token);
+                let exp = decoded_id_token.exp;
                 if (Date.now() >= exp * 1000) {
                     isExpired = true;
                 }
@@ -402,12 +434,13 @@ export const pkceLogout = async (oidcConfig, redirectURI) => {
             }
               
             let url;
-            if (!isEqual(access_token, null) && !isExpired) {  
-                url = `${asurl.protocol}//${asurl.hostname}/v2/logout?id_token_hint=${access_token}client_id=${oidcConfig.client_id}&returnTo=${redirectURI}`;
+            if (!isEqual(id_token, null) && !isExpired) {  
+                url = `${asurl.protocol}//${asurl.hostname}/v2/logout?id_token_hint=${id_token}client_id=${oidcConfig.client_id}&returnTo=${redirectURI}`;
             } else {
                 url = `${asurl.protocol}//${asurl.hostname}/v2/logout?client_id=${oidcConfig.client_id}&returnTo=${redirectURI}`;
             }
-            PKCEToken.unset();
+            PKCE_id_Token.unset();
+            PKCE_access_Token.unset();
             window.location = url;
         } 
         else {

@@ -39,14 +39,16 @@ import { Auth0Client } from '@auth0/auth0-spa-js';
 import Bowser from 'bowser'; 
 import * as msal from '@azure/msal-browser';
 import { stringify } from './urlon';
-import * as oidc from 'oauth4webapi'
+import * as oidc from 'oauth4webapi';
+import { format } from 'date-fns';
 import {
   getPKCERedirectURI, 
   pkceLogin, 
   pkceLogout,
   pkceLogoutIsNeeded,
   pkceCallback,
-  PKCEToken,
+  PKCE_id_Token,
+  PKCE_access_Token,
 } from './oidc/utils';
 import { jspi } from "wasm-feature-detect";
 import {eruda} from './tool-button/eruda';
@@ -132,6 +134,23 @@ function isTokenExpired(access_token) {
 /**
  * 
  */
+function isOriginTrialTokenExpired(token) {
+  try {    
+    const expirationTime = token.payload.expiry * 1000; // Convert to milliseconds
+    const currentTime = Date.now();
+    if ( currentTime > expirationTime ) {
+      return expirationTime
+    } else {
+      return false;
+    }
+  } catch (error) {
+    return Date.now(); // If there's an error, assume the token is invalid or expired
+  }
+}
+
+/**
+ * 
+ */
 function getOIDCConfig() {
 
   let oidcConfig = {
@@ -139,6 +158,7 @@ function getOIDCConfig() {
     name:                       'ZitiBrowzerRuntimeOIDCConfig',
     issuer:                     window.zitiBrowzerRuntime.zitiConfig.idp.host,
     client_id:                  window.zitiBrowzerRuntime.zitiConfig.idp.clientId,
+    authorization_endpoint_parms: window.zitiBrowzerRuntime.zitiConfig.idp.authorization_endpoint_parms,
     scopes:                     ['openid', 'email'],
     enablePKCEAuthentication:   true,
     token_endpoint_auth_method: 'none',
@@ -550,10 +570,10 @@ class ZitiBrowzerRuntime {
             position: 'center',
             insert: 'after',
             theme: 'compact',
-            pool: 10,
+            pool: 3,
             sticky: false,
             progressbar: true,
-            headerText: 'OpenZiti browZer',
+            headerText: 'OpenZiti BrowZer',
             effect: 'slide',
             closer: false,
             life: 3000,
@@ -706,6 +726,17 @@ class ZitiBrowzerRuntime {
 
   }
 
+  originTrialTokenExpiredEventHandler(originTrialExpiredEvent) {
+
+    window.zitiBrowzerRuntime.browzer_error({
+      status:   409,
+      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_ORIGIN_TRIAL_EXPIRED,
+      title:    `OriginTrial expiration for feature [${originTrialExpiredEvent.feature}]`,
+      message:  `Token for origin [${originTrialExpiredEvent.expectedOrigin}] expired at[${format(new Date(originTrialExpiredEvent.expirationTime), 'MMMM dd, yyyy HH:mm:ss')}]`
+    });
+
+  }
+
   noConfigForServiceEventHandler(noConfigForServiceEvent) {
 
     this.logger.trace(`noConfigForServiceEventHandler() `, noConfigForServiceEvent);
@@ -847,6 +878,51 @@ class ZitiBrowzerRuntime {
     });
 
   }
+
+  idTokenDeprecationEventHandler(deprecationEvent) {
+
+    this.logger.trace(`idTokenDeprecationEventHandler() `, deprecationEvent);
+
+    let link = `<a href="https://www.example.com">Please visit this link</a> for details regarding configuration to use access_tokens.`;
+
+    let idTokenDeprecationRenderDone = sessionStorage.getItem('idTokenDeprecationRenderDone');
+
+    if (isNull(idTokenDeprecationRenderDone)) { idTokenDeprecationRenderDone = 0}
+
+    if (idTokenDeprecationRenderDone < 3) {
+      idTokenDeprecationRenderDone++;
+      sessionStorage.setItem('idTokenDeprecationRenderDone', idTokenDeprecationRenderDone);
+      window.zitiBrowzerRuntime.toastWarningSticky(`DEPRECATION NOTICE:<br>Your BrowZer app is configured to use the id_token from your IdP.<br><strong>Authentication via id_token is deprecated</strong>.<br>${link}`);
+    }
+  }
+
+  accessTokenInvalidEventHandler(accessTokenInvalidEvent) {
+
+    this.logger.trace(`accessTokenInvalidEventHandler() `, accessTokenInvalidEvent);
+
+    window.zitiBrowzerRuntime.browzer_error({
+      status:   511,
+      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_INVALID_IDP_CONFIG,
+      title:    `IdP[${accessTokenInvalidEvent.idp_host}] produced an invalid access_token`,
+      message:  `'audience' may not be configured in the BrowZer Bootstrapper`
+    });
+
+  }
+
+  accessTokenMissingAPIAudienceEventHandler(event) {
+
+    const parts = event.audience.split('&');
+
+
+    window.zitiBrowzerRuntime.browzer_error({
+      status:   511,
+      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_NO_API_AUDIENCE,
+      title:    `IdP[${event.idp_host}] cannot produce a valid access_token`,
+      message:  `On the IdP, please create an API with 'identifier' of ${parts[0]}`
+    });
+
+  }
+  
 
   channelConnectFailEventHandler(channelConnectFailEvent) {
 
@@ -1288,16 +1364,23 @@ class ZitiBrowzerRuntime {
 
       this.logger.trace(`initialize() Loaded via BOOTSTRAPPER`);
 
-      // Pull the token from session storage
-      this.zitiConfig.access_token  = PKCEToken.get();
+      // Pull the tokens from session storage
+      this.zitiConfig.id_token = PKCE_id_Token.get();
+      this.zitiConfig.access_token = PKCE_access_Token.get();
+
+      let invalidAccessToken = false;
 
       // If we have a token, determine if it has expired
       if (!isEqual(this.zitiConfig.access_token, null)) {  
         this.logger.trace(`initialize() session token found`);
-        if (isTokenExpired(this.zitiConfig.access_token)) {
-          this.isAuthenticated = false;
-        } else {
-          this.isAuthenticated = true;
+        try {
+          if (isTokenExpired(this.zitiConfig.access_token)) {
+            this.isAuthenticated = false;
+          } else {
+            this.isAuthenticated = true;
+          }
+        } catch (e) {
+          invalidAccessToken = true;
         }
       } else {
         this.logger.trace(`initialize() session token NOT found`);
@@ -1307,8 +1390,17 @@ class ZitiBrowzerRuntime {
       // If we don't have a valid token yet
       if (!this.isAuthenticated) {
 
-        // If we are coming back from an IdP redirect, obtain the token by leveraging the URL parms
-        if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
+        // If we are coming back from an IdP redirect, obtain the token by leveraging the URL parms.
+        if (window.location.search.includes("error=access_denied")) {
+          const params = new URLSearchParams(window.location.search);
+          // e.g. error_description=Service not found: https://mattermost.ziti.netfoundry.io
+          this.accessTokenMissingAPIAudienceEventHandler({
+            idp_host: window.zitiBrowzerRuntime.zitiConfig.idp.host,
+            audience: params.get('error_description').replace('Service not found:',''),
+          });
+          await delay(5000);
+        }
+        else if (window.location.search.includes("code=") && window.location.search.includes("state=")) {
 
           this.logger.trace(`initialize() calling pkceCallback`);
 
@@ -1317,7 +1409,8 @@ class ZitiBrowzerRuntime {
             window.zitiBrowzerRuntime.pkceCallbackErrorEventHandler(error);
           });
 
-          this.zitiConfig.access_token = PKCEToken.get();
+          this.zitiConfig.id_token = PKCE_id_Token.get();
+          this.zitiConfig.access_token = PKCE_access_Token.get();
 
           window.location.replace(getPKCERedirectURI().toString());
 
@@ -1335,13 +1428,13 @@ class ZitiBrowzerRuntime {
           // Local data indicates that the user is not authenticated, however, the IdP might still think the authentication
           // is alive/valid (a common Auth0 situation), so, we will force/tell the IdP to do a logout. 
           
-          if (await pkceLogoutIsNeeded(getOIDCConfig())) {
+          if (!invalidAccessToken && await pkceLogoutIsNeeded(getOIDCConfig())) {
             let logoutInitiated = this.getCookie( this.authTokenName + '_logout_initiated' );
             if (isEqual(logoutInitiated, '')) {
               document.cookie = this.authTokenName + '_logout_initiated' + "=" + "yes" + "; path=/";
               this.logger.trace(`initialize() calling pkceLogout`);
               pkceLogout( getOIDCConfig(), getPKCERedirectURI().toString() );
-              await delay(1000); // we need to pause a bit or the 'login' call below will cancel the 'logout'
+              await delay(3000); // we need to pause a bit or the 'login' call below will cancel the 'logout'
             }
             document.cookie = this.authTokenName + '_logout_initiated'+'=; Max-Age=-99999999;';
           }
@@ -1373,7 +1466,8 @@ class ZitiBrowzerRuntime {
       this.logger.trace(`initialize() Loaded via ZBSW`);
 
       // Pull the token from session storage
-      this.zitiConfig.access_token  = PKCEToken.get();
+      this.zitiConfig.id_token = PKCE_id_Token.get();
+      this.zitiConfig.access_token  = PKCE_access_Token.get();
 
       if (isEqual(this.zitiConfig.access_token, null)) {  
 
@@ -1386,7 +1480,10 @@ class ZitiBrowzerRuntime {
 
         this.logger.trace(`initialize() session token ACQUIRED from ZBSW`);
 
-        PKCEToken.set(swVersionObject.zitiConfig.access_token);
+        PKCE_id_Token.set(swVersionObject.zitiConfig.id_token);
+        this.zitiConfig.id_token = swVersionObject.zitiConfig.id_token;
+        PKCE_access_Token.set(swVersionObject.zitiConfig.access_token);
+        this.zitiConfig.access_token = swVersionObject.zitiConfig.access_token
 
       } else {
 
@@ -1421,6 +1518,7 @@ class ZitiBrowzerRuntime {
         sdkRevision:    buildInfo.sdkRevision,
     
         token_type:     this.zitiConfig.token_type,
+        id_token:       this.zitiConfig.id_token,
         access_token:   this.zitiConfig.access_token,
 
         apiSessionHeartbeatTimeMin: (1),
@@ -1440,6 +1538,20 @@ class ZitiBrowzerRuntime {
 
       this.zitiConfig.jspi = await this.shouldUseJSPI(); // determine which WASM to instantiate
 
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_IDP_AUTH_HEALTH,        this.idpAuthHealthEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_CONFIG_FOR_SERVICE,  this.noConfigForServiceEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_SERVICE,             this.noServiceEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_SESSION_CREATION_ERROR, this.sessionCreationErrorEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_INVALID_AUTH,           this.invalidAuthEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_DEPRECATION_ID_TOKEN,   this.idTokenDeprecationEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_CHANNEL_CONNECT_FAIL,   this.channelConnectFailEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_WSS_ROUTERS,         this.noWSSRoutersEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_XGRESS,                 this.xgressEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NESTED_TLS_HANDSHAKE_TIMEOUT,  this.nestedTLSHandshakeTimeoutEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_CONFIG_PROTOCOL_FOR_SERVICE,  this.noConfigProtocolForServiceEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_WSS_ROUTER_CONNECTION_ERROR,  this.wssERConnectionErrorEventHandler);
+      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_CONTROLLER_CONNECTION_ERROR,  this.controllerConnectionErrorEventHandler);
+
       await this.zitiContext.initialize({
         loadWASM: !options.loadedViaBootstrapper,    // instantiate the WASM ONLY if we were not injected by the browZer Bootstrapper
         jspi:     this.zitiConfig.jspi,           // indicate which WASM to instantiate
@@ -1451,19 +1563,6 @@ class ZitiBrowzerRuntime {
       this.logger.trace(`ZitiBrowzerRuntime ${this._uuid} has been initialized`);
 
       await this.zitiContext.listControllerVersion();
-
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_IDP_AUTH_HEALTH,        this.idpAuthHealthEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_CONFIG_FOR_SERVICE,  this.noConfigForServiceEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_SERVICE,             this.noServiceEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_SESSION_CREATION_ERROR, this.sessionCreationErrorEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_INVALID_AUTH,           this.invalidAuthEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_CHANNEL_CONNECT_FAIL,   this.channelConnectFailEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_WSS_ROUTERS,         this.noWSSRoutersEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_XGRESS,                 this.xgressEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NESTED_TLS_HANDSHAKE_TIMEOUT,  this.nestedTLSHandshakeTimeoutEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_CONFIG_PROTOCOL_FOR_SERVICE,  this.noConfigProtocolForServiceEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_WSS_ROUTER_CONNECTION_ERROR,  this.wssERConnectionErrorEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_CONTROLLER_CONNECTION_ERROR,  this.controllerConnectionErrorEventHandler);
 
       if (options.eruda) {
         this.zitiConfig.eruda = true;
@@ -1525,6 +1624,13 @@ class ZitiBrowzerRuntime {
       setTimeout(self._toast, 1000, self, content, type);
     }
   }
+  _toastSticky(self, content, type) {
+    if (self.polipop) {
+      self.polipop.add({content: content, title: `OpenZiti BrowZer`, type: type, life: 15*1000});
+    } else {
+      setTimeout(self._toast, 1000, self, content, type);
+    }
+  }
   
   toastInfo(content) {
     this._toast(this, content, `info`);
@@ -1553,6 +1659,9 @@ class ZitiBrowzerRuntime {
   }
   toastWarning(content) {
     this._toast(this, content, `warning`);
+  }
+  toastWarningSticky(content) {
+    this._toastSticky(this, content, `warning`);
   }
   toastError(content) {
     this._toast(this, content, `error`);
@@ -1592,11 +1701,18 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
   } catch (e) {
     window.zitiBrowzerRuntime.originTrialTokenInvalidEventHandler({});
   }
-  console.log('decodedOriginTrialToken: ', decodedOriginTrialToken)
   let currentOriginURL = new URL( window.location.origin );
   let actualOrigin = currentOriginURL.hostname.split(/\./).slice(-2).join('.');
   let originTrialURL = new URL( decodedOriginTrialToken.payload.origin );
   let expectedOrigin = originTrialURL.hostname.split(/\./).slice(-2).join('.');
+  let originTrialExpirationTime = isOriginTrialTokenExpired(decodedOriginTrialToken);
+  if (originTrialExpirationTime) {
+    window.zitiBrowzerRuntime.originTrialTokenExpiredEventHandler({
+      feature:        decodedOriginTrialToken.payload.feature,
+      expectedOrigin: `*.${expectedOrigin}`,
+      expirationTime: originTrialExpirationTime
+    });    
+  }
   if (!isEqual(actualOrigin, expectedOrigin)) {
     window.zitiBrowzerRuntime.originTrialSubDomainMismatchEventHandler({
       feature:        decodedOriginTrialToken.payload.feature,

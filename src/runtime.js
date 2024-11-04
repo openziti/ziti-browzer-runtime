@@ -40,7 +40,6 @@ import Bowser from 'bowser';
 import * as msal from '@azure/msal-browser';
 import { stringify } from './urlon';
 import * as oidc from 'oauth4webapi';
-import { format } from 'date-fns';
 import {
   getPKCERedirectURI, 
   pkceLogin, 
@@ -728,11 +727,14 @@ class ZitiBrowzerRuntime {
 
   originTrialTokenExpiredEventHandler(originTrialExpiredEvent) {
 
+    const date = new Date(originTrialExpiredEvent.expirationTime * 1000);
+    const formattedDate = date.toLocaleString('en-US', { timeZone: 'UTC' });
+
     window.zitiBrowzerRuntime.browzer_error({
       status:   409,
       code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_ORIGIN_TRIAL_EXPIRED,
       title:    `OriginTrial expiration for feature [${originTrialExpiredEvent.feature}]`,
-      message:  `Token for origin [${originTrialExpiredEvent.expectedOrigin}] expired at[${format(new Date(originTrialExpiredEvent.expirationTime), 'MMMM dd, yyyy HH:mm:ss')}]`
+      message:  `Token for origin [${originTrialExpiredEvent.expectedOrigin}] expired at[${formattedDate}]`
     });
 
   }

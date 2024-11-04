@@ -1,3 +1,12 @@
+# [0.88.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.87.0...v0.88.0) (2024-11-04)
+
+
+### Features
+
+* remove 'date-fns' dep ([#373](https://github.com/openziti/ziti-browzer-runtime/issues/373)) ([7b1af72](https://github.com/openziti/ziti-browzer-runtime/commit/7b1af726b62f13313b8df359642248d6be72830e))
+
+
+
 # [0.87.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.86.0...v0.87.0) (2024-11-01)
 
 

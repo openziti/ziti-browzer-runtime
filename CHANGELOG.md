@@ -1,3 +1,12 @@
+# [0.89.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.88.0...v0.89.0) (2024-11-12)
+
+
+### Features
+
+* browZer id_token->access_token refactor (Auth0 changes) ([#374](https://github.com/openziti/ziti-browzer-runtime/issues/374)) ([b1717f8](https://github.com/openziti/ziti-browzer-runtime/commit/b1717f80980c26e36383c6bb96ea2fc5bf515499))
+
+
+
 # [0.88.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.87.0...v0.88.0) (2024-11-04)
 
 

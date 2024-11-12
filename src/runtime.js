@@ -158,7 +158,7 @@ function getOIDCConfig() {
     issuer:                     window.zitiBrowzerRuntime.zitiConfig.idp.host,
     client_id:                  window.zitiBrowzerRuntime.zitiConfig.idp.clientId,
     authorization_endpoint_parms: window.zitiBrowzerRuntime.zitiConfig.idp.authorization_endpoint_parms,
-    scopes:                     ['openid', 'email'],
+    scopes:                     [window.zitiBrowzerRuntime.zitiConfig.idp.authorization_scope, 'openid', 'email'],
     enablePKCEAuthentication:   true,
     token_endpoint_auth_method: 'none',
     redirect_uri:               getPKCERedirectURI().toString(),
@@ -883,18 +883,21 @@ class ZitiBrowzerRuntime {
 
   idTokenDeprecationEventHandler(deprecationEvent) {
 
-    this.logger.trace(`idTokenDeprecationEventHandler() `, deprecationEvent);
+    if (isUndefined(window.zitiBrowzerRuntime.zitiConfig.browzer.runtime.skipDeprecationWarnings)) {
 
-    let link = `<a href="https://www.example.com">Please visit this link</a> for details regarding configuration to use access_tokens.`;
+      this.logger.trace(`idTokenDeprecationEventHandler() `, deprecationEvent);
 
-    let idTokenDeprecationRenderDone = sessionStorage.getItem('idTokenDeprecationRenderDone');
+      let link = `<a href="https://openziti.io/docs/identity-providers-for-browZer">Please visit this link</a> for details regarding IdP configuration to use access_tokens.`;
 
-    if (isNull(idTokenDeprecationRenderDone)) { idTokenDeprecationRenderDone = 0}
+      let idTokenDeprecationRenderDone = sessionStorage.getItem('idTokenDeprecationRenderDone');
 
-    if (idTokenDeprecationRenderDone < 3) {
-      idTokenDeprecationRenderDone++;
-      sessionStorage.setItem('idTokenDeprecationRenderDone', idTokenDeprecationRenderDone);
-      window.zitiBrowzerRuntime.toastWarningSticky(`DEPRECATION NOTICE:<br>Your BrowZer app is configured to use the id_token from your IdP.<br><strong>Authentication via id_token is deprecated</strong>.<br>${link}`);
+      if (isNull(idTokenDeprecationRenderDone)) { idTokenDeprecationRenderDone = 0}
+
+      if (idTokenDeprecationRenderDone < 3) {
+        idTokenDeprecationRenderDone++;
+        sessionStorage.setItem('idTokenDeprecationRenderDone', idTokenDeprecationRenderDone);
+        window.zitiBrowzerRuntime.toastWarningSticky(`DEPRECATION NOTICE:<br>Your BrowZer app is configured to use the id_token from your IdP.<br><strong>Authentication via id_token is deprecated</strong>.<br>${link}`);
+      }
     }
   }
 
@@ -920,7 +923,7 @@ class ZitiBrowzerRuntime {
       status:   511,
       code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_NO_API_AUDIENCE,
       title:    `IdP[${event.idp_host}] cannot produce a valid access_token`,
-      message:  `On the IdP, please create an API with 'identifier' of ${parts[0]}`
+      message:  `On the IdP, please create an API with 'identifier' shown below: ${parts[0]}`
     });
 
   }
@@ -1393,7 +1396,7 @@ class ZitiBrowzerRuntime {
       if (!this.isAuthenticated) {
 
         // If we are coming back from an IdP redirect, obtain the token by leveraging the URL parms.
-        if (window.location.search.includes("error=access_denied")) {
+        if (window.location.search.includes("error=access_denied") || window.location.search.includes("error=invalid_resource") || window.location.search.includes("error=invalid_client") || window.location.search.includes("error=invalid_request")) {
           const params = new URLSearchParams(window.location.search);
           // e.g. error_description=Service not found: https://mattermost.ziti.netfoundry.io
           this.accessTokenMissingAPIAudienceEventHandler({

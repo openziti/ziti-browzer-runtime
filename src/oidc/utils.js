@@ -271,6 +271,18 @@ export const pkceLogin = async (oidcConfig, redirectURI) => {
     authorizationServerConsentScreen.searchParams.set('code_challenge_method', 'S256');
     authorizationServerConsentScreen.searchParams.set('redirect_uri', redirectURI);
     authorizationServerConsentScreen.searchParams.set('response_type', 'code');
+    /**
+     * If Entra is the IdP, then we need to ensure proper scope is used in order to get a valid access_token
+     */
+    if (asurl.hostname.includes('login.microsoftonline.com')) {
+        /**
+         * If we were NOT configured with authorization_scope, we will dynamically add it here,
+         * using the browZer app's URL (i.e. we assume that an 'API' was created in Entra that matches that URL)
+         */
+        if (isUndefined(window.zitiBrowzerRuntime.zitiConfig.idp.authorization_scope)) {
+            oidcConfig.scopes.unshift(`https://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}/OpenZiti.BrowZer`)
+        }
+    }
     authorizationServerConsentScreen.searchParams.set('scope', oidcConfig.scopes.join(' '));
 
     /**

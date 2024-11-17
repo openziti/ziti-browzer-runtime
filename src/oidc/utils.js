@@ -277,10 +277,11 @@ export const pkceLogin = async (oidcConfig, redirectURI) => {
     if (asurl.hostname.includes('login.microsoftonline.com')) {
         /**
          * If we were NOT configured with authorization_scope, we will dynamically add it here,
-         * using the browZer app's URL (i.e. we assume that an 'API' was created in Entra that matches that URL)
+         * using the Entra clientId (i.e. we assume that an 'API' was created in Entra that matches 
+         * that clientId)
          */
         if (isUndefined(window.zitiBrowzerRuntime.zitiConfig.idp.authorization_scope)) {
-            oidcConfig.scopes.unshift(`https://${window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host}/OpenZiti.BrowZer`)
+            oidcConfig.scopes.unshift(`api://${window.zitiBrowzerRuntime.zitiConfig.idp.clientId}/OpenZiti.BrowZer`)
         }
     }
     authorizationServerConsentScreen.searchParams.set('scope', oidcConfig.scopes.join(' '));

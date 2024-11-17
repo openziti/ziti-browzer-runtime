@@ -1,3 +1,12 @@
+# [0.91.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.90.0...v0.91.0) (2024-11-17)
+
+
+### Features
+
+* use 'api://<clientId>' for 'PKCE scope' with Entra ([#376](https://github.com/openziti/ziti-browzer-runtime/issues/376)) ([4a8c654](https://github.com/openziti/ziti-browzer-runtime/commit/4a8c6545d1d19fd95452c8455cf5036ae4572a8c))
+
+
+
 # [0.90.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.89.0...v0.90.0) (2024-11-13)
 
 

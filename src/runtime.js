@@ -30,7 +30,7 @@ import pjson from '../package.json';
 import { flatOptions } from './utils/flat-options'
 import { defaultOptions } from './options'
 import { ZBR_CONSTANTS } from './constants';
-import { ZitiXMLHttpRequest } from './http/ziti-xhr';
+// import { ZitiXMLHttpRequest } from './http/ziti-xhr';
 import { ZitiDummyWebSocketWrapper } from './http/ziti-dummy-websocket-wrapper';
 import { ZitiProgressEventWrapper } from './http/ziti-event-wrapper';
 import { buildInfo } from './buildInfo'
@@ -1567,7 +1567,6 @@ class ZitiBrowzerRuntime {
 
       this.logger.trace(`ZitiBrowzerRuntime ${this._uuid} has been initialized`);
 
-      await this.zitiContext.listControllerVersion();
 
       if (options.eruda) {
         this.zitiConfig.eruda = true;
@@ -2144,7 +2143,7 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
          * 
          */
         window.fetch = zitiFetch;
-        window.XMLHttpRequest = ZitiXMLHttpRequest;
+        // window.XMLHttpRequest = ZitiXMLHttpRequest;
         window.document.zitidomain = zitiDocumentDomain;
 
         /**
@@ -2562,7 +2561,7 @@ const zitiDocumentDomain = ( arg ) => {
  * 
  */
 window.fetch = zitiFetch;
-window.XMLHttpRequest = ZitiXMLHttpRequest;
+// window.XMLHttpRequest = ZitiXMLHttpRequest;
 window.document.zitidomain = zitiDocumentDomain;
 window.WebSocket = ZitiDummyWebSocketWrapper;
 window.ProgressEvent = ZitiProgressEventWrapper;

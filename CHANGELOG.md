@@ -1,3 +1,12 @@
+# [0.92.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.91.0...v0.92.0) (2024-12-04)
+
+
+### Features
+
+* let SW take care of XHR ([#379](https://github.com/openziti/ziti-browzer-runtime/issues/379)) ([edcc779](https://github.com/openziti/ziti-browzer-runtime/commit/edcc779b0dc70575504f464a0e83c6300c7fd542))
+
+
+
 # [0.91.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.90.0...v0.91.0) (2024-11-17)
 
 

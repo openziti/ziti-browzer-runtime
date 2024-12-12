@@ -1,3 +1,12 @@
+# [0.93.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.92.0...v0.93.0) (2024-12-12)
+
+
+### Features
+
+* ZBR's 'throughput chart' gradient style bleeds through to Grafana Charts ([#382](https://github.com/openziti/ziti-browzer-runtime/issues/382)) ([2e053ca](https://github.com/openziti/ziti-browzer-runtime/commit/2e053ca74a3dab25c1bfb6473eab34478bfbcb31))
+
+
+
 # [0.92.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.91.0...v0.92.0) (2024-12-04)
 
 

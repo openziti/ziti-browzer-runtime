@@ -38,7 +38,7 @@ const THROUGHPUT_CSS =
 .uplot, .uplot *, .uplot *::before, .uplot *::after {
     box-sizing: border-box;
 }
-.uplot {
+.zitiBrowzerRuntime_bottom-bar .uplot, .u-hz {
     font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
     line-height: 1.5;
     width: min-content;

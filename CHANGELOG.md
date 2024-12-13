@@ -1,3 +1,12 @@
+# [0.94.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.93.0...v0.94.0) (2024-12-13)
+
+
+### Features
+
+* remove ZBR's 'throughput chart' gradient style ([#383](https://github.com/openziti/ziti-browzer-runtime/issues/383)) ([a8fe69c](https://github.com/openziti/ziti-browzer-runtime/commit/a8fe69c4ee5f1c75ff9ee714b2abb48817367d6b))
+
+
+
 # [0.93.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.92.0...v0.93.0) (2024-12-12)
 
 

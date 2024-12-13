@@ -1,3 +1,12 @@
+# [0.95.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.94.0...v0.95.0) (2024-12-13)
+
+
+### Features
+
+* resolve 'uplot' CSS issue ([#384](https://github.com/openziti/ziti-browzer-runtime/issues/384)) ([8406dd0](https://github.com/openziti/ziti-browzer-runtime/commit/8406dd0ac93365c793a1221e055a2f00e801fe54))
+
+
+
 # [0.94.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.93.0...v0.94.0) (2024-12-13)
 
 

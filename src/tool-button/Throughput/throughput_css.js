@@ -35,20 +35,10 @@ const THROUGHPUT_CSS =
 .zitiBrowzerRuntime_bottom-bar__text {
     padding-right: 10px;
 }
-.uplot, .uplot *, .uplot *::before, .uplot *::after {
-    box-sizing: border-box;
-}
-.zitiBrowzerRuntime_bottom-bar .uplot, .u-hz {
-    font-family: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, "Noto Sans", sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-    line-height: 1.5;
-    width: min-content;
-    background-image: linear-gradient(to right, #0965f3, #e10c5c) !important;
-}
 .u-title {
     text-align: center;
     font-size: 12px;
     font-weight: bold;
-    color: white;
 }
 .u-wrap {
     position: relative;
@@ -73,7 +63,6 @@ const THROUGHPUT_CSS =
     font-size: 12px;
     margin: auto;
     text-align: center;
-    color: white;
 }
 .u-inline {
     display: block;

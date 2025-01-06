@@ -1,3 +1,12 @@
+# [0.97.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.96.0...v0.97.0) (2025-01-06)
+
+
+### Features
+
+* XHR tweaks ([#387](https://github.com/openziti/ziti-browzer-runtime/issues/387)) ([61acc46](https://github.com/openziti/ziti-browzer-runtime/commit/61acc46a75da3b1c9aeecbce94e06264ad725cfe))
+
+
+
 # [0.96.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.95.0...v0.96.0) (2024-12-19)
 
 

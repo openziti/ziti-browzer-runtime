@@ -75,6 +75,23 @@ function ZitiXMLHttpRequest () {
   // Event listeners
   var listeners = {};
 
+  // If the target URL is the bootstrapper, just use the native XHR
+  const shouldUseNative = (url) => {
+
+    let targetURL;
+    try {
+      targetURL = new URL(url);
+    }
+    catch (e) {
+      return false;
+    }
+    if (isEqual(targetURL.host, window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.host) && isEqual(targetURL.port, window.zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.port)) {
+      return true;
+    } else {
+      return false;
+    }    
+  };
+
   /**
    * Constants
    */
@@ -108,6 +125,10 @@ function ZitiXMLHttpRequest () {
   // Whether cross-site Access-Control requests should be made using
   // credentials such as cookies or authorization headers
   this.withCredentials = false;
+
+  // Save a ref to the native XHR
+  this.xhr = new window._ziti_realXMLHttpRequest();
+  this.usingNativeXHR = false;
 
   /**
    * Private methods
@@ -154,6 +175,12 @@ function ZitiXMLHttpRequest () {
       }
     }
 
+    if (shouldUseNative(url)) {
+      console.log('Falling back to native XHR for:', url);
+      this.usingNativeXHR = true;
+      return this.xhr.open(method, url, async, user, password);
+    }
+
     errorFlag = false;
 
     // Check for valid request method
@@ -174,7 +201,7 @@ function ZitiXMLHttpRequest () {
       this.settings.url = this.settings.url.replace(':undefined', '');
     }
 
-    setState(this.OPENED);
+    this.setState(this.OPENED);
   };
 
   /**
@@ -184,6 +211,10 @@ function ZitiXMLHttpRequest () {
    * @param string value Header value
    */
   this.setRequestHeader = function(header, value) {
+    if (this.usingNativeXHR) {
+      this.xhr.setRequestHeader(header, value);
+      return;
+    }
     if (this.readyState !== this.OPENED) {
       throw new Error("INVALID_STATE_ERR: setRequestHeader can only be called when state is OPEN");
     }
@@ -206,6 +237,9 @@ function ZitiXMLHttpRequest () {
    * @return string Text of the header or null if it doesn't exist.
    */
   this.getResponseHeader = function(header) {
+    if (this.usingNativeXHR) {
+      return this.xhr.getResponseHeader(header);
+    }
     if (typeof header === "string"
       && this.readyState > this.OPENED
       && response
@@ -228,6 +262,9 @@ function ZitiXMLHttpRequest () {
    * @return string A string with all response headers separated by CR+LF
    */
   this.getAllResponseHeaders = function() {
+    if (this.usingNativeXHR) {
+      return this.xhr.getAllResponseHeaders();
+    }
     if (this.readyState < this.HEADERS_RECEIVED || errorFlag) {
       return "";
     }
@@ -252,6 +289,9 @@ function ZitiXMLHttpRequest () {
    * @return string Returns the request header or empty string if not set
    */
   this.getRequestHeader = function(name) {
+    if (this.usingNativeXHR) {
+      return this.xhr.getRequestHeader(name);
+    }
     if (typeof name === "string" && headersCase[name.toLowerCase()]) {
       return headers[headersCase[name.toLowerCase()]];
     }
@@ -265,6 +305,9 @@ function ZitiXMLHttpRequest () {
    * @param string data Optional data to send as request body.
    */
   this.send = async function(data) {
+    if (this.usingNativeXHR) {
+      return this.xhr.send(data);
+    }
 
     if (this.readyState !== this.OPENED) {
       throw new Error("INVALID_STATE_ERR: connection must be opened before send() is called");
@@ -341,7 +384,7 @@ function ZitiXMLHttpRequest () {
   
       self.responseObject = response;
       sendFlag = false;
-      setState(self.DONE);
+      self.setState(self.DONE);
     });
 
   };
@@ -371,7 +414,7 @@ function ZitiXMLHttpRequest () {
     this.statusText = error;
     this.responseText = error.stack;
     errorFlag = true;
-    setState(this.DONE);
+    this.setState(this.DONE);
     this.dispatchEvent('error');
   };
 
@@ -379,6 +422,9 @@ function ZitiXMLHttpRequest () {
    * Aborts a request.
    */
   this.abort = function() {
+    if (this.usingNativeXHR) {
+      return this.xhr.abort();
+    }
     if (request) {
       request.abort();
       request = null;
@@ -395,7 +441,7 @@ function ZitiXMLHttpRequest () {
         && (this.readyState !== this.OPENED || sendFlag)
         && this.readyState !== this.DONE) {
       sendFlag = false;
-      setState(this.DONE);
+      this.setState(this.DONE);
     }
     this.readyState = this.UNSENT;
     this.dispatchEvent('abort');
@@ -405,6 +451,9 @@ function ZitiXMLHttpRequest () {
    * Adds an event listener. Preferred method of binding to events.
    */
   this.addEventListener = function(event, callback) {
+    if (this.usingNativeXHR) {
+      return this.xhr.addEventListener(event, callback);
+    }
     if (!(event in listeners)) {
       listeners[event] = [];
     }
@@ -417,6 +466,9 @@ function ZitiXMLHttpRequest () {
    * Only works on the matching funciton, cannot be a copy.
    */
   this.removeEventListener = function(event, callback) {
+    if (this.usingNativeXHR) {
+      return this.xhr.removeEventListener(event, callback);
+    }
     if (event in listeners) {
       // Filter will return a new array with the callback removed
       listeners[event] = listeners[event].filter(function(ev) {
@@ -429,6 +481,9 @@ function ZitiXMLHttpRequest () {
    * Dispatch any events, including both "on" methods and events attached using addEventListener.
    */
   this.dispatchEvent = function(event) {
+    if (this.usingNativeXHR) {
+      return this.xhr.dispatchEvent(event);
+    }
     if (typeof self["on" + event.type] === "function") {
       self["on" + event.type]();
     }
@@ -453,7 +508,11 @@ function ZitiXMLHttpRequest () {
    *
    * @param int state New state
    */
-  var setState = function(state) {
+  this.setState = function(state) {
+    if (this.usingNativeXHR) {
+      return this.xhr.setState(state);
+    }
+
     if (state == self.LOADING || self.readyState !== state) {
       self.readyState = state;
 

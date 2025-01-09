@@ -1,3 +1,12 @@
+## [0.97.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.97.0...v0.97.1) (2025-01-09)
+
+
+### Bug Fixes
+
+* Drop of very large files into Mattermost causes exception ([#389](https://github.com/openziti/ziti-browzer-runtime/issues/389)) ([be6e199](https://github.com/openziti/ziti-browzer-runtime/commit/be6e199ff65632518ac1af9795c3f14dae9188c6))
+
+
+
 # [0.97.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.96.0...v0.97.0) (2025-01-06)
 
 

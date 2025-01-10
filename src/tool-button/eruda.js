@@ -281,7 +281,7 @@ const eruda = {
       } catch (e) {
         // Use nextTick to make sure it is possible to be caught by console panel.
         nextTick(() => {
-          logger.error(
+          console.error(
             `Something wrong when initializing tool ${name}:`,
             e.message
           )

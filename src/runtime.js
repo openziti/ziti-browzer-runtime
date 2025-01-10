@@ -1386,6 +1386,15 @@ class ZitiBrowzerRuntime {
           }
         } catch (e) {
           invalidAccessToken = true;
+          try {
+            if (isTokenExpired(this.zitiConfig.id_token)) {
+              this.isAuthenticated = false;
+            } else {
+              this.isAuthenticated = true;
+            }
+          } catch (e) {
+            invalidAccessToken = true;
+          }
         }
       } else {
         this.logger.trace(`initialize() session token NOT found`);

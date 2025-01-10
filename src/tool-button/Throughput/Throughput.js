@@ -27,6 +27,7 @@ import $ from 'licia/$'
 import uPlot from 'uplot';
 import { classPrefix as c } from '../lib/util'
 import { THROUGHPUT_CSS } from './throughput_css';
+import { THROUGHPUT_UPLOT_CSS } from './throughput_uplot_css';
 
 
 
@@ -34,8 +35,36 @@ export default class Throughput extends Tool {
   constructor() {
     super()
 
-    this._style = evalCss(THROUGHPUT_CSS)
+    function isCSSSelectorPresent(selector) {
+      for (const stylesheet of document.styleSheets) {
+          try {
+              const rules = stylesheet.cssRules || stylesheet.rules; // Get CSS rules
+              for (const rule of rules) {
+                if (rule.selectorText === selector) {
+                      return true; // Found the selector
+                  }
+              }
+          } catch (e) {
+              // Catch and ignore CORS errors for external stylesheets
+              console.warn('Could not access stylesheet due to CORS restrictions:', stylesheet.href);
+          }
+      }
+      return false; // Selector not found
+    }
 
+    setTimeout((self) => {
+
+      if (isCSSSelectorPresent('.uplot')) {
+        console.log('CSS selector .uplot already exists in the stylesheets -- we will NOT activate browZer-specific uplot styling');
+        self._style = evalCss(THROUGHPUT_CSS)
+      } else {
+        console.log('CSS selector .uplot does NOT exist in the stylesheets -- we WILL activate browZer-specific uplot styling');
+        self._style = evalCss(THROUGHPUT_UPLOT_CSS)
+      }
+  
+    }, 2000, this)  
+
+  
     this.name = 'throughput'
     this._throughputs = []
   }

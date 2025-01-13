@@ -1505,10 +1505,19 @@ class ZitiBrowzerRuntime {
 
         // If we have a token, determine if it has expired
         if (!isEqual(this.zitiConfig.access_token, null)) {  
-          if (isTokenExpired(this.zitiConfig.access_token)) {
-            this.isAuthenticated = false;
-            initResults.authenticated = false;
-            initResults.unregisterSW = true;
+          try {
+            if (isTokenExpired(this.zitiConfig.access_token)) {
+              this.isAuthenticated = false;
+              initResults.authenticated = false;
+              initResults.unregisterSW = true;
+            }
+          } catch (e) {
+            invalidAccessToken = true;
+            if (isTokenExpired(this.zitiConfig.id_token)) {
+              this.isAuthenticated = false;
+              initResults.authenticated = false;
+              initResults.unregisterSW = true;
+            }
           }
         }
       }

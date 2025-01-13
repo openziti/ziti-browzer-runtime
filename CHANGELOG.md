@@ -1,3 +1,12 @@
+## [0.97.4](https://github.com/openziti/ziti-browzer-runtime/compare/v0.97.3...v0.97.4) (2025-01-13)
+
+
+### Bug Fixes
+
+* delete a stray variable assignment ([#393](https://github.com/openziti/ziti-browzer-runtime/issues/393)) ([4a84ec1](https://github.com/openziti/ziti-browzer-runtime/commit/4a84ec12413927307509997f5a5fe18236e1fb1d))
+
+
+
 ## [0.97.3](https://github.com/openziti/ziti-browzer-runtime/compare/v0.97.2...v0.97.3) (2025-01-13)
 
 

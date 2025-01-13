@@ -1,3 +1,12 @@
+## [0.97.3](https://github.com/openziti/ziti-browzer-runtime/compare/v0.97.2...v0.97.3) (2025-01-13)
+
+
+### Bug Fixes
+
+* Bogus access_token from Entra can cause SW load of ZBR to fail ([#392](https://github.com/openziti/ziti-browzer-runtime/issues/392)) ([1a3ad37](https://github.com/openziti/ziti-browzer-runtime/commit/1a3ad37ceb1b76486bb87fa3037b7644334d1439))
+
+
+
 ## [0.97.2](https://github.com/openziti/ziti-browzer-runtime/compare/v0.97.1...v0.97.2) (2025-01-10)
 
 

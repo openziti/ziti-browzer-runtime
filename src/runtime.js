@@ -1512,7 +1512,6 @@ class ZitiBrowzerRuntime {
               initResults.unregisterSW = true;
             }
           } catch (e) {
-            invalidAccessToken = true;
             if (isTokenExpired(this.zitiConfig.id_token)) {
               this.isAuthenticated = false;
               initResults.authenticated = false;

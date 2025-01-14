@@ -12,17 +12,6 @@ const ICON_CSS =
     format('woff');
 }
 
-[class^='icon-'],
-[class*=' icon-'] {
-  display: inline-block;
-  font-family: 'eruda-icon' !important;
-  font-style: normal;
-  -webkit-font-smoothing: antialiased;
-  -moz-osx-font-smoothing: grayscale;
-}
-
-// font-size: 16px;
-
 .icon-arrow-left:before {
   content: '\f101';
 }

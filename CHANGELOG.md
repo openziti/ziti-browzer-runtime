@@ -1,3 +1,12 @@
+## [0.97.5](https://github.com/openziti/ziti-browzer-runtime/compare/v0.97.4...v0.97.5) (2025-01-14)
+
+
+### Bug Fixes
+
+* Icon-related CSS for browZer tool-button can collide with some web apps ([#395](https://github.com/openziti/ziti-browzer-runtime/issues/395)) ([ed34933](https://github.com/openziti/ziti-browzer-runtime/commit/ed34933dd5ca3621a297cf1b67eadd149c1d0e43))
+
+
+
 ## [0.97.4](https://github.com/openziti/ziti-browzer-runtime/compare/v0.97.3...v0.97.4) (2025-01-13)
 
 

@@ -1,3 +1,12 @@
+## [0.97.6](https://github.com/openziti/ziti-browzer-runtime/compare/v0.97.5...v0.97.6) (2025-01-15)
+
+
+### Bug Fixes
+
+* POST via fetch to private API listening on HTTPS fails ([#397](https://github.com/openziti/ziti-browzer-runtime/issues/397)) ([e24fbe5](https://github.com/openziti/ziti-browzer-runtime/commit/e24fbe515a92ef00639035c0e3051f011207f2da))
+
+
+
 ## [0.97.5](https://github.com/openziti/ziti-browzer-runtime/compare/v0.97.4...v0.97.5) (2025-01-14)
 
 

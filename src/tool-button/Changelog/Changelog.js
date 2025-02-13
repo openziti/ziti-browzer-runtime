@@ -113,7 +113,7 @@ export default class Changelog extends Tool {
       {
         name: 'Your Version',
         val:
-          'You are running <a href="https://openziti.io/docs/learn/quickstarts/browzer/" target="_blank">OpenZiti BrowZer v' +
+          `You are running <a href="https://openziti.io/docs/learn/quickstarts/browzer/" target="_blank">'${window.zitiBrowzerRuntime.zitiConfig.browzer.whitelabel.branding.browZerName}' v` +
           zitiBrowzerRuntime.zitiConfig.browzer.bootstrapper.self.version +
           '</a>' + 
           `

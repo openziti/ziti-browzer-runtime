@@ -34,7 +34,8 @@ let plugins = [
     targets: [
       { 
         src: 'static/*', 
-        dest: 'dist' 
+        dest: 'dist',
+        ignore: ['static/ziti-browzer-css.css']
       }
     ]
   }),

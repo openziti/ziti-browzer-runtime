@@ -168,25 +168,6 @@ function getOIDCConfig() {
   return oidcConfig;
 }
 
-/**
- * 
- */
-function getControllerOIDCConfig() {
-
-  let oidcConfig = {
-    type:                       ZBR_CONSTANTS.OIDC_TYPE_ZITI_CONTROLLER,
-    name:                       'ZitiBrowzerRuntimeControllerOIDCConfig',
-    issuer:                     window.zitiBrowzerRuntime.zitiConfig.controller.api.replace(`edge/client/v1`,`oidc`),
-    client_id:                  'openziti',
-    scopes:                     ['openid', 'email'],
-    enablePKCEAuthentication:   true,
-    token_endpoint_auth_method: 'none',
-    redirect_uri:               getPKCERedirectURI().toString(),
-    code_verifier:              oidc.generateRandomCodeVerifier(),
-  };
-
-  return oidcConfig;
-}
 
 class ZitiBrowZerRuntimeServiceWorkerRegistrationMock {
 
@@ -366,7 +347,9 @@ class ZitiBrowzerRuntime {
 
       // Toast infra
       this.PolipopCreated = false;
-      setTimeout(this._createPolipop, 1000, this);
+      if (this.zitiConfig.browzer.whitelabel.enable.browZerToastMessages) {
+        setTimeout(this._createPolipop, 1000, this);
+      }
 
       // Click intercept infra
       setTimeout(this._createClickIntercept, 3000, this);
@@ -572,7 +555,7 @@ class ZitiBrowzerRuntime {
             pool: 3,
             sticky: false,
             progressbar: true,
-            headerText: 'OpenZiti BrowZer',
+            headerText: `'${window.zitiBrowzerRuntime.zitiConfig.browzer.whitelabel.branding.browZerName}'`,
             effect: 'slide',
             closer: false,
             life: 3000,
@@ -1311,25 +1294,29 @@ class ZitiBrowzerRuntime {
       ],
       useShadowDom: false,
       autoScale: true,
+      renderEntryButton: this.zitiConfig.browzer.whitelabel.enable.browZerButton,
+      renderThroughputChart: this.zitiConfig.browzer.whitelabel.enable.browZerThroughputChart,
       defaults: {
           displaySize: 50,
           transparency: 1.0
       }
     });
     if (!options.loadedViaBootstrapper) {
-      eruda.maybeShowThroughput();
+        eruda.maybeShowThroughput();
     } else {
-      const browZerDIV = document.getElementById("OpenZiti-BrowZer");
-      let splashDIV = document.createElement('div');
-      splashDIV.classList.add("OpenZiti-BrowZer-splash-screen");
-      splashDIV.setAttribute("id", "OpenZiti-BrowZer-splashScreen");
-      let loadingDIV = document.createElement('h1');
-      loadingDIV.innerHTML += `OpenZiti BrowZer is Bootstrapping your web app`;
-      splashDIV.appendChild(loadingDIV);
-      let loaderDIV = document.createElement('div');
-      loaderDIV.classList.add("OpenZiti-BrowZer-loader");
-      splashDIV.appendChild(loaderDIV);
-      browZerDIV.appendChild(splashDIV);
+      if (this.zitiConfig.browzer.whitelabel.enable.browZerSplashScreen) {
+        const browZerDIV = document.getElementById("OpenZiti-BrowZer");
+        let splashDIV = document.createElement('div');
+        splashDIV.classList.add("OpenZiti-BrowZer-splash-screen");
+        splashDIV.setAttribute("id", "OpenZiti-BrowZer-splashScreen");
+        let loadingDIV = document.createElement('h1');
+        loadingDIV.innerHTML += `${this.zitiConfig.browzer.whitelabel.branding.browZerSplashMessage}`;
+        splashDIV.appendChild(loadingDIV);
+        let loaderDIV = document.createElement('div');
+        loaderDIV.classList.add("OpenZiti-BrowZer-loader");
+        splashDIV.appendChild(loaderDIV);
+        browZerDIV.appendChild(splashDIV);
+      }
     }
 
     let logLevel = await window.zitiBrowzerRuntime.localStorage.get(
@@ -1545,6 +1532,8 @@ class ZitiBrowzerRuntime {
 
         apiSessionHeartbeatTimeMin: (1),
         apiSessionHeartbeatTimeMax: (2),
+
+        bootstrapperHost: this.zitiConfig.browzer.bootstrapper.self.host,
     
       });
       this.logger.trace(`initialize() ZitiContext created`);
@@ -1639,17 +1628,21 @@ class ZitiBrowzerRuntime {
    * 
    */
   _toast(self, content, type) {
-    if (self.polipop) {
-      self.polipop.add({content: content, title: `OpenZiti BrowZer`, type: type});
-    } else {
-      setTimeout(self._toast, 1000, self, content, type);
+    if (self.zitiConfig.browzer.whitelabel.enable.browZerToastMessages) {
+      if (self.polipop) {
+        self.polipop.add({content: content, title: `'${window.zitiBrowzerRuntime.zitiConfig.browzer.whitelabel.branding.browZerName}'`, type: type});
+      } else {
+        setTimeout(self._toast, 1000, self, content, type);
+      }
     }
   }
   _toastSticky(self, content, type) {
-    if (self.polipop) {
-      self.polipop.add({content: content, title: `OpenZiti BrowZer`, type: type, life: 15*1000});
-    } else {
-      setTimeout(self._toast, 1000, self, content, type);
+    if (self.zitiConfig.browzer.whitelabel.enable.browZerToastMessages) {
+      if (self.polipop) {
+        self.polipop.add({content: content, title: `'${window.zitiBrowzerRuntime.zitiConfig.browzer.whitelabel.branding.browZerName}'`, type: type, life: 15*1000});
+      } else {
+        setTimeout(self._toast, 1000, self, content, type);
+      }
     }
   }
   

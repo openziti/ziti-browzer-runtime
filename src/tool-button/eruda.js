@@ -50,24 +50,30 @@ const eruda = {
     tool,
     autoScale = true,
     useShadowDom = true,
+    renderEntryButton = true,
+    renderThroughputChart = true,
     defaults = {},
   } = {}) {
     if (this._isInit) return
 
     this._isInit = true
     this._scale = 1
+    this._renderEntryButton = renderEntryButton
+    this._renderThroughputChart = renderThroughputChart
 
     this._initContainer(container, useShadowDom)
     this._initStyle()
     this._initDevTools(defaults)
-    this._initEntryBtn()
-    this._initSettings()
+    if (this._renderEntryButton) this._initEntryBtn()
+    this._initSettings(this._renderEntryButton)
     this._initTools(tool)
     this._registerListener()
 
     if (autoScale) this._autoScale()
   },
   maybeShowThroughput() {
+    if (!this._renderEntryButton) return;
+    if (!this._renderThroughputChart) return;
     let timeToRender = this._devTools.maybeShowThroughput();
     let throughputChartAutoRenderDone = sessionStorage.getItem('throughputChartAutoRenderDone');
 
@@ -79,7 +85,7 @@ const eruda = {
         if (typeof Canny !== 'undefined') {
           Canny('closeChangelog');
         }    
-        window.zitiBrowzerRuntime.toastSuccess(`Auto-hiding the BrowZer Throughput chart -- Click BrowZer Button to view it again`);
+        window.zitiBrowzerRuntime.toastSuccess(`Auto-hiding the '${window.zitiBrowzerRuntime.zitiConfig.browzer.whitelabel.branding.browZerName}' Throughput chart -- Click '${window.zitiBrowzerRuntime.zitiConfig.browzer.whitelabel.branding.browZerName}' Button to view it again`);
       }, timeToRender*1000, this)  
     }
   },
@@ -256,13 +262,16 @@ const eruda = {
     this._entryBtn = new EntryBtn(this._$el)
     this._entryBtn.on('click', () => this._devTools.toggle())
   },
-  _initSettings() {
+  _initSettings(entryButton) {
     const devTools = this._devTools
     const settings = new Settings()
 
     devTools.add(settings)
 
-    this._entryBtn.initCfg(settings)
+    if (entryButton) {
+      this._entryBtn.initCfg(settings)
+    }
+
     devTools.initCfg(settings)
   },
   _initTools(

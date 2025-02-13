@@ -38,6 +38,7 @@ export default class EntryBtn extends Emitter {
     this._initTpl()
     this._bindEvent()
     this._registerListener()
+    this._updateBackgroundImage('.eruda-icon-tool', `${window.zitiBrowzerRuntime.zitiConfig.browzer.whitelabel.branding.browZerButtonIconSvgUrl}`);
   }
   hide() {
     this._$el.hide()
@@ -183,7 +184,7 @@ export default class EntryBtn extends Emitter {
       pos: this._getDefPos(),
     }))
 
-    settings.switch(cfg, 'rememberPos', `Remember BrowZer Button Position`)
+    settings.switch(cfg, 'rememberPos', `Remember '${window.zitiBrowzerRuntime.zitiConfig.browzer.whitelabel.branding.browZerName}' Button Position`)
 
     this._resetPos()
   }
@@ -196,4 +197,21 @@ export default class EntryBtn extends Emitter {
     }
 
   }
+  _updateBackgroundImage(selector, imageUrl) {
+    const styleSheets = document.styleSheets;
+    for (let sheet of styleSheets) {
+      try {
+        const rules = sheet.cssRules || sheet.rules;
+        for (let rule of rules) {
+          if (rule.selectorText === selector) {
+            rule.style.backgroundImage = `url('${imageUrl}')`;
+            return;
+          }
+        }
+      } catch (error) {
+        console.warn('Error accessing stylesheet rules:', error);
+      }
+    }
+  }
+
 }

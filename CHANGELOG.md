@@ -1,3 +1,12 @@
+# [0.98.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.97.6...v0.98.0) (2025-02-13)
+
+
+### Features
+
+* HA OIDC auth mechanisms, and start of white-labeling support ([#403](https://github.com/openziti/ziti-browzer-runtime/issues/403)) ([3c7c881](https://github.com/openziti/ziti-browzer-runtime/commit/3c7c8818984ad0620181b0539aa20b2c86ad369c))
+
+
+
 ## [0.97.6](https://github.com/openziti/ziti-browzer-runtime/compare/v0.97.5...v0.97.6) (2025-01-15)
 
 

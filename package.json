@@ -72,7 +72,7 @@
     "@babel/register": "^7.25.9",
     "@rollup/plugin-commonjs": "^25.0.7",
     "@rollup/plugin-json": "^4.1.0",
-    "@rollup/plugin-node-resolve": "^13.3.0",
+    "@rollup/plugin-node-resolve": "^16.0.0",
     "@types/localforage": "^0.0.34",
     "browserify": "^17.0.0",
     "cross-env": "^7.0.3",

@@ -320,7 +320,7 @@ class ZitiBrowzerRuntime {
     let self = zitiBrowzerRuntime;
   
     CookieInterceptor.write.use( function ( cookie ) {
-      cookie = cookie.replace('%25','%');
+      cookie = cookie.replace(/%25/g, '%');
       let name = cookie.substring(0, cookie.indexOf("="));
       let value = cookie.substring(cookie.indexOf("=") + 1);
       let cookie_value = value.substring(0, value.indexOf(";"));

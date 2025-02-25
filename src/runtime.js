@@ -157,7 +157,7 @@ function getOIDCConfig() {
     issuer:                     window.zitiBrowzerRuntime.zitiConfig.idp.host,
     client_id:                  window.zitiBrowzerRuntime.zitiConfig.idp.clientId,
     authorization_endpoint_parms: window.zitiBrowzerRuntime.zitiConfig.idp.authorization_endpoint_parms,
-    scopes:                     [window.zitiBrowzerRuntime.zitiConfig.idp.authorization_scope, 'openid', 'email'],
+    scopes:                     window.zitiBrowzerRuntime.zitiConfig.idp.authorization_scope ? [window.zitiBrowzerRuntime.zitiConfig.idp.authorization_scope, 'openid', 'email'] : ['openid', 'email'],
     enablePKCEAuthentication:   true,
     token_endpoint_auth_method: 'none',
     redirect_uri:               getPKCERedirectURI().toString(),

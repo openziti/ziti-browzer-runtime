@@ -5,7 +5,7 @@
   "description": "The Ziti JavaScript runtime that is auto-injected into the Page of a Zitified web app",
   "scripts": {
     "prebuild": "node scripts/prebuild.js",
-    "build": "npm-run-all build:clean rollup",
+    "build": "npm-run-all build:clean prebuild rollup",
     "build:clean": "rimraf lib dist",
     "rollup": "rollup -c ./rollup.config.js",
     "build:lib-delete": "babel --config-file ./.lib.babelrc src --out-dir lib",

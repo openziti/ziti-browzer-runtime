@@ -29,6 +29,7 @@ let plugins = [
   prettier({
     tabWidth: 2,
     singleQuote: false,
+    parser: "babel"
   }),
   copy({
     targets: [

@@ -274,7 +274,10 @@ export const pkceLogin = async (oidcConfig, redirectURI) => {
     /**
      * If Entra is the IdP, then we need to ensure proper scope is used in order to get a valid access_token
      */
-    if (asurl.hostname.includes('login.microsoftonline.com')) {
+     let entraHosts = [
+        'login.microsoftonline.com',
+    ];
+    if (entraHosts.includes(asurl.hostname)) {
         /**
          * If we were NOT configured with authorization_scope, we will dynamically add it here,
          * using the Entra clientId (i.e. we assume that an 'API' was created in Entra that matches 

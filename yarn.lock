@@ -1458,7 +1458,7 @@ __metadata:
     localforage: "npm:^1.10.0"
     lodash-es: "npm:^4.17.21"
     luna-modal: "npm:^1.2.3"
-    luna-notification: "npm:^0.2.0"
+    luna-notification: "npm:^0.3.2"
     luna-setting: "npm:^1.0.1"
     luna-tab: "npm:^0.3.0"
     mocha: "npm:^10.0.0"
@@ -5782,12 +5782,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"luna-notification@npm:^0.2.0":
-  version: 0.2.0
-  resolution: "luna-notification@npm:0.2.0"
+"luna-notification@npm:^0.3.2":
+  version: 0.3.2
+  resolution: "luna-notification@npm:0.3.2"
   dependencies:
     licia: "npm:^1.39.2"
-  checksum: e984fb51001c673149a57f6b43b849ce508ee1b53df7913e8c0f134ba5ffacff61880b41f988faba1152a1263d44be1fdf79d9fd5ec1e91d7eb27d7b721c19fa
+  checksum: dc8269d148037c65b77b98af8812824a40177cb4180035bd091a76e1618d932406060e34f752bf38fa8e647c58938a12256913c49bb6fb146c766f5b50817ad8
   languageName: node
   linkType: hard
 

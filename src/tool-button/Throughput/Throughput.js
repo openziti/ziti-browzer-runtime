@@ -52,15 +52,24 @@ export default class Throughput extends Tool {
       return false; // Selector not found
     }
 
-    setTimeout((self) => {
+    setTimeout( async (self) => {
 
-      if (isCSSSelectorPresent('.uplot')) {
-        console.log('CSS selector .uplot already exists in the stylesheets -- we will NOT activate browZer-specific uplot styling');
-        self._style = evalCss(THROUGHPUT_CSS)
-      } else {
-        console.log('CSS selector .uplot does NOT exist in the stylesheets -- we WILL activate browZer-specific uplot styling');
-        self._style = evalCss(THROUGHPUT_UPLOT_CSS)
+      const response = await fetch( window.zitiBrowzerRuntime.zitiConfig.browzer.whitelabel.branding.browZerCSS );
+      if (response.ok) {
+        const theCSS = await response.text();
+        self._style = evalCss(theCSS)
       }
+
+
+
+      // if (isCSSSelectorPresent('.uplot')) {
+      //   console.log('CSS selector .uplot already exists in the stylesheets -- we will NOT activate browZer-specific uplot styling');
+      //   self._style = evalCss(THROUGHPUT_CSS)
+      // } else {
+      //   if (window.zitiBrowzerRuntime.zitiConfig.browzer.whitelabel.branding.browZerThroughputChartCSS)
+      //   console.log('CSS selector .uplot does NOT exist in the stylesheets -- we WILL activate browZer-specific uplot styling');
+      //   self._style = evalCss(THROUGHPUT_UPLOT_CSS)
+      // }
   
     }, 2000, this)  
 

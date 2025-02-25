@@ -1,3 +1,12 @@
+## [0.100.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.100.0...v0.100.1) (2025-02-25)
+
+
+### Bug Fixes
+
+* If 'idp_authorization_scope' isn't specified, OIDC scopes get leading '+' ([09f8812](https://github.com/openziti/ziti-browzer-runtime/commit/09f881295644d6214c40a126ebf42ba487413067))
+
+
+
 # [0.100.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.99.1...v0.100.0) (2025-02-25)
 
 

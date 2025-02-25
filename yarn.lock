@@ -22,19 +22,19 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@azure/msal-browser@npm:^2.38.0":
-  version: 2.38.0
-  resolution: "@azure/msal-browser@npm:2.38.0"
+"@azure/msal-browser@npm:^4.4.0":
+  version: 4.4.0
+  resolution: "@azure/msal-browser@npm:4.4.0"
   dependencies:
-    "@azure/msal-common": "npm:13.2.0"
-  checksum: e8304a64230351ada3f4e60ec5771ae95e69d7de852f346099fc3c592536ccdbffbdec12aeb60523f51486cfac5ee9806d351aa49d79799b51209c76023547be
+    "@azure/msal-common": "npm:15.2.0"
+  checksum: 3b2ae50af62fd5d8def9411e874c4eb4f7048890e064662a395db8320071e24860166fbc1dd75b41d5e84097cf2950ea063fb2ae6bfc733dcdb208f7b495a27a
   languageName: node
   linkType: hard
 
-"@azure/msal-common@npm:13.2.0":
-  version: 13.2.0
-  resolution: "@azure/msal-common@npm:13.2.0"
-  checksum: bcafeec91032aaeb0036592914017c8ce04210be4130f7cfd7f36ab90835bd5048930610fa11177bd9c2688e60bc1abb4c45613e477c2b757de078a278cca7bc
+"@azure/msal-common@npm:15.2.0":
+  version: 15.2.0
+  resolution: "@azure/msal-common@npm:15.2.0"
+  checksum: 3e8c419eb9d0efa9e9ad42d072d597a0d63fb6499df58a27c1c1b686ad2c568a50a4f55c0cfcbeb43bc28e494896a25fc70714c0618c246b2c3256b1519fdc83
   languageName: node
   linkType: hard
 
@@ -1449,7 +1449,7 @@ __metadata:
   resolution: "@openziti/ziti-browzer-runtime@workspace:."
   dependencies:
     "@auth0/auth0-spa-js": "npm:^2.0.4"
-    "@azure/msal-browser": "npm:^2.38.0"
+    "@azure/msal-browser": "npm:^4.4.0"
     "@babel/cli": "npm:^7.26.4"
     "@babel/core": "npm:^7.26.9"
     "@babel/plugin-transform-regenerator": "npm:^7.25.9"

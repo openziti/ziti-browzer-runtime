@@ -93,7 +93,7 @@
   },
   "dependencies": {
     "@auth0/auth0-spa-js": "^2.0.4",
-    "@azure/msal-browser": "^2.38.0",
+    "@azure/msal-browser": "^4.4.0",
     "@babel/runtime": "^7.17.9",
     "@openziti/ziti-browzer-core": "^0.58.0",
     "bowser": "^2.11.0",

@@ -1,3 +1,12 @@
+## [0.99.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.99.0...v0.99.1) (2025-02-25)
+
+
+### Bug Fixes
+
+* code scanning alert no. 1: Incomplete string escaping or encoding ([#419](https://github.com/openziti/ziti-browzer-runtime/issues/419)) ([76a49ca](https://github.com/openziti/ziti-browzer-runtime/commit/76a49ca4fbcc9200d0aecdcf22cbc9dcaf5b8047))
+
+
+
 # [0.99.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.98.0...v0.99.0) (2025-02-25)
 
 

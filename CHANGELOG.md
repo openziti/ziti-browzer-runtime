@@ -1,3 +1,12 @@
+# [0.101.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.100.1...v0.101.0) (2025-03-10)
+
+
+### Features
+
+* security updates ([#432](https://github.com/openziti/ziti-browzer-runtime/issues/432)) ([1ae9aea](https://github.com/openziti/ziti-browzer-runtime/commit/1ae9aeaa73076b529e9042fe39e6c42c14759042))
+
+
+
 ## [0.100.1](https://github.com/openziti/ziti-browzer-runtime/compare/v0.100.0...v0.100.1) (2025-02-25)
 
 

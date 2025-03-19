@@ -149,7 +149,15 @@ function isOriginTrialTokenExpired(token) {
 /**
  * 
  */
-function getOIDCConfig() {
+function getOIDCConfig(scopes) {
+
+  if (!scopes) {
+    scopes = ['openid', 'email'];
+  }
+  if (window.zitiBrowzerRuntime.zitiConfig.idp.authorization_scope) {
+    scopes = [...new Set([...[window.zitiBrowzerRuntime.zitiConfig.idp.authorization_scope], ...scopes])];
+  }
+  let scopesToUse = [...new Set([...['openid'], ...scopes])];
 
   let oidcConfig = {
     type:                       ZBR_CONSTANTS.OIDC_TYPE_IDP,
@@ -157,7 +165,7 @@ function getOIDCConfig() {
     issuer:                     window.zitiBrowzerRuntime.zitiConfig.idp.host,
     client_id:                  window.zitiBrowzerRuntime.zitiConfig.idp.clientId,
     authorization_endpoint_parms: window.zitiBrowzerRuntime.zitiConfig.idp.authorization_endpoint_parms,
-    scopes:                     window.zitiBrowzerRuntime.zitiConfig.idp.authorization_scope ? [window.zitiBrowzerRuntime.zitiConfig.idp.authorization_scope, 'openid', 'email'] : ['openid', 'email'],
+    scopes:                  scopesToUse,
     enablePKCEAuthentication:   true,
     token_endpoint_auth_method: 'none',
     redirect_uri:               getPKCERedirectURI().toString(),
@@ -1244,6 +1252,12 @@ class ZitiBrowzerRuntime {
 
     this.zitiConfig.token_type = 'Bearer';
 
+    options.doAuthenticate = false;
+    await this.initZitiContext(options);
+
+    //
+    let scopesByClientId = this.zitiContext.getExternalJwtSignerScopesByClientId(window.zitiBrowzerRuntime.zitiConfig.idp.clientId);    
+
     /** ===================================================================
      *  Loaded via the BrowZer Bootstrapper
     /** ================================================================= */
@@ -1300,7 +1314,7 @@ class ZitiBrowzerRuntime {
 
           this.logger.trace(`initialize() calling pkceCallback`);
 
-          await pkceCallback( getOIDCConfig(), getPKCERedirectURI().toString() ).catch(error => {
+          await pkceCallback( getOIDCConfig(scopesByClientId), getPKCERedirectURI().toString() ).catch(error => {
             window.zitiBrowzerRuntime.logger.error(`${error}`);
             window.zitiBrowzerRuntime.pkceCallbackErrorEventHandler(error);
           });
@@ -1324,12 +1338,12 @@ class ZitiBrowzerRuntime {
           // Local data indicates that the user is not authenticated, however, the IdP might still think the authentication
           // is alive/valid (a common Auth0 situation), so, we will force/tell the IdP to do a logout. 
           
-          if (!invalidAccessToken && await pkceLogoutIsNeeded(getOIDCConfig())) {
+          if (!invalidAccessToken && await pkceLogoutIsNeeded(getOIDCConfig(scopesByClientId))) {
             let logoutInitiated = this.getCookie( this.authTokenName + '_logout_initiated' );
             if (isEqual(logoutInitiated, '')) {
               document.cookie = this.authTokenName + '_logout_initiated' + "=" + "yes" + "; path=/";
               this.logger.trace(`initialize() calling pkceLogout`);
-              pkceLogout( getOIDCConfig(), getPKCERedirectURI().toString() );
+              pkceLogout( getOIDCConfig(scopesByClientId), getPKCERedirectURI().toString() );
               await delay(3000); // we need to pause a bit or the 'login' call below will cancel the 'logout'
             }
             document.cookie = this.authTokenName + '_logout_initiated'+'=; Max-Age=-99999999;';
@@ -1337,7 +1351,7 @@ class ZitiBrowzerRuntime {
 
           this.logger.trace(`initialize() calling pkceLogin`);
 
-          await pkceLogin( getOIDCConfig(), getPKCERedirectURI().toString() );
+          await pkceLogin( getOIDCConfig(scopesByClientId), getPKCERedirectURI().toString() );
 
           await delay(5000);  // stall here while we await the redirect from the IdP,
                               // which will cause us to reload/reinit, and process
@@ -1409,76 +1423,79 @@ class ZitiBrowzerRuntime {
 
     this.isAuthenticated = initResults.authenticated;
 
-    if (initResults.authenticated) {
-
-      this.zitiContext = this.core.createZitiContext({
-
-        logger:         this.logger,
-        controllerApi:  this.controllerApi,
-
-        sdkType:        pjson.name,
-        sdkVersion:     pjson.version,
-        sdkBranch:      buildInfo.sdkBranch,
-        sdkRevision:    buildInfo.sdkRevision,
-    
-        token_type:     this.zitiConfig.token_type,
-        id_token:       this.zitiConfig.id_token,
-        access_token:   this.zitiConfig.access_token,
-
-        apiSessionHeartbeatTimeMin: (1),
-        apiSessionHeartbeatTimeMax: (2),
-
-        bootstrapperHost: this.zitiConfig.browzer.bootstrapper.self.host,
-    
-      });
-      this.logger.trace(`initialize() ZitiContext created`);
-
-      this.zbrSWM = new ZitiBrowzerRuntimeServiceWorkerMock();
-
-      navigator.serviceWorker._ziti_realRegister = navigator.serviceWorker.register;
-      navigator.serviceWorker.register = this.zbrSWM.register;
-
-      this.zitiContext.setKeyTypeEC();
-
-      window._zitiContext = this.zitiContext; // allow WASM to find us
-
-      this.zitiConfig.jspi = await this.shouldUseJSPI(); // determine which WASM to instantiate
-
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_IDP_AUTH_HEALTH,        this.idpAuthHealthEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_CONFIG_FOR_SERVICE,  this.noConfigForServiceEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_SERVICE,             this.noServiceEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_SESSION_CREATION_ERROR, this.sessionCreationErrorEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_INVALID_AUTH,           this.invalidAuthEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_DEPRECATION_ID_TOKEN,   this.idTokenDeprecationEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_CHANNEL_CONNECT_FAIL,   this.channelConnectFailEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_WSS_ROUTERS,         this.noWSSRoutersEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_XGRESS,                 this.xgressEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NESTED_TLS_HANDSHAKE_TIMEOUT,  this.nestedTLSHandshakeTimeoutEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_CONFIG_PROTOCOL_FOR_SERVICE,  this.noConfigProtocolForServiceEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_WSS_ROUTER_CONNECTION_ERROR,  this.wssERConnectionErrorEventHandler);
-      this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_CONTROLLER_CONNECTION_ERROR,  this.controllerConnectionErrorEventHandler);
-
-      await this.zitiContext.initialize({
-        loadWASM: !options.loadedViaBootstrapper,    // instantiate the WASM ONLY if we were not injected by the browZer Bootstrapper
-        jspi:     this.zitiConfig.jspi,           // indicate which WASM to instantiate
-        target:   this.zitiConfig.browzer.bootstrapper.target
-      });
-
-      this.initialized = true;
-
-      this.logger.trace(`ZitiBrowzerRuntime ${this._uuid} has been initialized`);
-
-
-      if (options.eruda) {
-        this.zitiConfig.eruda = true;
-      } else {
-        this.zitiConfig.eruda = false;
-      }
-
-    }
-
     return initResults;
   };
+
+  /**
+   * 
+   */
+  async initZitiContext(options) {
+
+    this.zitiContext = this.core.createZitiContext({
+
+      logger:         this.logger,
+      controllerApi:  this.controllerApi,
+
+      sdkType:        pjson.name,
+      sdkVersion:     pjson.version,
+      sdkBranch:      buildInfo.sdkBranch,
+      sdkRevision:    buildInfo.sdkRevision,
+  
+      token_type:     this.zitiConfig.token_type,
+      id_token:       this.zitiConfig.id_token,
+      access_token:   this.zitiConfig.access_token,
+
+      apiSessionHeartbeatTimeMin: (1),
+      apiSessionHeartbeatTimeMax: (2),
+
+      bootstrapperHost: this.zitiConfig.browzer.bootstrapper.self.host,
+  
+    });
+    this.logger.trace(`initialize() ZitiContext created`);
+
+    this.zbrSWM = new ZitiBrowzerRuntimeServiceWorkerMock();
+
+    navigator.serviceWorker._ziti_realRegister = navigator.serviceWorker.register;
+    navigator.serviceWorker.register = this.zbrSWM.register;
+
+    this.zitiContext.setKeyTypeEC();
+
+    window._zitiContext = this.zitiContext; // allow WASM to find us
+
+    this.zitiConfig.jspi = await this.shouldUseJSPI(); // determine which WASM to instantiate
+
+    this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_IDP_AUTH_HEALTH,        this.idpAuthHealthEventHandler);
+    this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_CONFIG_FOR_SERVICE,  this.noConfigForServiceEventHandler);
+    this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_SERVICE,             this.noServiceEventHandler);
+    this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_SESSION_CREATION_ERROR, this.sessionCreationErrorEventHandler);
+    this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_INVALID_AUTH,           this.invalidAuthEventHandler);
+    this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_DEPRECATION_ID_TOKEN,   this.idTokenDeprecationEventHandler);
+    this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_CHANNEL_CONNECT_FAIL,   this.channelConnectFailEventHandler);
+    this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_WSS_ROUTERS,         this.noWSSRoutersEventHandler);
+    this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_XGRESS,                 this.xgressEventHandler);
+    this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NESTED_TLS_HANDSHAKE_TIMEOUT,  this.nestedTLSHandshakeTimeoutEventHandler);
+    this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_NO_CONFIG_PROTOCOL_FOR_SERVICE,  this.noConfigProtocolForServiceEventHandler);
+    this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_WSS_ROUTER_CONNECTION_ERROR,  this.wssERConnectionErrorEventHandler);
+    this.zitiContext.on(ZITI_CONSTANTS.ZITI_EVENT_CONTROLLER_CONNECTION_ERROR,  this.controllerConnectionErrorEventHandler);
+
+    await this.zitiContext.initialize({
+      loadWASM: !options.loadedViaBootstrapper, // instantiate the WASM ONLY if we were not injected by the browZer Bootstrapper
+      doAuthenticate: options.doAuthenticate,   // do Controller auth only if necessary
+      jspi:     this.zitiConfig.jspi,           // indicate which WASM to instantiate
+      target:   this.zitiConfig.browzer.bootstrapper.target
+    });
+
+    this.initialized = true;
+
+    this.logger.trace(`ZitiBrowzerRuntime ${this._uuid} has been initialized`);
+
+
+    if (options.eruda) {
+      this.zitiConfig.eruda = true;
+    } else {
+      this.zitiConfig.eruda = false;
+    }
+  }
 
 
   /**

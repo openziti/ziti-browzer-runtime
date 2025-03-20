@@ -408,13 +408,19 @@ export const pkceLogout = async (oidcConfig, redirectURI) => {
 
         const authorizationServerLogoutURL = new URL(authorizationServer.end_session_endpoint);
 
+        if (authorizationServerLogoutURL.hostname.includes('auth0.com')) {
+            authorizationServerLogoutURL.pathname = '/v2/logout'
+            authorizationServerLogoutURL.searchParams.set('returnTo', redirectURI);
+        } else {
+            authorizationServerLogoutURL.searchParams.set('post_logout_redirect_uri', redirectURI);
+        }
+
         if (!isEqual(id_token, null)) {  
             authorizationServerLogoutURL.searchParams.set('id_token_hint', id_token);
             PKCE_id_Token.unset();
             PKCE_access_Token.unset();
         }
         authorizationServerLogoutURL.searchParams.set('client_id', oidcConfig.client_id);
-        authorizationServerLogoutURL.searchParams.set('post_logout_redirect_uri', redirectURI);
     
         let url = authorizationServerLogoutURL.toString()
 

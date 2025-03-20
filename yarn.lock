@@ -1480,7 +1480,7 @@ __metadata:
     uplot: "npm:^1.6.24"
     uuid: "npm:^11.1.0"
     wasm-feature-detect: "npm:^1.8.0"
-    workbox-window: "npm:^6.5.3"
+    workbox-window: "npm:^7.3.0"
   languageName: unknown
   linkType: soft
 
@@ -9179,20 +9179,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"workbox-core@npm:6.5.3":
-  version: 6.5.3
-  resolution: "workbox-core@npm:6.5.3"
-  checksum: f8bf4f95f18671dace75e849227b6cb2597e022dc685d30bfefd7e0c8e6d7a4aff7f8ea1367b7443e559806c132952d34b1fbf0382aab4763294d01b2319d2cf
+"workbox-core@npm:7.3.0":
+  version: 7.3.0
+  resolution: "workbox-core@npm:7.3.0"
+  checksum: b7dce640cd9665ed207f65f5b08a50e2e24e5599790c6ea4fec987539b9d2ef81765d8c5f94acfee3a8a45d5ade8e1a4ebd0b8847a1471302ef75a5b93c7bd04
   languageName: node
   linkType: hard
 
-"workbox-window@npm:^6.5.3":
-  version: 6.5.3
-  resolution: "workbox-window@npm:6.5.3"
+"workbox-window@npm:^7.3.0":
+  version: 7.3.0
+  resolution: "workbox-window@npm:7.3.0"
   dependencies:
     "@types/trusted-types": "npm:^2.0.2"
-    workbox-core: "npm:6.5.3"
-  checksum: de6a3b2d114902296d979081ffcda59e49ac6242792212957daa94f439dc4851659e8af858d1dac70e383100381d818ac68c19f443b15fb787e6bc11d28f55ca
+    workbox-core: "npm:7.3.0"
+  checksum: dbda33c4761ec40051cfe6e3f1701b2381b4f3b191f7a249c32f683503ea35cf8b42d1f99df5ba3b693fac78705d8ed0c191488bdd178c525d1291d0161ec8ff
   languageName: node
   linkType: hard
 

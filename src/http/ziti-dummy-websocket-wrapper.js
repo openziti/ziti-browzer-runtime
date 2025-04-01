@@ -60,6 +60,8 @@ class ZitiDummyWebSocketWrapper extends EventEmitter {
 
         await window.zitiBrowzerRuntime.awaitInitializationComplete();
 
+        await window.zitiBrowzerRuntime.zitiContext.awaitAccessTokenPresent();
+
         let serviceName;
         var url = new URL( self.address );
 

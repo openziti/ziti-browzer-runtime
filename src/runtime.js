@@ -1036,7 +1036,7 @@ class ZitiBrowzerRuntime {
       status:   503,
       code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_NESTED_TLS_HANDSHAKE_TIMEOUT,
       title:    `TLS Handshake timeout connecting to Ziti Service [${tlsHandshakeTimeoutEvent.serviceName}]`,
-      message:  `Please verify that destination server [${tlsHandshakeTimeoutEvent.dst_hostname}:${tlsHandshakeTimeoutEvent.dst_port}] is listening on HTTPS`
+      message:  `Please verify that destination server is listening on HTTPS`
     });
 
   }
@@ -1251,6 +1251,9 @@ class ZitiBrowzerRuntime {
     };
 
     this.zitiConfig.token_type = 'Bearer';
+    // Pull the tokens from session storage
+    this.zitiConfig.id_token = PKCE_id_Token.get();
+    this.zitiConfig.access_token = PKCE_access_Token.get();
 
     options.doAuthenticate = false;
     await this.initZitiContext(options);
@@ -1264,10 +1267,6 @@ class ZitiBrowzerRuntime {
     if (options.loadedViaBootstrapper) {
 
       this.logger.trace(`initialize() Loaded via BOOTSTRAPPER`);
-
-      // Pull the tokens from session storage
-      this.zitiConfig.id_token = PKCE_id_Token.get();
-      this.zitiConfig.access_token = PKCE_access_Token.get();
 
       let invalidAccessToken = false;
 
@@ -1455,8 +1454,10 @@ class ZitiBrowzerRuntime {
 
     this.zbrSWM = new ZitiBrowzerRuntimeServiceWorkerMock();
 
-    navigator.serviceWorker._ziti_realRegister = navigator.serviceWorker.register;
-    navigator.serviceWorker.register = this.zbrSWM.register;
+    if (!navigator.serviceWorker._ziti_realRegister) {
+      navigator.serviceWorker._ziti_realRegister = navigator.serviceWorker.register;
+      navigator.serviceWorker.register = this.zbrSWM.register;
+    }
 
     this.zitiContext.setKeyTypeEC();
 
@@ -1717,10 +1718,10 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
     
     if (initResults.authenticated && !initResults.loadedViaBootstrapper) {
 
-      /**
-       * 
-       */
-      await window.zitiBrowzerRuntime.zitiContext.enroll();
+      // Since we are loaded via the ZBSW, and we are authenticated, then ask the ZBSW for the
+      // current API Session we will need to get onto the network.
+      let currentAPISession = await sendMessage({type: 'GET_CURRENT_API_SESSION'});
+      window.zitiBrowzerRuntime.zitiContext.setCurrentAPISession( currentAPISession );
 
     }
 
@@ -1871,7 +1872,18 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
         // zitiBrowzerRuntime.logger.info(`SW event (message) type: ${event.data.type}`);
         
-        if (event.data.type === 'XGRESS_EVENT') {
+        
+        if (event.data.type === 'ACCESS_TOKEN_REFRESHED') {
+
+          setTimeout(async function() {
+            zitiBrowzerRuntime.logger.debug(`################ fetching refreshed access_token from ZBSW now ################`);
+            let currentAPISession = await sendMessage({type: 'GET_CURRENT_API_SESSION'});
+            window.zitiBrowzerRuntime.zitiContext.setCurrentAPISession( currentAPISession );
+          }, 10);
+          
+        }
+
+        else if (event.data.type === 'XGRESS_EVENT') {
 
           zitiBrowzerRuntime.updateXgressEventData(event.data.payload.event);
       
@@ -2196,7 +2208,10 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
     // Gather list of Services right up front, since some WebSocket intercept logic needs it
     try {
-      await zitiBrowzerRuntime.zitiContext.fetchServices();
+      if (initResults.authenticated && !initResults.loadedViaBootstrapper) {
+        await zitiBrowzerRuntime.zitiContext.awaitAccessTokenPresent();
+        await zitiBrowzerRuntime.zitiContext.fetchServices();
+      }
     }
     catch (e) {
     }

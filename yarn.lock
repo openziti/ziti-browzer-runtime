@@ -1372,9 +1372,9 @@ __metadata:
   languageName: node
   linkType: hard
 
-"@openziti/ziti-browzer-core@npm:^0.61.0":
-  version: 0.61.0
-  resolution: "@openziti/ziti-browzer-core@npm:0.61.0"
+"@openziti/ziti-browzer-core@npm:^0.62.0":
+  version: 0.62.0
+  resolution: "@openziti/ziti-browzer-core@npm:0.62.0"
   dependencies:
     "@openziti/libcrypto-js": "npm:^0.24.0"
     "@openziti/ziti-browzer-edge-client": "npm:^0.7.0"
@@ -1415,7 +1415,7 @@ __metadata:
     url: "npm:^0.11.0"
     util: "npm:^0.12.4"
     uuid: "npm:^11.1.0"
-  checksum: 564be5b4e8d324129bd6a583ccf4f2f2cb92fefe531b912b41022ef03c070bb1ea46617826feba3c7425a731a080f7fcaedac489e08e9444c20b8b3e15efbe74
+  checksum: 56e65ac77fb0a2e0bdcdefee0b022fcd5d6937a26f3fe9ca6eb99bdca4c2bf9cb2c039bbfecd880d31e158d5e7f8fa4b94bf4e4be1f373c4e78ae3ace05d7908
   languageName: node
   linkType: hard
 
@@ -1441,7 +1441,7 @@ __metadata:
     "@babel/preset-env": "npm:^7.26.9"
     "@babel/register": "npm:^7.25.9"
     "@babel/runtime": "npm:^7.17.9"
-    "@openziti/ziti-browzer-core": "npm:^0.61.0"
+    "@openziti/ziti-browzer-core": "npm:^0.62.0"
     "@rollup/plugin-commonjs": "npm:^25.0.7"
     "@rollup/plugin-json": "npm:^4.1.0"
     "@rollup/plugin-node-resolve": "npm:^13.3.0"

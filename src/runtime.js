@@ -2212,6 +2212,9 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
         await zitiBrowzerRuntime.zitiContext.awaitAccessTokenPresent();
         await zitiBrowzerRuntime.zitiContext.fetchServices();
       }
+
+      setTimeout(window.zitiBrowzerRuntime._serviceWorkerKeepAliveHeartBeat, 1000*2, window.zitiBrowzerRuntime );
+
     }
     catch (e) {
     }

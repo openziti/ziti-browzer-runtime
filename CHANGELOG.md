@@ -1,3 +1,12 @@
+# [0.106.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.105.0...v0.106.0) (2025-04-04)
+
+
+### Features
+
+* reactivate the SW-keepalive ([#445](https://github.com/openziti/ziti-browzer-runtime/issues/445)) ([8b51fa9](https://github.com/openziti/ziti-browzer-runtime/commit/8b51fa9a678da43e5533c8ce5a524f900c3be1e2))
+
+
+
 # [0.105.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.104.0...v0.105.0) (2025-04-02)
 
 

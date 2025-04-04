@@ -537,11 +537,13 @@ class ZitiBrowzerRuntime {
           e.preventDefault(); // Take control of the click
           
           // Cause the browser to do a download over Ziti
-          let hrefURL = new URL( target.href );
-          if (!hrefURL.searchParams.has('download')) {
-            hrefURL.searchParams.append('download', '1');
+          if (!target.href.startsWith('blob:http')) {
+            let hrefURL = new URL( target.href );
+            if (!hrefURL.searchParams.has('download')) {
+              hrefURL.searchParams.append('download', '1');
+            }
+            window.location = hrefURL.toString();
           }
-          window.location = hrefURL.toString();
         }
 
       }

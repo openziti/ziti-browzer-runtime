@@ -1,3 +1,12 @@
+# [0.107.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.106.0...v0.107.0) (2025-04-04)
+
+
+### Features
+
+* blob:http handling ([#446](https://github.com/openziti/ziti-browzer-runtime/issues/446)) ([a69ae14](https://github.com/openziti/ziti-browzer-runtime/commit/a69ae147e9668f2a96048ff18ab9414140355794))
+
+
+
 # [0.106.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.105.0...v0.106.0) (2025-04-04)
 
 

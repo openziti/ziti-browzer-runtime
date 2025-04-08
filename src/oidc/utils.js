@@ -408,7 +408,8 @@ export const pkceLogout = async (oidcConfig, redirectURI) => {
 
         const authorizationServerLogoutURL = new URL(authorizationServer.end_session_endpoint);
 
-        if (authorizationServerLogoutURL.hostname.includes('auth0.com')) {
+        const allowedHosts = ['auth0.com', 'subdomain.auth0.com'];
+        if (allowedHosts.includes(authorizationServerLogoutURL.hostname)) {
             authorizationServerLogoutURL.pathname = '/v2/logout'
             authorizationServerLogoutURL.searchParams.set('returnTo', redirectURI);
         } else {
@@ -442,7 +443,8 @@ export const pkceLogout = async (oidcConfig, redirectURI) => {
 
         let asurl = new URL(authorizationServer.authorization_endpoint);
 
-        if (asurl.hostname.includes('auth0.com')) {
+        const allowedHosts = ['auth0.com', 'subdomain.auth0.com'];
+        if (allowedHosts.includes(asurl.hostname)) {
 
             let isExpired = false;
             if (id_token) {
@@ -486,7 +488,8 @@ export const pkceLogout = async (oidcConfig, redirectURI) => {
 
     let asurl = new URL(authorizationServer.authorization_endpoint);
 
-    if (asurl.hostname.includes('auth0.com')) {
+    const allowedHosts = ['auth0.com', 'subdomain.auth0.com'];
+    if (allowedHosts.includes(asurl.hostname)) {
         return true;
     } else {
         return false;

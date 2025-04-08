@@ -1257,6 +1257,28 @@ class ZitiBrowzerRuntime {
     this.zitiConfig.id_token = PKCE_id_Token.get();
     this.zitiConfig.access_token = PKCE_access_Token.get();
 
+    /**
+     *  Some IdPs (like Entra) will sometimes emit opaque access_tokens.
+     *  We need to detect this, and fall back to using the id_token
+     */
+    function isOpaqueToken(token) {
+      const parts = token.split('.');
+      if (parts.length !== 3) {
+        return true; // Likely opaque
+      }
+      try {
+        const header = JSON.parse(atob(parts[0]));
+        const payload = JSON.parse(atob(parts[1]));
+        return false; // Not opaque
+      } catch (e) {
+        // If decoding fails, it might be malformed or opaque
+        return true;
+      }
+    }
+    if (this.zitiConfig.access_token && isOpaqueToken(this.zitiConfig.access_token)) {
+      this.zitiConfig.access_token = this.zitiConfig.id_token; // fall back to id_token if access_token is bad
+    }
+
     options.doAuthenticate = false;
     await this.initZitiContext(options);
 

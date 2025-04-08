@@ -1,3 +1,12 @@
+# [0.111.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.110.0...v0.111.0) (2025-04-08)
+
+
+### Features
+
+* fix for code scanning alert no. 9: Incomplete URL substring sanitization ([#451](https://github.com/openziti/ziti-browzer-runtime/issues/451)) ([8eb81d0](https://github.com/openziti/ziti-browzer-runtime/commit/8eb81d08aa4a0fd907675ced840816b8dc7822d9))
+
+
+
 # [0.110.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.109.0...v0.110.0) (2025-04-08)
 
 

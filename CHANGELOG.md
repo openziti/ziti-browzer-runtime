@@ -1,3 +1,12 @@
+# [0.112.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.111.0...v0.112.0) (2025-04-08)
+
+
+### Features
+
+* fall back to id_token is access_token is bad ([#452](https://github.com/openziti/ziti-browzer-runtime/issues/452)) ([824c83e](https://github.com/openziti/ziti-browzer-runtime/commit/824c83ebffe5e94e754aba62c92e5ee6f01a8d94))
+
+
+
 # [0.111.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.110.0...v0.111.0) (2025-04-08)
 
 

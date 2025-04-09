@@ -1,3 +1,12 @@
+# [0.114.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.113.0...v0.114.0) (2025-04-09)
+
+
+### Features
+
+* proper handling of objectURL clicks ([#459](https://github.com/openziti/ziti-browzer-runtime/issues/459)) ([dbc001d](https://github.com/openziti/ziti-browzer-runtime/commit/dbc001d050e02235020f0f036266808c8b69bd09))
+
+
+
 # [0.113.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.112.0...v0.113.0) (2025-04-09)
 
 

@@ -1451,7 +1451,7 @@ __metadata:
     rollup-plugin-babel: "npm:^4.4.0"
     rollup-plugin-copy: "npm:^3.4.0"
     rollup-plugin-css-only: "npm:^4.5.2"
-    rollup-plugin-esformatter: "npm:^2.0.1"
+    rollup-plugin-esformatter: "npm:^3.1.0"
     rollup-plugin-polyfill-node: "npm:^0.13.0"
     rollup-plugin-prettier: "npm:^2.2.2"
     rollup-plugin-terser: "npm:^7.0.2"
@@ -3403,17 +3403,24 @@ __metadata:
   languageName: node
   linkType: hard
 
-"diff@npm:4.0.2, diff@npm:^4.0.2":
-  version: 4.0.2
-  resolution: "diff@npm:4.0.2"
-  checksum: 81b91f9d39c4eaca068eb0c1eb0e4afbdc5bb2941d197f513dd596b820b956fef43485876226d65d497bebc15666aa2aa82c679e84f65d5f2bfbf14ee46e32c1
-  languageName: node
-  linkType: hard
-
 "diff@npm:5.0.0":
   version: 5.0.0
   resolution: "diff@npm:5.0.0"
   checksum: 08c5904779bbababcd31f1707657b1ad57f8a9b65e6f88d3fb501d09a965d5f8d73066898a7d3f35981f9e4101892c61d99175d421f3b759533213c253d91134
+  languageName: node
+  linkType: hard
+
+"diff@npm:5.1.0":
+  version: 5.1.0
+  resolution: "diff@npm:5.1.0"
+  checksum: 77a0d9beb9ed54796154ac2511872288432124ac90a1cabb1878783c9b4d81f1847f3b746a0630b1e836181461d2c76e1e6b95559bef86ed16294d114862e364
+  languageName: node
+  linkType: hard
+
+"diff@npm:^4.0.2":
+  version: 4.0.2
+  resolution: "diff@npm:4.0.2"
+  checksum: 81b91f9d39c4eaca068eb0c1eb0e4afbdc5bb2941d197f513dd596b820b956fef43485876226d65d497bebc15666aa2aa82c679e84f65d5f2bfbf14ee46e32c1
   languageName: node
   linkType: hard
 
@@ -5657,6 +5664,15 @@ __metadata:
   languageName: node
   linkType: hard
 
+"magic-string@npm:0.30.5":
+  version: 0.30.5
+  resolution: "magic-string@npm:0.30.5"
+  dependencies:
+    "@jridgewell/sourcemap-codec": "npm:^1.4.15"
+  checksum: 38ac220ca7539e96da7ea2f38d85796bdf5c69b6bcae728c4bc2565084e6dc326b9174ee9770bea345cf6c9b3a24041b767167874fab5beca874d2356a9d1520
+  languageName: node
+  linkType: hard
+
 "magic-string@npm:^0.23.2":
   version: 0.23.2
   resolution: "magic-string@npm:0.23.2"
@@ -7427,20 +7443,20 @@ __metadata:
   languageName: node
   linkType: hard
 
-"rollup-plugin-esformatter@npm:^2.0.1":
-  version: 2.0.1
-  resolution: "rollup-plugin-esformatter@npm:2.0.1"
+"rollup-plugin-esformatter@npm:^3.1.0":
+  version: 3.1.0
+  resolution: "rollup-plugin-esformatter@npm:3.1.0"
   dependencies:
-    diff: "npm:4.0.2"
+    diff: "npm:5.1.0"
     esformatter: "npm:^0.11.1"
     lodash.hasin: "npm:4.5.2"
     lodash.isempty: "npm:4.4.0"
     lodash.isnil: "npm:4.0.0"
     lodash.omitby: "npm:4.6.0"
-    magic-string: "npm:0.25.7"
+    magic-string: "npm:0.30.5"
   peerDependencies:
-    rollup: ^1.0.0 || ^2.0.0
-  checksum: 2e9bf0ac3f2923d014879dd1c178d90c9bb369c2178bae7fddae42da51269a6e0c094215b07eb591ef1d9bc5627038ecbc04d0062fbe4fdb99f6bc77243fff51
+    rollup: ^1.0.0 || ^2.0.0 || ^3.0.0 || ^4.0.0
+  checksum: f2a1a9fb8c147e1d738e43bcab31cbdcc57117a194c90f442573b41d3c50a5e3cf477e24ef11581e77c966740e078d9c2a42a281f03778c16e0858b75c9fcf28
   languageName: node
   linkType: hard
 

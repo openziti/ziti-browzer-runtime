@@ -470,14 +470,23 @@ class ZitiBrowzerRuntime {
 
   _jwtExpirationCheck(self) {
 
-    if (isTokenExpired(self.zitiConfig.access_token)) {
-
-      let idpAuthHealthEvent = {
-        expired: true
-      };
-
-      self.idpAuthHealthEventHandler(idpAuthHealthEvent);
-
+    try {
+      if (isTokenExpired(self.zitiConfig.access_token)) {
+        let idpAuthHealthEvent = {
+          expired: true
+        };
+        self.idpAuthHealthEventHandler(idpAuthHealthEvent);
+      }
+    } catch (e) {
+      try {
+        if (isTokenExpired(self.zitiConfig.id_token)) {
+          let idpAuthHealthEvent = {
+            expired: true
+          };
+          self.idpAuthHealthEventHandler(idpAuthHealthEvent);
+        }
+      } catch (e) {
+      }
     }
 
     setTimeout(self._jwtExpirationCheck, 1000*30, self );
@@ -542,8 +551,8 @@ class ZitiBrowzerRuntime {
             if (!hrefURL.searchParams.has('download')) {
               hrefURL.searchParams.append('download', '1');
             }
-            window.location = hrefURL.toString();
           }
+          window.location = hrefURL.toString();
         }
 
       }

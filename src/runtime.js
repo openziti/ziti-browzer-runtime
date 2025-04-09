@@ -517,12 +517,14 @@ class ZitiBrowzerRuntime {
 
     const bodyEls = document.getElementsByTagName('body');
 
+    let isProgrammaticClick = false;
+
     if (bodyEls.length > 0) {
 
       bodyEls[0].onclick = function(e) {
 
         // Some web apps will wrap the <a> element in an <svg> element,
-        // or ever deeped, with a <path> element.  We therefore need to
+        // or ever deeper, with a <path> element.  We therefore need to
         // walk the DOM tree up a few levels to determine if there is an
         // <a> element involved.  We limit the search, however, to 3.
         let maxDepth = 3;
@@ -543,18 +545,28 @@ class ZitiBrowzerRuntime {
         // If we determined that an <a download> element is involved
         if (found) {
 
-          e.preventDefault(); // Take control of the click
-          
-          // Cause the browser to do a download over Ziti
-          if (!target.href.startsWith('blob:http')) {
-            let hrefURL = new URL( target.href );
-            if (!hrefURL.searchParams.has('download')) {
-              hrefURL.searchParams.append('download', '1');
-            }
-          }
-          window.location = hrefURL.toString();
-        }
+          if (!isProgrammaticClick) {
 
+            e.preventDefault(); // Take control of the click
+
+            if (target.href.startsWith('blob:http')) {
+              setTimeout(() => {
+                isProgrammaticClick = true;
+                target.click(); // trigger the download, but on the next event loop
+              }, 10);
+            }
+            else {
+              let hrefURL = new URL( target.href );
+              if (!hrefURL.searchParams.has('download')) {
+                hrefURL.searchParams.append('download', '1');
+              }
+              location = hrefURL.toString();
+            }
+          } else {
+            // reset flag for future clicks
+            isProgrammaticClick = false;
+          }
+        }
       }
     }
 

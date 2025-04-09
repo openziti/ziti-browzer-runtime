@@ -1,3 +1,12 @@
+# [0.113.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.112.0...v0.113.0) (2025-04-09)
+
+
+### Features
+
+* remove rogue CSS ([#458](https://github.com/openziti/ziti-browzer-runtime/issues/458)) ([1261615](https://github.com/openziti/ziti-browzer-runtime/commit/1261615ccc5bd162cf068ba39f6e02bcbec6093a))
+
+
+
 # [0.112.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.111.0...v0.112.0) (2025-04-08)
 
 

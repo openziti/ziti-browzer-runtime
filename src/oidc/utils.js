@@ -89,9 +89,33 @@ const processPKCEDiscoveryResponse = async (expectedIssuerIdentifier, response) 
         '"response" body "issuer" property must be a non-empty string'
       );
     }
-    if (new URL(json.issuer).href !== expectedIssuerIdentifier.href) {
-      throw new PKCELoginError(`The configured IdP issuer URL[${expectedIssuerIdentifier.href}] does not match OIDC Discovery results[${json.issuer}]`);
+
+    // If AzureAD-B2C, use custom validation logic
+    if (json.issuer.includes('.b2clogin.com')) {
+
+        function stripLastPathSegment(href) {
+            const url = new URL(href, window.location.origin); // handles relative paths too
+            const segments = url.pathname.split('/');
+            segments.pop(); // remove last segment (could be empty if URL ends with /)
+            if (segments[segments.length - 1] === '') {
+            segments.pop(); // remove trailing slash segment if needed
+            }
+            url.pathname = segments.join('/') + '/'; // rebuild path with trailing slash
+            return url.href;
+        }
+        let strippedExpectedIssuerIdentifier = stripLastPathSegment(expectedIssuerIdentifier.href);
+
+        if (new URL(json.issuer).href !== strippedExpectedIssuerIdentifier) {
+            throw new PKCELoginError(`The configured IdP issuer URL[${strippedExpectedIssuerIdentifier}] does not match OIDC Discovery results[${json.issuer}]`);
+        }
+  
+    } else {
+
+        if (new URL(json.issuer).href !== expectedIssuerIdentifier.href) {
+            throw new PKCELoginError(`The configured IdP issuer URL[${expectedIssuerIdentifier.href}] does not match OIDC Discovery results[${json.issuer}]`);
+        }
     }
+
     return json;
 }
   

@@ -152,7 +152,10 @@ function isOriginTrialTokenExpired(token) {
 function getOIDCConfig(scopes) {
 
   if (!scopes) {
-    scopes = ['openid', 'email'];
+    scopes = [];
+    if (!window.zitiBrowzerRuntime.zitiConfig.idp.host.includes('.b2clogin.com')) {
+      scopes = ['email'];
+    }
   }
   if (window.zitiBrowzerRuntime.zitiConfig.idp.authorization_scope) {
     scopes = [...new Set([...[window.zitiBrowzerRuntime.zitiConfig.idp.authorization_scope], ...scopes])];

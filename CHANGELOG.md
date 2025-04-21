@@ -1,3 +1,12 @@
+# [0.116.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.115.0...v0.116.0) (2025-04-21)
+
+
+### Features
+
+* AzureAD B2C support ([#462](https://github.com/openziti/ziti-browzer-runtime/issues/462)) ([90768d2](https://github.com/openziti/ziti-browzer-runtime/commit/90768d2e624d39a2a13029d81fd6dcad2a4160c7))
+
+
+
 # [0.115.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.114.0...v0.115.0) (2025-04-17)
 
 

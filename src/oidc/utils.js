@@ -98,12 +98,33 @@ const processPKCEDiscoveryResponse = async (expectedIssuerIdentifier, response) 
             const segments = url.pathname.split('/');
             segments.pop(); // remove last segment (could be empty if URL ends with /)
             if (segments[segments.length - 1] === '') {
-            segments.pop(); // remove trailing slash segment if needed
+                segments.pop(); // remove trailing slash segment if needed
             }
             url.pathname = segments.join('/') + '/'; // rebuild path with trailing slash
             return url.href;
         }
-        let strippedExpectedIssuerIdentifier = stripLastPathSegment(expectedIssuerIdentifier.href);
+
+        function stripSecondToLastPathSegment(urlString) {
+            const url = new URL(urlString);
+            const segments = url.pathname.split('/').filter(Boolean);
+            if (segments.length >= 2) {
+              segments.splice(segments.length - 2, 1);
+            }
+            url.pathname = '/' + segments.join('/');
+            return url.toString();
+        }
+
+        function ensureTrailingSlash(url) {
+            return url.endsWith('/') ? url : url + '/';
+        }          
+
+        let strippedExpectedIssuerIdentifier;
+
+        if (json.issuer.includes('/v2.0')) {
+            strippedExpectedIssuerIdentifier = ensureTrailingSlash( stripSecondToLastPathSegment(expectedIssuerIdentifier.href).toLowerCase() );
+        } else {
+            strippedExpectedIssuerIdentifier = stripLastPathSegment(expectedIssuerIdentifier.href).toLowerCase();
+        }
 
         if (new URL(json.issuer).href !== strippedExpectedIssuerIdentifier) {
             throw new PKCELoginError(`The configured IdP issuer URL[${strippedExpectedIssuerIdentifier}] does not match OIDC Discovery results[${json.issuer}]`);

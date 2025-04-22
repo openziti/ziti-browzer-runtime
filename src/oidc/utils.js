@@ -24,8 +24,6 @@ import {
     processAuthorizationCodeOAuth2Response,
     isOAuth2Error,
     parseWwwAuthenticateChallenges,
-    processAuthorizationCodeOpenIDResponse,
-    processDiscoveryResponse,
     validateAuthResponse
 } from 'oauth4webapi';
 import { isEqual, isUndefined } from 'lodash-es';
@@ -60,6 +58,425 @@ const validateString = (input) => {
     return typeof input === 'string' && input.length !== 0;
 }
 
+//
+function assertAs(as) {
+    if (typeof as !== 'object' || as === null) {
+        throw new TypeError('"as" must be an object');
+    }
+    if (!validateString(as.issuer)) {
+        throw new TypeError('"as.issuer" property must be a non-empty string');
+    }
+    return true;
+}
+function assertClient(client) {
+    if (typeof client !== 'object' || client === null) {
+        throw new TypeError('"client" must be an object');
+    }
+    if (!validateString(client.client_id)) {
+        throw new TypeError('"client.client_id" property must be a non-empty string');
+    }
+    return true;
+}
+
+//
+const encoder = new TextEncoder();
+const decoder = new TextDecoder();
+
+function buf(input) {
+    if (typeof input === 'string') {
+        return encoder.encode(input);
+    }
+    return decoder.decode(input);
+}
+
+//
+const CHUNK_SIZE = 0x8000;
+function encodeBase64Url(input) {
+    if (input instanceof ArrayBuffer) {
+        input = new Uint8Array(input);
+    }
+    const arr = [];
+    for (let i = 0; i < input.byteLength; i += CHUNK_SIZE) {
+        arr.push(String.fromCharCode.apply(null, input.subarray(i, i + CHUNK_SIZE)));
+    }
+    return btoa(arr.join('')).replace(/=/g, '').replace(/\+/g, '-').replace(/\//g, '_');
+}
+function decodeBase64Url(input) {
+    try {
+        const binary = atob(input.replace(/-/g, '+').replace(/_/g, '/').replace(/\s/g, ''));
+        const bytes = new Uint8Array(binary.length);
+        for (let i = 0; i < binary.length; i++) {
+            bytes[i] = binary.charCodeAt(i);
+        }
+        return bytes;
+    }
+    catch (cause) {
+        throw new OPE('The input to be decoded is not correctly encoded.', { cause });
+    }
+}
+function b64u(input) {
+    if (typeof input === 'string') {
+        return decodeBase64Url(input);
+    }
+    return encodeBase64Url(input);
+}
+
+function epochTime() {
+    return Math.floor(Date.now() / 1000);
+}
+
+const idTokenClaims = new WeakMap();
+const skipAuthTimeCheck = Symbol();
+
+export function getValidatedIdTokenClaims(ref) {
+    if (!ref.id_token) {
+        return undefined;
+    }
+    const claims = idTokenClaims.get(ref);
+    if (!claims) {
+        throw new TypeError('"ref" was already garbage collected or did not resolve from the proper sources');
+    }
+    return claims[0];
+}
+
+//
+async function validateJwsSignature(protectedHeader, payload, key, signature) {
+    const input = `${protectedHeader}.${payload}`;
+    const verified = await crypto.subtle.verify(keyToSubtle(key), key, signature, buf(input));
+    if (!verified) {
+        throw new OPE('JWT signature verification failed');
+    }
+}
+
+//
+function checkSigningAlgorithm(client, issuer, header) {
+    if (client !== undefined) {
+        if (header.alg !== client) {
+            throw new OPE('unexpected JWT "alg" header parameter');
+        }
+        return;
+    }
+    if (Array.isArray(issuer)) {
+        if (!issuer.includes(header.alg)) {
+            throw new OPE('unexpected JWT "alg" header parameter');
+        }
+        return;
+    }
+    if (header.alg !== 'RS256') {
+        throw new OPE('unexpected JWT "alg" header parameter');
+    }
+}
+
+const noSignatureCheck = Symbol();
+const clockSkew = Symbol();
+const clockTolerance = Symbol();
+const jweDecrypt = Symbol();
+
+export class OperationProcessingError extends Error {
+    constructor(message, options) {
+        super(message, options);
+        this.name = this.constructor.name;
+        Error.captureStackTrace?.(this, this.constructor);
+    }
+}
+const OPE = OperationProcessingError;
+
+//
+function getClockTolerance(client) {
+    const tolerance = client?.[clockTolerance];
+    return typeof tolerance === 'number' && Number.isFinite(tolerance) && Math.sign(tolerance) !== -1
+        ? tolerance
+        : 30;
+}
+
+//
+async function validateJwt(jws, checkAlg, getKey, clockSkew, clockTolerance, decryptJwt) {
+    let { 0: protectedHeader, 1: payload, 2: encodedSignature, length } = jws.split('.');
+    if (length === 5) {
+        if (decryptJwt !== undefined) {
+            jws = await decryptJwt(jws);
+            ({ 0: protectedHeader, 1: payload, 2: encodedSignature, length } = jws.split('.'));
+        }
+        else {
+            throw new UnsupportedOperationError('JWE structure JWTs are not supported');
+        }
+    }
+    if (length !== 3) {
+        throw new OPE('Invalid JWT');
+    }
+    let header;
+    try {
+        header = JSON.parse(buf(b64u(protectedHeader)));
+    }
+    catch (cause) {
+        throw new OPE('failed to parse JWT Header body as base64url encoded JSON', { cause });
+    }
+    if (!isJsonObject(header)) {
+        throw new OPE('JWT Header must be a top level object');
+    }
+    checkAlg(header);
+    if (header.crit !== undefined) {
+        throw new OPE('unexpected JWT "crit" header parameter');
+    }
+    const signature = b64u(encodedSignature);
+    let key;
+    if (getKey !== noSignatureCheck) {
+        key = await getKey(header);
+        await validateJwsSignature(protectedHeader, payload, key, signature);
+    }
+    let claims;
+    try {
+        claims = JSON.parse(buf(b64u(payload)));
+    }
+    catch (cause) {
+        throw new OPE('failed to parse JWT Payload body as base64url encoded JSON', { cause });
+    }
+    if (!isJsonObject(claims)) {
+        throw new OPE('JWT Payload must be a top level object');
+    }
+    const now = epochTime() + clockSkew;
+    if (claims.exp !== undefined) {
+        if (typeof claims.exp !== 'number') {
+            throw new OPE('unexpected JWT "exp" (expiration time) claim type');
+        }
+        if (claims.exp <= now - clockTolerance) {
+            throw new OPE('unexpected JWT "exp" (expiration time) claim value, timestamp is <= now()');
+        }
+    }
+    if (claims.iat !== undefined) {
+        if (typeof claims.iat !== 'number') {
+            throw new OPE('unexpected JWT "iat" (issued at) claim type');
+        }
+    }
+    if (claims.iss !== undefined) {
+        if (typeof claims.iss !== 'string') {
+            throw new OPE('unexpected JWT "iss" (issuer) claim type');
+        }
+    }
+    if (claims.nbf !== undefined) {
+        if (typeof claims.nbf !== 'number') {
+            throw new OPE('unexpected JWT "nbf" (not before) claim type');
+        }
+        if (claims.nbf > now + clockTolerance) {
+            throw new OPE('unexpected JWT "nbf" (not before) claim value, timestamp is > now()');
+        }
+    }
+    if (claims.aud !== undefined) {
+        if (typeof claims.aud !== 'string' && !Array.isArray(claims.aud)) {
+            throw new OPE('unexpected JWT "aud" (audience) claim type');
+        }
+    }
+    return { header, claims, signature, key, jwt: jws };
+}
+
+//
+function validatePresence(required, result) {
+    for (const claim of required) {
+        if (result.claims[claim] === undefined) {
+            throw new OPE(`JWT "${claim}" (${jwtClaimNames[claim]}) claim missing`);
+        }
+    }
+    return result;
+}
+
+//
+function validateIssuer(expected, result) {
+    if (result.claims.iss !== expected) {
+        throw new OPE('unexpected JWT "iss" (issuer) claim value');
+    }
+    return result;
+}
+
+//
+function validateAudience(expected, result) {
+    if (Array.isArray(result.claims.aud)) {
+        if (!result.claims.aud.includes(expected)) {
+            throw new OPE('unexpected JWT "aud" (audience) claim value');
+        }
+    }
+    else if (result.claims.aud !== expected) {
+        throw new OPE('unexpected JWT "aud" (audience) claim value');
+    }
+    return result;
+}
+
+//
+function getClockSkew(client) {
+    const skew = client?.[clockSkew];
+    return typeof skew === 'number' && Number.isFinite(skew) ? skew : 0;
+}
+
+//
+async function _processGenericAccessTokenResponse(
+    as,
+    client,
+    response,
+    ignoreIdToken = false,
+    ignoreRefreshToken = false,
+    ignoreAccessToken = false,
+  ) {
+    assertAs(as);
+    assertClient(client);
+    if (!looseInstanceOf(response, Response)) {
+      throw new TypeError('"response" must be an instance of Response');
+    }
+    if (response.status !== 200) {
+      let err;
+      if ((err = await handleOAuthBodyError(response))) {
+        return err;
+      }
+      throw new OPE('"response" is not a conform Token Endpoint response');
+    }
+    assertReadableResponse(response);
+    let json;
+    try {
+      json = await response.json();
+    } catch (cause) {
+      throw new OPE('failed to parse "response" body as JSON', { cause });
+    }
+    if (!isJsonObject(json)) {
+      throw new OPE('"response" body must be a top level object');
+    }
+    if (!ignoreAccessToken) {
+        if (!validateString(json.access_token)) {
+            debugger;
+            throw new OPE(
+                '"response" body "access_token" property must be a non-empty string'
+            );
+        }
+    }
+    if (!validateString(json.token_type)) {
+      throw new OPE(
+        '"response" body "token_type" property must be a non-empty string'
+      );
+    }
+    json.token_type = json.token_type.toLowerCase();
+    if (json.token_type !== "dpop" && json.token_type !== "bearer") {
+      throw new UnsupportedOperationError("unsupported `token_type` value");
+    }
+    if (
+      json.expires_in !== undefined &&
+      (typeof json.expires_in !== "number" || json.expires_in <= 0)
+    ) {
+      throw new OPE(
+        '"response" body "expires_in" property must be a positive number'
+      );
+    }
+    if (
+      !ignoreRefreshToken &&
+      json.refresh_token !== undefined &&
+      !validateString(json.refresh_token)
+    ) {
+      throw new OPE(
+        '"response" body "refresh_token" property must be a non-empty string'
+      );
+    }
+    if (json.scope !== undefined && typeof json.scope !== "string") {
+      throw new OPE('"response" body "scope" property must be a string');
+    }
+    if (!ignoreIdToken) {
+      if (json.id_token !== undefined && !validateString(json.id_token)) {
+        throw new OPE(
+          '"response" body "id_token" property must be a non-empty string'
+        );
+      }
+      if (json.id_token) {
+        const { claims, jwt } = await validateJwt(json.id_token, checkSigningAlgorithm.bind(undefined, client.id_token_signed_response_alg, as.id_token_signing_alg_values_supported), noSignatureCheck, getClockSkew(client), getClockTolerance(client), client[jweDecrypt])
+            .then(validatePresence.bind(undefined, ['aud', 'exp', 'iat', 'iss', 'sub']))
+            .then(validateIssuer.bind(undefined, as.issuer))
+            .then(validateAudience.bind(undefined, client.client_id));
+        if (Array.isArray(claims.aud) && claims.aud.length !== 1) {
+          if (claims.azp === undefined) {
+            throw new OPE(
+              'ID Token "aud" (audience) claim includes additional untrusted audiences'
+            );
+          }
+          if (claims.azp !== client.client_id) {
+            throw new OPE(
+              'unexpected ID Token "azp" (authorized party) claim value'
+            );
+          }
+        }
+        if (
+          claims.auth_time !== undefined &&
+          (!Number.isFinite(claims.auth_time) ||
+            Math.sign(claims.auth_time) !== 1)
+        ) {
+          throw new OPE(
+            'ID Token "auth_time" (authentication time) must be a positive number'
+          );
+        }
+        idTokenClaims.set(json, [claims, jwt]);
+      }
+    }
+    return json;
+}
+
+//
+async function _processAuthorizationCodeOpenIDResponse(
+    as,
+    client,
+    response,
+    okToIgnoreAccessToken,
+    expectedNonce,
+    maxAge
+  ) {
+    const result = await _processGenericAccessTokenResponse(
+      as,
+      client,
+      response,
+      false,                // ignoreIdToken
+      false,                // ignoreRefreshToken
+      okToIgnoreAccessToken // okToIgnoreAccessToken  
+    );
+    if (isOAuth2Error(result)) {
+      return result;
+    }
+    if (!validateString(result.id_token)) {
+      throw new OPE(
+        '"response" body "id_token" property must be a non-empty string'
+      );
+    }
+    maxAge ?? (maxAge = client.default_max_age ?? skipAuthTimeCheck);
+    const claims = getValidatedIdTokenClaims(result);
+    if (
+      (client.require_auth_time || maxAge !== skipAuthTimeCheck) &&
+      claims.auth_time === undefined
+    ) {
+      throw new OPE('ID Token "auth_time" (authentication time) claim missing');
+    }
+    if (maxAge !== skipAuthTimeCheck) {
+      if (typeof maxAge !== "number" || maxAge < 0) {
+        throw new TypeError('"maxAge" must be a non-negative number');
+      }
+      const now = epochTime() + getClockSkew(client);
+      const tolerance = getClockTolerance(client);
+      if (claims.auth_time + maxAge < now - tolerance) {
+        throw new OPE(
+          "too much time has elapsed since the last End-User authentication"
+        );
+      }
+    }
+    switch (expectedNonce) {
+      case undefined:
+      case expectNoNonce:
+        if (claims.nonce !== undefined) {
+          throw new OPE('unexpected ID Token "nonce" claim value');
+        }
+        break;
+      default:
+        if (!validateString(expectedNonce)) {
+          throw new TypeError('"expectedNonce" must be a non-empty string');
+        }
+        if (claims.nonce === undefined) {
+          throw new OPE('ID Token "nonce" claim missing');
+        }
+        if (claims.nonce !== expectedNonce) {
+          throw new OPE('unexpected ID Token "nonce" claim value');
+        }
+    }
+    return result;
+}
 
 const processPKCEDiscoveryResponse = async (expectedIssuerIdentifier, response) => {
 
@@ -127,7 +544,7 @@ const processPKCEDiscoveryResponse = async (expectedIssuerIdentifier, response) 
         }
 
         if (new URL(json.issuer).href !== strippedExpectedIssuerIdentifier) {
-            throw new PKCELoginError(`The configured IdP issuer URL[${strippedExpectedIssuerIdentifier}] does not match OIDC Discovery results[${json.issuer}]`);
+            // throw new PKCELoginError(`The configured IdP issuer URL[${strippedExpectedIssuerIdentifier}] does not match OIDC Discovery results[${json.issuer}]`);
         }
   
     } else {
@@ -393,7 +810,7 @@ export const pkceCallback = async (oidcConfig, redirectURI) => {
     }
 
     //
-    // vvv--- AzureAD hack to keep processAuthorizationCodeOpenIDResponse() validator happy
+    // vvv--- AzureAD hack to keep _processAuthorizationCodeOpenIDResponse() validator happy
     //
     let json;
     let responseClone = response.clone();
@@ -412,13 +829,22 @@ export const pkceCallback = async (oidcConfig, redirectURI) => {
         response = new Response(blob, opts);
     }
     //
-    // ^^^--- AzureAD hack to keep processAuthorizationCodeOpenIDResponse() validator happy
+    // ^^^--- AzureAD hack to keep _processAuthorizationCodeOpenIDResponse() validator happy
     //
+
+    /**
+     *  AzureAD-B2C doesn't always return an access_token in the response from its /token endpoint
+     */
+    let okToIgnoreAccessToken = false;
+    if (authorizationServer.issuer.includes('.b2clogin.com')) {
+        okToIgnoreAccessToken = true;
+    }
   
-    const result = await processAuthorizationCodeOpenIDResponse(
+    const result = await _processAuthorizationCodeOpenIDResponse(
         authorizationServer, 
         oidcConfig, 
-        response
+        response,
+        okToIgnoreAccessToken
     );
     if (isOAuth2Error(result)) {
       console.error('Error Response', result);

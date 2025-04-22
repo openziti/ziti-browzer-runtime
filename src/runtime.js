@@ -1362,8 +1362,12 @@ class ZitiBrowzerRuntime {
           this.logger.trace(`initialize() calling pkceCallback`);
 
           await pkceCallback( getOIDCConfig(scopesByClientId), getPKCERedirectURI().toString() ).catch(error => {
-            window.zitiBrowzerRuntime.logger.error(`${error}`);
-            window.zitiBrowzerRuntime.pkceCallbackErrorEventHandler(error);
+            if (isEqual(error.name, 'OperationProcessingError')) {
+              window.zitiBrowzerRuntime.logger.error(`${error}`);              
+            } else {
+              window.zitiBrowzerRuntime.logger.error(`${error}`);
+              window.zitiBrowzerRuntime.pkceCallbackErrorEventHandler(error);
+            }
           });
 
           this.zitiConfig.id_token = PKCE_id_Token.get();

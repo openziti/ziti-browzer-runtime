@@ -5439,7 +5439,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"licia@npm:^1.38.1, licia@npm:^1.39.2":
+"licia@npm:^1.39.2":
   version: 1.39.2
   resolution: "licia@npm:1.39.2"
   checksum: 62f425a71fbeb26eac9416c021fba1156f30d0d73866d84bc14eceed753f8fce97acd2ac04cd3f7ab6ff49e6b1918815224bff813efc80ce674539b8637f6228
@@ -5640,11 +5640,11 @@ __metadata:
   linkType: hard
 
 "luna-tab@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "luna-tab@npm:0.3.0"
+  version: 0.3.5
+  resolution: "luna-tab@npm:0.3.5"
   dependencies:
-    licia: "npm:^1.38.1"
-  checksum: 87b5bdb022baa82e19b7c1a225ef466b2465850ed703c79c1dd4b002b7f61096d9e48ad35c96f9c9302575532624381f2c8cd85f02218bf116d3bbecb9a221f7
+    licia: "npm:^1.46.0"
+  checksum: 945f4d62db28614f8cf23ab1e37adec42ef7e355180a8fb432655831485d91b753e4814d32314118acce5a921f272e134dab8dfce014b2fe7f3f13a9e0f494c7
   languageName: node
   linkType: hard
 

@@ -1440,7 +1440,7 @@ __metadata:
     luna-modal: "npm:^1.2.3"
     luna-notification: "npm:^0.3.3"
     luna-setting: "npm:^1.0.1"
-    luna-tab: "npm:^0.3.0"
+    luna-tab: "npm:^0.4.3"
     mocha: "npm:^10.0.0"
     mocha-lcov-reporter: "npm:^1.3.0"
     npm-run-all: "npm:^4.1.5"
@@ -5439,7 +5439,7 @@ __metadata:
   languageName: node
   linkType: hard
 
-"licia@npm:^1.38.1, licia@npm:^1.39.2":
+"licia@npm:^1.39.2":
   version: 1.39.2
   resolution: "licia@npm:1.39.2"
   checksum: 62f425a71fbeb26eac9416c021fba1156f30d0d73866d84bc14eceed753f8fce97acd2ac04cd3f7ab6ff49e6b1918815224bff813efc80ce674539b8637f6228
@@ -5639,12 +5639,12 @@ __metadata:
   languageName: node
   linkType: hard
 
-"luna-tab@npm:^0.3.0":
-  version: 0.3.0
-  resolution: "luna-tab@npm:0.3.0"
+"luna-tab@npm:^0.4.3":
+  version: 0.4.3
+  resolution: "luna-tab@npm:0.4.3"
   dependencies:
-    licia: "npm:^1.38.1"
-  checksum: 87b5bdb022baa82e19b7c1a225ef466b2465850ed703c79c1dd4b002b7f61096d9e48ad35c96f9c9302575532624381f2c8cd85f02218bf116d3bbecb9a221f7
+    licia: "npm:^1.46.0"
+  checksum: a1572548a3684a56c78e8650e03a8fc4ae5790e834331f8cdbf638306681388d845e9dc09dad8ad5287bc4e922b079607c20b0800048e1791ee7a73042fd9b13
   languageName: node
   linkType: hard
 

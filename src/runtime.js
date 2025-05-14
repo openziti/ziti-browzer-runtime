@@ -306,6 +306,21 @@ class ZitiBrowzerRuntime {
       });
 
     }
+
+    /**
+     *  Attempt to detect presence of the Katalon Recorder Chrome extension. If found, announce that it is
+     *  incompatible with browZer
+     */
+    if (window.katalonOnOffStatus) {
+
+      this.browzer_error({
+        status:   409,
+        code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_KATALON_DETECTED,
+        title:    `'Katalon Recorder' appears to be active. Please disable this Chrome extension`,
+        message:  `Use of 'Katalon Recorder' is unsupported by BrowZer.`
+      });
+
+    }
      
     this._uuid          = uuidv4();
 

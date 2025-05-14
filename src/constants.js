@@ -55,6 +55,7 @@ const ZBR_CONSTANTS =
     ZBR_ERROR_CODE_PKCS_LOGIN_ERROR:                1018,
     ZBR_ERROR_CODE_ORIGIN_TRIAL_EXPIRED:            1019,
     ZBR_ERROR_CODE_NO_API_AUDIENCE:                 1020,
+    ZBR_ERROR_CODE_KATALON_DETECTED:                1021,
 
 };
 

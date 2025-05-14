@@ -64,7 +64,7 @@
     "@babel/preset-env": "^7.26.9",
     "@babel/register": "^7.25.9",
     "@rollup/plugin-commonjs": "^25.0.7",
-    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-json": "^6.1.0",
     "@rollup/plugin-node-resolve": "^16.0.1",
     "@types/localforage": "^0.0.34",
     "browserify": "^17.0.0",

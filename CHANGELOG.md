@@ -1,3 +1,12 @@
+# [0.118.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.117.0...v0.118.0) (2025-05-14)
+
+
+### Features
+
+* Katalon Recorder detection ([#469](https://github.com/openziti/ziti-browzer-runtime/issues/469)) ([5143448](https://github.com/openziti/ziti-browzer-runtime/commit/51434487a770e977a7136feff294bb2c39b72bd4))
+
+
+
 # [0.117.0](https://github.com/openziti/ziti-browzer-runtime/compare/v0.116.0...v0.117.0) (2025-04-22)
 
 

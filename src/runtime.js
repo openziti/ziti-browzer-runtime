@@ -51,27 +51,12 @@ import {
 import { jspi } from "wasm-feature-detect";
 import {eruda} from './tool-button/eruda';
 
+window.WebSocket = ZitiDummyWebSocketWrapper;
 
 /**
  * 
  */
 (function(){var e="ZBR Logging Begins...";if(navigator&&navigator.userAgent){var o=navigator.userAgent.match(/opera|chrome|safari|firefox|msie|trident(?=\/)/i);if(o&&o[0].search(/trident|msie/i)<0)return window.console.log("%cZiti BrowZer Runtime is now Bootstrapping","color:white;font-size:x-large;font-weight:bold;background-image: linear-gradient(to right, #0965f3, #e10c5c) !important;"),void window.console.log("%c"+e,"font-size:large;")}window.console.log("Ziti BrowZer Runtime is now Bootstrapping\n"+e)})();
-
-/**
- *  origin trial token decode
- */
-function base64decode(str) {
-  return new Uint8Array([...atob(str)].map(a => a.charCodeAt(0)));
-}
-function decodeOriginTrialToken(token) {
-  const buf = base64decode(token);
-  const view = new DataView(buf.buffer)
-  const version = view.getUint8()
-  const signature = buf.slice(1, 65)
-  const length = view.getUint32(65, false)
-  const payload = JSON.parse((new TextDecoder()).decode(buf.slice(69, 69 + length)))
-  return {payload, version, length, signature}
-}
 
 /**
  * 
@@ -127,23 +112,6 @@ function isTokenExpired(access_token) {
     window.zitiBrowzerRuntime.logger.trace(`IdP token has expired`);
   }
   return isExpired;
-}
-
-/**
- * 
- */
-function isOriginTrialTokenExpired(token) {
-  try {    
-    const expirationTime = token.payload.expiry * 1000; // Convert to milliseconds
-    const currentTime = Date.now();
-    if ( currentTime > expirationTime ) {
-      return expirationTime
-    } else {
-      return false;
-    }
-  } catch (error) {
-    return Date.now(); // If there's an error, assume the token is invalid or expired
-  }
 }
 
 /**
@@ -733,40 +701,6 @@ class ZitiBrowzerRuntime {
         ${window.zitiBrowzerRuntime._obtainBootStrapperURL()}/browzer_error?browzer_error_data=${stringify(JSON.stringify(browzer_error_data_json))}
       `;
     }, 10);
-
-  }
-
-  originTrialTokenInvalidEventHandler(originTrialTokenUndefinedEvent) {
-    window.zitiBrowzerRuntime.browzer_error({
-      status:   409,
-      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_ORIGIN_TRIAL_TOKEN_INVALID,
-      title:    `OriginTrial token invalid or unspecified`,
-      message:  `Possible network configuration issue exists.`
-    });
-  }
-
-  originTrialSubDomainMismatchEventHandler(originTrialSubDomainMismatchEvent) {
-
-    window.zitiBrowzerRuntime.browzer_error({
-      status:   409,
-      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_ORIGIN_TRIAL_SUBDOMAIN_MISMATCH,
-      title:    `OriginTrial subdomain mismatch for feature [${originTrialSubDomainMismatchEvent.feature}]`,
-      message:  `Expected origin [${originTrialSubDomainMismatchEvent.expectedOrigin}] but is accessed from [${originTrialSubDomainMismatchEvent.actualOrigin}]`
-    });
-
-  }
-
-  originTrialTokenExpiredEventHandler(originTrialExpiredEvent) {
-
-    const date = new Date(originTrialExpiredEvent.expirationTime * 1000);
-    const formattedDate = date.toLocaleString('en-US', { timeZone: 'UTC' });
-
-    window.zitiBrowzerRuntime.browzer_error({
-      status:   409,
-      code:     ZBR_CONSTANTS.ZBR_ERROR_CODE_ORIGIN_TRIAL_EXPIRED,
-      title:    `OriginTrial expiration for feature [${originTrialExpiredEvent.feature}]`,
-      message:  `Token for origin [${originTrialExpiredEvent.expectedOrigin}] expired at[${formattedDate}]`
-    });
 
   }
 
@@ -1684,37 +1618,6 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
 
   window.zitiBrowzerRuntime = zitiBrowzerRuntime;
 
-  // Ensure we have originTrial subdomain alignment
-  let originTrialToken = document.querySelector('meta[id="ziti-browzer-origin-trial"]').content;
-  if (isUndefined(originTrialToken)) {
-    window.zitiBrowzerRuntime.originTrialTokenInvalidEventHandler({});
-  }
-  let decodedOriginTrialToken;
-  try {
-    decodedOriginTrialToken = decodeOriginTrialToken(originTrialToken)
-  } catch (e) {
-    window.zitiBrowzerRuntime.originTrialTokenInvalidEventHandler({});
-  }
-  let currentOriginURL = new URL( window.location.origin );
-  let actualOrigin = currentOriginURL.hostname.split(/\./).slice(-2).join('.');
-  let originTrialURL = new URL( decodedOriginTrialToken.payload.origin );
-  let expectedOrigin = originTrialURL.hostname.split(/\./).slice(-2).join('.');
-  let originTrialExpirationTime = isOriginTrialTokenExpired(decodedOriginTrialToken);
-  if (originTrialExpirationTime) {
-    window.zitiBrowzerRuntime.originTrialTokenExpiredEventHandler({
-      feature:        decodedOriginTrialToken.payload.feature,
-      expectedOrigin: `*.${expectedOrigin}`,
-      expirationTime: originTrialExpirationTime
-    });    
-  }
-  if (!isEqual(actualOrigin, expectedOrigin)) {
-    window.zitiBrowzerRuntime.originTrialSubDomainMismatchEventHandler({
-      feature:        decodedOriginTrialToken.payload.feature,
-      expectedOrigin: `*.${expectedOrigin}`,
-      actualOrigin:   `*.${actualOrigin}`,
-    });
-  }
-
   window.zitiBrowzerRuntime._reloadNeededHeartbeat(window.zitiBrowzerRuntime);
 
   window.zitiBrowzerRuntime.loadedViaBootstrapper = document.getElementById('from-ziti-browzer-bootstrapper');
@@ -1948,6 +1851,12 @@ if (isUndefined(window.zitiBrowzerRuntime)) {
             window.zitiBrowzerRuntime.zitiContext.setCurrentAPISession( currentAPISession );
           }, 10);
           
+        }
+
+        else if (event.data.type === 'REAPPLY_WEBSOCKET_INTERCEPT') {
+          zitiBrowzerRuntime.logger.debug(`################ window.WebSocket is currently: `, window.WebSocket);
+          window.WebSocket = ZitiDummyWebSocketWrapper;
+          zitiBrowzerRuntime.logger.debug(`################ window.WebSocket has been re-intercepted: `, window.WebSocket);
         }
 
         else if (event.data.type === 'XGRESS_EVENT') {
